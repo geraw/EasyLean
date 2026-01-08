@@ -26,7 +26,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_intro'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("הנח")
+                .appendField("נניח את צד שמאל של הגרירה ונקרא להנחה זאת")
                 .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
@@ -40,7 +40,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_exact'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("מדויק")
+                .appendField("מה שאנחנו רוצים להוכיח זה בדיוק")
                 .appendField(new Blockly.FieldTextInput("h"), "TERM");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");

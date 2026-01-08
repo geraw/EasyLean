@@ -131,7 +131,7 @@ const EasyLeanWorkspace = () => {
                         }}
                         disabled={status === 'running'}
                     >
-                        רץ הוכחה
+                        הרץ הוכחה
                     </button>
 
                     <div style={{ flexGrow: 1, padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr' }}>
