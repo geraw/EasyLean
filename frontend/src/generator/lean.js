@@ -1,0 +1,39 @@
+import * as Blockly from 'blockly/core';
+
+export const leanGenerator = new Blockly.Generator('LEAN');
+
+leanGenerator.ORDER_ATOMIC = 0;
+
+leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
+    const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+    const nextCode = opt_thisOnly ? '' : leanGenerator.blockToCode(nextBlock);
+    return code + nextCode;
+};
+
+// Generator for 'theorem'
+leanGenerator.forBlock['theorem'] = function (block) {
+    const name = block.getFieldValue('NAME');
+    const proposition = block.getFieldValue('PROPOSITION');
+    const proof = leanGenerator.statementToCode(block, 'PROOF');
+
+    // Basic Lean 4 theorem structure
+    return `theorem ${name} : ${proposition} := by\n${proof}\n`;
+};
+
+// Generator for 'tactic_intro'
+leanGenerator.forBlock['tactic_intro'] = function (block) {
+    const hypothesis = block.getFieldValue('HYPOTHESIS');
+    return `  intro ${hypothesis}\n`;
+};
+
+// Generator for 'tactic_exact'
+leanGenerator.forBlock['tactic_exact'] = function (block) {
+    const term = block.getFieldValue('TERM');
+    return `  exact ${term}\n`;
+};
+
+// Generator for 'tactic_apply'
+leanGenerator.forBlock['tactic_apply'] = function (block) {
+    const term = block.getFieldValue('TERM');
+    return `  apply ${term}\n`;
+};
