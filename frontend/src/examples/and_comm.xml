@@ -1,0 +1,65 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" id="[m1F{~{u%:.Mis/*rtz^" x="630" y="70">
+    <field name="NAME">my_and_comm</field>
+    <field name="PROPOSITION">p ∧ q -&gt; q ∧ p</field>
+    <statement name="PROOF">
+      <block type="tactic_intro" id="3)!mv-ymvc^aom3e(EX:">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp" id="0L{Y}#8}I.ne/tFgR8zj">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">p ∧ q</field>
+            <next>
+              <block type="tactic_and_elim" id="}E/z7JMi!qESy~ghRp^D">
+                <field name="HYPOTHESIS">h</field>
+                <field name="HYPOTHESIS_LEFT">left</field>
+                <field name="HYPOTHESIS_RIGHT">right</field>
+                <statement name="DO">
+                  <block type="tactic_check_hyp" id="kfimAPW:[1({/Vh[5$=Y">
+                    <field name="HYPOTHESIS">left</field>
+                    <field name="PROPOSITION">p</field>
+                    <next>
+                      <block type="tactic_check_hyp" id="@S7+YL4#oqCkRwBo|GER">
+                        <field name="HYPOTHESIS">right</field>
+                        <field name="PROPOSITION">q</field>
+                        <next>
+                          <block type="tactic_show" id="Y2Uvr-5zu$+e(EHdzk=v">
+                            <field name="PROPOSITION">q ∧ p</field>
+                            <next>
+                              <block type="tactic_and_intro" id="$+:,q`.6AQ|U8{`)DLE-">
+                                <statement name="PROOF_LEFT">
+                                  <block type="tactic_show" id="M~_dA)jZ/K-N$iBAP;7p">
+                                    <field name="PROPOSITION">q</field>
+                                    <next>
+                                      <block type="tactic_exact" id="d_^aXS6F1^ElXH31tgiN">
+                                        <field name="TERM">right</field>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                                <statement name="PROOF_RIGHT">
+                                  <block type="tactic_show" id=",cOQe=fP_vQ3KJ*=`-}7">
+                                    <field name="PROPOSITION">p</field>
+                                    <next>
+                                      <block type="tactic_exact" id="MSf,a2T[1zO*UA2H0wnA">
+                                        <field name="TERM">left</field>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

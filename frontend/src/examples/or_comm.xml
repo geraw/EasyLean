@@ -1,0 +1,69 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" id="TN`?xhL9M{ShgF%zrtb8" x="570" y="90">
+    <field name="NAME">my_or_comm</field>
+    <field name="PROPOSITION">p ∨ q -&gt; q ∨ p</field>
+    <statement name="PROOF">
+      <block type="tactic_intro" id="VjemdI3j5O`d#}o%S%-8">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp" id="}-{SA{Q79Gbt_j1$YpYO">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">p ∨ q</field>
+            <next>
+              <block type="tactic_show" id="wR[zY#mdenP6]En=~nXQ">
+                <field name="PROPOSITION">q ∨ p</field>
+                <next>
+                  <block type="tactic_or_elim" id="B(nN2=-sj?sE.KhUs6UH">
+                    <field name="HYPOTHESIS">h</field>
+                    <field name="HYPOTHESIS_LEFT">h_l</field>
+                    <field name="HYPOTHESIS_RIGHT">h_r</field>
+                    <statement name="CASE_LEFT">
+                      <block type="tactic_check_hyp" id="gLC#9*S9VrWFuOO:[|AP">
+                        <field name="HYPOTHESIS">h_l</field>
+                        <field name="PROPOSITION">p</field>
+                        <next>
+                          <block type="tactic_or_intro_right" id="*aGH$:2xXPT=.]+f:j8,">
+                            <next>
+                              <block type="tactic_show" id="$KB[dhx|L+Rb?SkOcsP_">
+                                <field name="PROPOSITION">p</field>
+                                <next>
+                                  <block type="tactic_exact" id=";Ufg6H}%v.!AQ|qii83q">
+                                    <field name="TERM">h_l</field>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="CASE_RIGHT">
+                      <block type="tactic_check_hyp" id="KETjk44Z9G@36D~1kg0O">
+                        <field name="HYPOTHESIS">h_r</field>
+                        <field name="PROPOSITION">q</field>
+                        <next>
+                          <block type="tactic_or_intro_left" id="1Y$YS4LxK/(J#jx}`}.j">
+                            <next>
+                              <block type="tactic_show" id="861OfZ446Au3hH@eOfaX">
+                                <field name="PROPOSITION">q</field>
+                                <next>
+                                  <block type="tactic_exact" id="by!vO+nCzD4g?CiQ3N7$">
+                                    <field name="TERM">h_r</field>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

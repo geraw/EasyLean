@@ -1,0 +1,27 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" id="SpqUzG1L.M/rBf+ib9~y" x="670" y="110">
+    <field name="NAME">my_p_implies_p</field>
+    <field name="PROPOSITION">p -&gt; p</field>
+    <statement name="PROOF">
+      <block type="tactic_intro" id="E7(lK;V%aiAB3b1,5un3">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp" id="O_MBL,dzz_`eKYyFK$v/">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">p</field>
+            <next>
+              <block type="tactic_show" id="sdcoLMxMSKc|YB+mS{xs">
+                <field name="PROPOSITION">p</field>
+                <next>
+                  <block type="tactic_exact" id="HPqJv~w?Z|KsY(!I7$kx">
+                    <field name="TERM">h</field>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

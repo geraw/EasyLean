@@ -4,6 +4,9 @@ import * as Blockly from 'blockly';
 import { defineBlocks } from '../blocks/logic';
 import { leanGenerator } from '../generator/lean';
 import axios from 'axios';
+import pImpliesPXml from '../examples/p_implies_p.xml?raw';
+import andCommXml from '../examples/and_comm.xml?raw';
+import orCommXml from '../examples/or_comm.xml?raw';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
 // react-blockly uses getAllVariables() which is deprecated/removed in newer Blockly
@@ -59,6 +62,8 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_or_intro_left' },
                     { kind: 'block', type: 'tactic_or_intro_right' },
                     { kind: 'block', type: 'tactic_or_elim' },
+                    { kind: 'block', type: 'tactic_show' },
+                    { kind: 'block', type: 'tactic_check_hyp' },
                 ],
             },
         ],
@@ -67,15 +72,15 @@ const EasyLeanWorkspace = () => {
     const examples = {
         'p_implies_p': {
             name: 'P -> P',
-            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">identity</field><field name="PROPOSITION">p -> p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_exact"><field name="TERM">h</field></block></next></block></statement></block></xml>`
+            xml: pImpliesPXml
         },
         'and_comm': {
             name: 'P ∧ Q -> Q ∧ P',
-            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">and_comm</field><field name="PROPOSITION">p ∧ q -> q ∧ p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_and_elim"><field name="HYPOTHESIS">h</field><statement name="DO"><block type="tactic_and_intro"><next><block type="tactic_exact"><field name="TERM">right</field><next><block type="tactic_exact"><field name="TERM">left</field></block></next></block></next></block></statement></block></next></block></statement></block></xml>`
+            xml: andCommXml
         },
         'or_comm': {
             name: 'P ∨ Q -> Q ∨ P',
-            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">or_comm</field><field name="PROPOSITION">p ∨ q -> q ∨ p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_or_elim"><field name="HYPOTHESIS">h</field><statement name="CASE_LEFT"><block type="tactic_or_intro_right"><next><block type="tactic_exact"><field name="TERM">h_left</field></block></next></block></statement><statement name="CASE_RIGHT"><block type="tactic_or_intro_left"><next><block type="tactic_exact"><field name="TERM">h_right</field></block></next></block></statement></block></next></block></statement></block></xml>`
+            xml: orCommXml
         }
     };
 
@@ -103,6 +108,26 @@ const EasyLeanWorkspace = () => {
         // Prepend common variables so users don't have to declare them for simple proofs
         const prelude = 'variable (p q r : Prop)\n\n';
         setLeanCode(prelude + code);
+    };
+
+    const downloadXml = () => {
+        if (!workspace) return;
+        try {
+            const xmlDom = Blockly.Xml.workspaceToDom(workspace);
+            const xmlText = Blockly.Xml.domToPrettyText(xmlDom);
+            const blob = new Blob([xmlText], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'proof.xml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Failed to save XML", e);
+            alert("Error saving XML");
+        }
     };
 
     const runProof = async () => {
@@ -135,6 +160,7 @@ const EasyLeanWorkspace = () => {
                     <div style={{ flex: 1, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
                         <BlocklyWorkspace
                             className="width-100"
+                            onInject={(ws) => setWorkspace(ws)}
                             toolboxConfiguration={toolboxConfiguration}
                             workspaceConfiguration={{
                                 rtl: true,
@@ -168,21 +194,38 @@ const EasyLeanWorkspace = () => {
                         <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: '10px', margin: 0 }}>{leanCode}</pre>
                     </div>
 
-                    <button
-                        onClick={runProof}
-                        style={{
-                            padding: '10px',
-                            fontSize: '18px',
-                            background: status === 'running' ? '#ccc' : '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: status === 'running' ? 'not-allowed' : 'pointer'
-                        }}
-                        disabled={status === 'running'}
-                    >
-                        הרץ הוכחה
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={runProof}
+                            style={{
+                                flex: 1,
+                                padding: '10px',
+                                fontSize: '18px',
+                                background: status === 'running' ? '#ccc' : '#4CAF50',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: status === 'running' ? 'not-allowed' : 'pointer'
+                            }}
+                            disabled={status === 'running'}
+                        >
+                            הרץ הוכחה
+                        </button>
+                        <button
+                            onClick={downloadXml}
+                            style={{
+                                padding: '10px',
+                                fontSize: '18px',
+                                background: '#2196F3', // Blue for save
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            שמור XML
+                        </button>
+                    </div>
 
                     <div style={{ flexGrow: 1, padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr' }}>
                         <h3 style={{ marginTop: 0, textAlign: 'right', direction: 'rtl' }}>פלט (Output):</h3>

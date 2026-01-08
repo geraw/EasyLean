@@ -39,14 +39,21 @@ leanGenerator.forBlock['tactic_apply'] = function (block) {
 };
 
 leanGenerator.forBlock['tactic_and_intro'] = function (block) {
-    return `  apply And.intro\n`;
+    let leftProof = leanGenerator.statementToCode(block, 'PROOF_LEFT');
+    let rightProof = leanGenerator.statementToCode(block, 'PROOF_RIGHT');
+    if (!leftProof.trim()) leftProof = '    sorry\n';
+    if (!rightProof.trim()) rightProof = '    sorry\n';
+
+    return `  apply And.intro\n  ·\n${leftProof}\n  ·\n${rightProof}\n`;
 };
 
 leanGenerator.forBlock['tactic_and_elim'] = function (block) {
     const h = block.getFieldValue('HYPOTHESIS');
+    const h1 = block.getFieldValue('HYPOTHESIS_LEFT');
+    const h2 = block.getFieldValue('HYPOTHESIS_RIGHT');
     let branch = leanGenerator.statementToCode(block, 'DO');
     if (!branch.trim()) branch = '    sorry\n';
-    return `  cases ${h} with\n  | intro left right =>\n${branch}\n`;
+    return `  cases ${h} with\n  | intro ${h1} ${h2} =>\n${branch}\n`;
 };
 
 leanGenerator.forBlock['tactic_or_intro_left'] = function (block) {
@@ -59,9 +66,22 @@ leanGenerator.forBlock['tactic_or_intro_right'] = function (block) {
 
 leanGenerator.forBlock['tactic_or_elim'] = function (block) {
     const h = block.getFieldValue('HYPOTHESIS');
+    const hLeft = block.getFieldValue('HYPOTHESIS_LEFT');
+    const hRight = block.getFieldValue('HYPOTHESIS_RIGHT');
     let leftBranch = leanGenerator.statementToCode(block, 'CASE_LEFT');
     let rightBranch = leanGenerator.statementToCode(block, 'CASE_RIGHT');
     if (!leftBranch.trim()) leftBranch = '    sorry\n';
     if (!rightBranch.trim()) rightBranch = '    sorry\n';
-    return `  cases ${h} with\n  | inl h_left =>\n${leftBranch}\n  | inr h_right =>\n${rightBranch}\n`;
+    return `  cases ${h} with\n  | inl ${hLeft} =>\n${leftBranch}\n  | inr ${hRight} =>\n${rightBranch}\n`;
+};
+
+leanGenerator.forBlock['tactic_show'] = function (block) {
+    const proposition = block.getFieldValue('PROPOSITION');
+    return `  show ${proposition}\n`;
+};
+
+leanGenerator.forBlock['tactic_check_hyp'] = function (block) {
+    const hypothesis = block.getFieldValue('HYPOTHESIS');
+    const proposition = block.getFieldValue('PROPOSITION');
+    return `  have : ${proposition} := ${hypothesis}\n`;
 };
