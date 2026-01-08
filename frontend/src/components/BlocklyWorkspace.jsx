@@ -18,6 +18,7 @@ const EasyLeanWorkspace = () => {
     const [leanCode, setLeanCode] = useState('');
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, running, success, error
+    const [workspace, setWorkspace] = useState(null);
 
     const initialXml = `
 <xml xmlns="https://developers.google.com/blockly/xml">
@@ -53,13 +54,52 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_intro' },
                     { kind: 'block', type: 'tactic_exact' },
                     { kind: 'block', type: 'tactic_apply' },
+                    { kind: 'block', type: 'tactic_and_intro' },
+                    { kind: 'block', type: 'tactic_and_elim' },
+                    { kind: 'block', type: 'tactic_or_intro_left' },
+                    { kind: 'block', type: 'tactic_or_intro_right' },
+                    { kind: 'block', type: 'tactic_or_elim' },
                 ],
             },
         ],
     };
 
-    const onWorkspaceChange = (workspace) => {
-        const code = leanGenerator.workspaceToCode(workspace);
+    const examples = {
+        'p_implies_p': {
+            name: 'P -> P',
+            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">identity</field><field name="PROPOSITION">p -> p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_exact"><field name="TERM">h</field></block></next></block></statement></block></xml>`
+        },
+        'and_comm': {
+            name: 'P ∧ Q -> Q ∧ P',
+            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">and_comm</field><field name="PROPOSITION">p ∧ q -> q ∧ p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_and_elim"><field name="HYPOTHESIS">h</field><statement name="DO"><block type="tactic_and_intro"><next><block type="tactic_exact"><field name="TERM">right</field><next><block type="tactic_exact"><field name="TERM">left</field></block></next></block></next></block></statement></block></next></block></statement></block></xml>`
+        },
+        'or_comm': {
+            name: 'P ∨ Q -> Q ∨ P',
+            xml: `<xml xmlns="https://developers.google.com/blockly/xml"><block type="theorem" x="20" y="20"><field name="NAME">or_comm</field><field name="PROPOSITION">p ∨ q -> q ∨ p</field><statement name="PROOF"><block type="tactic_intro"><field name="HYPOTHESIS">h</field><next><block type="tactic_or_elim"><field name="HYPOTHESIS">h</field><statement name="CASE_LEFT"><block type="tactic_or_intro_right"><next><block type="tactic_exact"><field name="TERM">h_left</field></block></next></block></statement><statement name="CASE_RIGHT"><block type="tactic_or_intro_left"><next><block type="tactic_exact"><field name="TERM">h_right</field></block></next></block></statement></block></next></block></statement></block></xml>`
+        }
+    };
+
+    const loadExample = (key) => {
+        if (!workspace || !examples[key]) return;
+        workspace.clear();
+        try {
+            // For newer blockly, might need Blockly.Xml 
+            // or check if window.Blockly.Xml is available if imported differently
+            // But assuming import * as Blockly works:
+            const dom = Blockly.utils.xml.textToDom(examples[key].xml);
+            Blockly.Xml.domToWorkspace(dom, workspace);
+        } catch (e) {
+            console.error("Error loading example", e);
+        }
+    };
+
+    const onWorkspaceChange = (ws) => {
+        // Capture workspace for loadExample usage
+        if (ws && !workspace) {
+            setWorkspace(ws);
+        }
+
+        const code = leanGenerator.workspaceToCode(ws);
         // Prepend common variables so users don't have to declare them for simple proofs
         const prelude = 'variable (p q r : Prop)\n\n';
         setLeanCode(prelude + code);
@@ -113,6 +153,16 @@ const EasyLeanWorkspace = () => {
                 </div>
 
                 <div style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ padding: '10px', background: '#e0e0e0', borderRadius: '5px' }}>
+                        <span style={{ fontWeight: 'bold', marginLeft: '10px' }}>בחר דוגמה:</span>
+                        <select onChange={(e) => loadExample(e.target.value)} style={{ padding: '5px', borderRadius: '4px' }}>
+                            <option value="">-- בחר --</option>
+                            {Object.entries(examples).map(([key, example]) => (
+                                <option key={key} value={key}>{example.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div style={{ padding: '10px', background: '#f5f5f5', borderRadius: '5px', textAlign: 'left', direction: 'ltr' }}>
                         <h3 style={{ marginTop: 0, textAlign: 'right', direction: 'rtl' }}>קוד שנוצר (Lean 4):</h3>
                         <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: '10px', margin: 0 }}>{leanCode}</pre>

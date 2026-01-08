@@ -37,3 +37,31 @@ leanGenerator.forBlock['tactic_apply'] = function (block) {
     const term = block.getFieldValue('TERM');
     return `  apply ${term}\n`;
 };
+
+leanGenerator.forBlock['tactic_and_intro'] = function (block) {
+    return `  apply And.intro\n`;
+};
+
+leanGenerator.forBlock['tactic_and_elim'] = function (block) {
+    const h = block.getFieldValue('HYPOTHESIS');
+    let branch = leanGenerator.statementToCode(block, 'DO');
+    if (!branch.trim()) branch = '    sorry\n';
+    return `  cases ${h} with\n  | intro left right =>\n${branch}\n`;
+};
+
+leanGenerator.forBlock['tactic_or_intro_left'] = function (block) {
+    return `  apply Or.inl\n`;
+};
+
+leanGenerator.forBlock['tactic_or_intro_right'] = function (block) {
+    return `  apply Or.inr\n`;
+};
+
+leanGenerator.forBlock['tactic_or_elim'] = function (block) {
+    const h = block.getFieldValue('HYPOTHESIS');
+    let leftBranch = leanGenerator.statementToCode(block, 'CASE_LEFT');
+    let rightBranch = leanGenerator.statementToCode(block, 'CASE_RIGHT');
+    if (!leftBranch.trim()) leftBranch = '    sorry\n';
+    if (!rightBranch.trim()) rightBranch = '    sorry\n';
+    return `  cases ${h} with\n  | inl h_left =>\n${leftBranch}\n  | inr h_right =>\n${rightBranch}\n`;
+};

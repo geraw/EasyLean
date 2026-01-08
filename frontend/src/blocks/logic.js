@@ -54,13 +54,79 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_apply'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("החל")
+                .appendField("הפעל")
                 .appendField(new Blockly.FieldTextInput("h"), "TERM");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);
             this.setTooltip("tactic: apply");
             this.setHelpUrl("");
+        }
+    };
+
+    // Tactic: And Intro (Split)
+    Blockly.Blocks['tactic_and_intro'] = {
+        init: function () {
+            this.appendDummyInput().appendField("פצל (And.intro)");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+            this.setTooltip("Split the goal proof into two sub-goals (P ∧ Q)");
+        }
+    };
+
+    // Tactic: And Elim (Cases)
+    Blockly.Blocks['tactic_and_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("פרק את")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField("לגורמים (cases)");
+            this.appendStatementInput("DO")
+                .setCheck("tactic");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+            this.setTooltip("Destructure an AND hypothesis");
+        }
+    };
+
+    // Tactic: Or Intro Left
+    Blockly.Blocks['tactic_or_intro_left'] = {
+        init: function () {
+            this.appendDummyInput().appendField("הוכח צד שמאל (Or.inl)");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+        }
+    };
+
+    // Tactic: Or Intro Right
+    Blockly.Blocks['tactic_or_intro_right'] = {
+        init: function () {
+            this.appendDummyInput().appendField("הוכח צד ימין (Or.inr)");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+        }
+    };
+
+    // Tactic: Or Elim (Cases)
+    Blockly.Blocks['tactic_or_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("פצל למקרים את")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField("(Or cases)");
+            this.appendStatementInput("CASE_LEFT")
+                .setCheck("tactic")
+                .appendField("מקרה שמאל (inl):");
+            this.appendStatementInput("CASE_RIGHT")
+                .setCheck("tactic")
+                .appendField("מקרה ימין (inr):");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
         }
     };
 };
