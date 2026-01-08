@@ -92,7 +92,7 @@ export const defineBlocks = () => {
             this.appendDummyInput()
                 .appendField("נפרק את")
                 .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
-                .appendField("לגורמים, וקרא להם")
+                .appendField("לגורמים, ונקרא להם")
                 .appendField(new Blockly.FieldTextInput("left"), "HYPOTHESIS_LEFT")
                 .appendField(",")
                 .appendField(new Blockly.FieldTextInput("right"), "HYPOTHESIS_RIGHT");
@@ -129,7 +129,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_or_elim'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("פצל את הנחה")
+                .appendField("נפצל הנחה")
                 .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
                 .appendField("מסוג \"או\" לשני מקרים");
 

@@ -1,0 +1,79 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" x="20" y="20">
+    <field name="NAME">distributivity</field>
+    <field name="PROPOSITION">p ∧ (q ∨ r) -&gt; (p ∧ q) ∨ (p ∧ r)</field>
+    <statement name="PROOF">
+      <block type="tactic_intro">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">p ∧ (q ∨ r)</field>
+            <next>
+              <block type="tactic_and_elim">
+                <field name="HYPOTHESIS">h</field>
+                <field name="HYPOTHESIS_LEFT">hp</field>
+                <field name="HYPOTHESIS_RIGHT">hqr</field>
+                <statement name="DO">
+                  <block type="tactic_check_hyp">
+                    <field name="HYPOTHESIS">hp</field>
+                    <field name="PROPOSITION">p</field>
+                    <next>
+                      <block type="tactic_check_hyp">
+                        <field name="HYPOTHESIS">hqr</field>
+                        <field name="PROPOSITION">q ∨ r</field>
+                        <next>
+                          <block type="tactic_or_elim">
+                            <field name="HYPOTHESIS">hqr</field>
+                            <field name="HYPOTHESIS_LEFT">hq</field>
+                            <field name="HYPOTHESIS_RIGHT">hr</field>
+                            <statement name="CASE_LEFT">
+                              <block type="tactic_or_intro_left">
+                                <next>
+                                  <block type="tactic_and_intro">
+                                    <statement name="PROOF_LEFT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">hp</field>
+                                      </block>
+                                    </statement>
+                                    <statement name="PROOF_RIGHT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">hq</field>
+                                      </block>
+                                    </statement>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                            <statement name="CASE_RIGHT">
+                              <block type="tactic_or_intro_right">
+                                <next>
+                                  <block type="tactic_and_intro">
+                                    <statement name="PROOF_LEFT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">hp</field>
+                                      </block>
+                                    </statement>
+                                    <statement name="PROOF_RIGHT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">hr</field>
+                                      </block>
+                                    </statement>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
