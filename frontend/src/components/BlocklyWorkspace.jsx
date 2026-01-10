@@ -9,6 +9,7 @@ import andCommXml from '../examples/and_comm.xml?raw';
 import orCommXml from '../examples/or_comm.xml?raw';
 import distribXml from '../examples/distributivity.xml?raw';
 import deMorganXml from '../examples/de_morgan.xml?raw';
+import setsXml from '../examples/sets_inter.xml?raw';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
 // react-blockly uses getAllVariables() which is deprecated/removed in newer Blockly
@@ -93,6 +94,10 @@ const EasyLeanWorkspace = () => {
         'demorgan': {
             name: 'De Morgan: ¬(P ∨ Q) -> ¬P ∧ ¬Q',
             xml: deMorganXml
+        },
+        'sets': {
+            name: 'Sets: A ∩ B ⊆ B ∩ A',
+            xml: setsXml
         }
     };
 

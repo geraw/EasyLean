@@ -1,0 +1,58 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" x="20" y="20">
+    <field name="NAME">set_intersection_comm</field>
+    <field name="PROPOSITION">∀ (A B : MySet Nat), A ∩ B ⊆ B ∩ A</field>
+    <statement name="PROOF">
+      <block type="tactic_intro">
+        <field name="HYPOTHESIS">A</field>
+        <next>
+          <block type="tactic_intro">
+            <field name="HYPOTHESIS">B</field>
+            <next>
+              <block type="tactic_intro">
+                <field name="HYPOTHESIS">x</field>
+                <next>
+                  <block type="tactic_intro">
+                    <field name="HYPOTHESIS">h</field>
+                    <next>
+                      <block type="tactic_check_hyp">
+                        <field name="HYPOTHESIS">h</field>
+                        <field name="PROPOSITION">x ∈ A ∩ B</field>
+                        <next>
+                          <block type="tactic_and_elim">
+                            <field name="HYPOTHESIS">h</field>
+                            <field name="HYPOTHESIS_LEFT">xA</field>
+                            <field name="HYPOTHESIS_RIGHT">xB</field>
+                            <statement name="DO">
+                              <block type="tactic_show">
+                                <field name="PROPOSITION">x ∈ B ∩ A</field>
+                                <next>
+                                  <block type="tactic_and_intro">
+                                    <statement name="PROOF_LEFT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">xB</field>
+                                      </block>
+                                    </statement>
+                                    <statement name="PROOF_RIGHT">
+                                      <block type="tactic_exact">
+                                        <field name="TERM">xA</field>
+                                      </block>
+                                    </statement>
+                                  </block>
+                                </next>
+                              </block>
+                            </statement>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

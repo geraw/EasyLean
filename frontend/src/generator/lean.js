@@ -17,7 +17,19 @@ leanGenerator.forBlock['theorem'] = function (block) {
     const proof = leanGenerator.statementToCode(block, 'PROOF');
 
     // Basic Lean 4 theorem structure
-    return `theorem ${name} : ${proposition} := by\n${proof}\n`;
+    const PREAMBLE = `
+def MySet (α : Type) := α → Prop
+
+def MySet.mem (x : α) (s : MySet α) : Prop := s x
+infix:50 " ∈ " => MySet.mem
+
+def MySet.subset (s₁ s₂ : MySet α) := ∀ x, x ∈ s₁ → x ∈ s₂
+infix:50 " ⊆ " => MySet.subset
+
+def MySet.inter (s₁ s₂ : MySet α) : MySet α := λ x => x ∈ s₁ ∧ x ∈ s₂
+infix:70 " ∩ " => MySet.inter
+`;
+    return `${PREAMBLE}\ntheorem ${name} : ${proposition} := by\n${proof}\n`;
 };
 
 // Generator for 'tactic_intro'
