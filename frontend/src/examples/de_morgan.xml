@@ -1,0 +1,96 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" id="OE.,wLyZA~:o{OnsKLs+" x="20" y="20">
+    <field name="NAME">demorgan_not_or</field>
+    <field name="PROPOSITION">¬(p ∨ q) -&gt; ¬p ∧ ¬q</field>
+    <statement name="PROOF">
+      <block type="tactic_intro" id="LSa58OyYBLZ{yZA-H!L@">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp" id="+khbLsY)PI$Gn`]Ksn@X">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">¬(p ∨ q)</field>
+            <next>
+              <block type="tactic_show" id="$E2l?%OK;rpIb#;BObD?">
+                <field name="PROPOSITION">¬p ∧ ¬q</field>
+                <next>
+                  <block type="tactic_and_intro" id="@1uX;Ggt*rYa0AimHk|i">
+                    <statement name="PROOF_LEFT">
+                      <block type="tactic_show" id="_442uEQuVkg%jY+]HD^e">
+                        <field name="PROPOSITION">¬p </field>
+                        <next>
+                          <block type="tactic_by_negation" id="aW!w-oz+(wSF!u;((U]i">
+                            <field name="HYPOTHESIS">hp</field>
+                            <next>
+                              <block type="tactic_check_hyp" id="Aul9S:zTv#5S*]c/2)oa">
+                                <field name="HYPOTHESIS">hp</field>
+                                <field name="PROPOSITION">p</field>
+                                <next>
+                                  <block type="tactic_contradiction" id="mh6lFEQ/sJpiV_wc%~tO">
+                                    <field name="HYPOTHESIS">h</field>
+                                    <next>
+                                      <block type="tactic_show" id="=1Jhs]bv`cyKAg[8|2=P">
+                                        <field name="PROPOSITION">p ∨ q</field>
+                                        <next>
+                                          <block type="tactic_or_intro_left" id="zO(G`WwGr4!F^9Pk`VPn">
+                                            <next>
+                                              <block type="tactic_exact" id="`tU!ytKZCVL4Unt37!+4">
+                                                <field name="TERM">hp</field>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                    <statement name="PROOF_RIGHT">
+                      <block type="tactic_show" id="GMO`WpNOF=?}`-X3SCy@">
+                        <field name="PROPOSITION">¬q </field>
+                        <next>
+                          <block type="tactic_by_negation" id="eNKv]bD.0}D4(0ODdY.]">
+                            <field name="HYPOTHESIS">hq</field>
+                            <next>
+                              <block type="tactic_check_hyp" id="XRTNvyORfL6P3IosxLC|">
+                                <field name="HYPOTHESIS">hq</field>
+                                <field name="PROPOSITION">q</field>
+                                <next>
+                                  <block type="tactic_contradiction" id="zFA_WqCnFc~|r{r1K#W}">
+                                    <field name="HYPOTHESIS">h</field>
+                                    <next>
+                                      <block type="tactic_show" id="SZ@:p/=#NGcW81o!9:6:">
+                                        <field name="PROPOSITION">p ∨ q</field>
+                                        <next>
+                                          <block type="tactic_or_intro_right" id="5g=wA3Te5tsS+tbmbI,Z">
+                                            <next>
+                                              <block type="tactic_exact" id="%RrDg+%}gcX;I;9}XZ1G">
+                                                <field name="TERM">hq</field>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

@@ -26,6 +26,18 @@ leanGenerator.forBlock['tactic_intro'] = function (block) {
     return `  intro ${hypothesis}\n`;
 };
 
+// Generator for 'tactic_by_negation'
+leanGenerator.forBlock['tactic_by_negation'] = function (block) {
+    const hypothesis = block.getFieldValue('HYPOTHESIS');
+    return `  intro ${hypothesis}\n`;
+};
+
+// Generator for 'tactic_contradiction'
+leanGenerator.forBlock['tactic_contradiction'] = function (block) {
+    const hypothesis = block.getFieldValue('HYPOTHESIS');
+    return `  apply ${hypothesis}\n`;
+};
+
 // Generator for 'tactic_exact'
 leanGenerator.forBlock['tactic_exact'] = function (block) {
     const term = block.getFieldValue('TERM');

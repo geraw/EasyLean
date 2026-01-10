@@ -181,4 +181,30 @@ export const defineBlocks = () => {
             this.setTooltip("Verify the type of a hypothesis");
         }
     };
+
+    // Tactic: Assume by Negation (Intro for Not)
+    Blockly.Blocks['tactic_by_negation'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נניח בשלילה את היפוך הטענה ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Assume the negation (intro)");
+        }
+    };
+
+    // Tactic: Contradiction (Apply Negation)
+    Blockly.Blocks['tactic_contradiction'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נשאף לסתירה על ידי הוכחת שלילת הטענה")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Apply a negation hypothesis to reach a contradiction (apply)");
+        }
+    };
 };

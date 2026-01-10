@@ -8,6 +8,7 @@ import pImpliesPXml from '../examples/p_implies_p.xml?raw';
 import andCommXml from '../examples/and_comm.xml?raw';
 import orCommXml from '../examples/or_comm.xml?raw';
 import distribXml from '../examples/distributivity.xml?raw';
+import deMorganXml from '../examples/de_morgan.xml?raw';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
 // react-blockly uses getAllVariables() which is deprecated/removed in newer Blockly
@@ -65,6 +66,8 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_or_elim' },
                     { kind: 'block', type: 'tactic_show' },
                     { kind: 'block', type: 'tactic_check_hyp' },
+                    { kind: 'block', type: 'tactic_by_negation' },
+                    { kind: 'block', type: 'tactic_contradiction' },
                 ],
             },
         ],
@@ -86,6 +89,10 @@ const EasyLeanWorkspace = () => {
         'distrib': {
             name: 'Distributivity: P ∧ (Q ∨ R) -> (P ∧ Q) ∨ (P ∧ R)',
             xml: distribXml
+        },
+        'demorgan': {
+            name: 'De Morgan: ¬(P ∨ Q) -> ¬P ∧ ¬Q',
+            xml: deMorganXml
         }
     };
 
