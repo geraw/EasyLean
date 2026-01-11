@@ -86,6 +86,28 @@ export const defineBlocks = () => {
         }
     };
 
+    // Tactic: Iff Intro (<->)
+    Blockly.Blocks['tactic_iff_intro'] = {
+        init: function () {
+            this.appendDummyInput().appendField("נוכיח את שני הכיוונים (אם ורק אם)");
+
+            this.appendDummyInput()
+                .appendField("כיוון ראשון (->):");
+            this.appendStatementInput("PROOF_MP")
+                .setCheck("tactic");
+
+            this.appendDummyInput()
+                .appendField("כיוון שני (<-):");
+            this.appendStatementInput("PROOF_MPR")
+                .setCheck("tactic");
+
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+            this.setTooltip("Split Iff goal into forward and backward implications");
+        }
+    };
+
     // Tactic: And Elim (Cases)
     Blockly.Blocks['tactic_and_elim'] = {
         init: function () {
@@ -158,7 +180,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_show'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("מה שצריך להוכיח זה")
+                .appendField("מה שאנחנו רוצים להוכיח זה")
                 .appendField(new Blockly.FieldTextInput("P"), "PROPOSITION");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");

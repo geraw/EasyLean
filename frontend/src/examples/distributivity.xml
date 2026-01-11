@@ -1,113 +1,288 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
-  <block type="theorem" id="=zntF$TQirSV}%h%`[$X" x="663" y="30">
-    <field name="NAME">distributivity</field>
-    <field name="PROPOSITION">p ∧ (q ∨ r) -&gt; (p ∧ q) ∨ (p ∧ r)</field>
+  <block type="theorem" x="20" y="20">
+    <field name="NAME">distributivity_iff</field>
+    <field name="PROPOSITION">(p ∧ (q ∨ r)) ↔ ((p ∧ q) ∨ (p ∧ r))</field>
     <statement name="PROOF">
-      <block type="tactic_intro" id="qeJ22Qu|{lhMxED!;!Rw">
-        <field name="HYPOTHESIS">h</field>
-        <next>
-          <block type="tactic_check_hyp" id="VI2RAL[!Xh*qk@{0DjR`">
+      <block type="tactic_iff_intro">
+        <statement name="PROOF_MP">
+          <block type="tactic_intro">
             <field name="HYPOTHESIS">h</field>
-            <field name="PROPOSITION">p ∧ (q ∨ r)</field>
             <next>
-              <block type="tactic_show" id="/0Zs%)IhSmlMC/E$jzSN">
-                <field name="PROPOSITION">(p ∧ q) ∨ (p ∧ r)</field>
+              <block type="tactic_check_hyp">
+                <field name="HYPOTHESIS">h</field>
+                <field name="PROPOSITION">p ∧ (q ∨ r)</field>
                 <next>
-                  <block type="tactic_and_elim" id="|*hvM;VbarUAz`W|}@eJ">
-                    <field name="HYPOTHESIS">h</field>
-                    <field name="HYPOTHESIS_LEFT">hp</field>
-                    <field name="HYPOTHESIS_RIGHT">hqr</field>
-                    <statement name="DO">
-                      <block type="tactic_check_hyp" id="6n*#X}+Uki!Hm{*hAC8l">
-                        <field name="HYPOTHESIS">hp</field>
-                        <field name="PROPOSITION">p</field>
-                        <next>
-                          <block type="tactic_check_hyp" id="+dEF@Lf$.w}X:zcVNU[M">
-                            <field name="HYPOTHESIS">hqr</field>
-                            <field name="PROPOSITION">q ∨ r</field>
+                  <block type="tactic_show">
+                    <field name="PROPOSITION">(p ∧ q) ∨ (p ∧ r)</field>
+                    <next>
+                      <block type="tactic_and_elim">
+                        <field name="HYPOTHESIS">h</field>
+                        <field name="HYPOTHESIS_LEFT">hp</field>
+                        <field name="HYPOTHESIS_RIGHT">hqr</field>
+                        <statement name="DO">
+                          <block type="tactic_check_hyp">
+                            <field name="HYPOTHESIS">hp</field>
+                            <field name="PROPOSITION">p</field>
                             <next>
-                              <block type="tactic_or_elim" id="iL.+*o{ZMBhJVpa2Mks+">
+                              <block type="tactic_check_hyp">
                                 <field name="HYPOTHESIS">hqr</field>
-                                <field name="HYPOTHESIS_LEFT">hq</field>
-                                <field name="HYPOTHESIS_RIGHT">hr</field>
-                                <statement name="CASE_LEFT">
-                                  <block type="tactic_or_intro_left" id="52w66s1KpY^!%_Vgiuhr">
-                                    <next>
-                                      <block type="tactic_show" id="~@Ij:1egl98gor(0kvOO">
-                                        <field name="PROPOSITION">(p ∧ q)</field>
+                                <field name="PROPOSITION">q ∨ r</field>
+                                <next>
+                                  <block type="tactic_or_elim">
+                                    <field name="HYPOTHESIS">hqr</field>
+                                    <field name="HYPOTHESIS_LEFT">hq</field>
+                                    <field name="HYPOTHESIS_RIGHT">hr</field>
+                                    <statement name="CASE_LEFT">
+                                      <block type="tactic_check_hyp">
+                                        <field name="HYPOTHESIS">hq</field>
+                                        <field name="PROPOSITION">q</field>
                                         <next>
-                                          <block type="tactic_and_intro" id="I;jRB,1`7SRH!SP0A.$_">
-                                            <statement name="PROOF_LEFT">
-                                              <block type="tactic_show" id="2J^}eD?pNQyXgckv-/:L">
-                                                <field name="PROPOSITION">p</field>
+                                          <block type="tactic_show">
+                                            <field name="PROPOSITION">(p ∧ q) ∨ (p ∧ r)</field>
+                                            <next>
+                                              <block type="tactic_or_intro_left">
                                                 <next>
-                                                  <block type="tactic_exact" id="7Pr9v~|1]S1V/DfhQyeP">
-                                                    <field name="TERM">hp</field>
+                                                  <block type="tactic_show">
+                                                    <field name="PROPOSITION">p ∧ q</field>
+                                                    <next>
+                                                      <block type="tactic_and_intro">
+                                                        <statement name="PROOF_LEFT">
+                                                          <block type="tactic_show">
+                                                            <field name="PROPOSITION">p</field>
+                                                            <next>
+                                                              <block type="tactic_exact">
+                                                                <field name="TERM">hp</field>
+                                                              </block>
+                                                            </next>
+                                                          </block>
+                                                        </statement>
+                                                        <statement name="PROOF_RIGHT">
+                                                          <block type="tactic_show">
+                                                            <field name="PROPOSITION">q</field>
+                                                            <next>
+                                                              <block type="tactic_exact">
+                                                                <field name="TERM">hq</field>
+                                                              </block>
+                                                            </next>
+                                                          </block>
+                                                        </statement>
+                                                      </block>
+                                                    </next>
                                                   </block>
                                                 </next>
                                               </block>
-                                            </statement>
-                                            <statement name="PROOF_RIGHT">
-                                              <block type="tactic_show" id="lgrqm]8U-JEiG30:!v=f">
-                                                <field name="PROPOSITION">q</field>
-                                                <next>
-                                                  <block type="tactic_exact" id="9XYMGTL?60(6V+S|j@,P">
-                                                    <field name="TERM">hq</field>
-                                                  </block>
-                                                </next>
-                                              </block>
-                                            </statement>
+                                            </next>
                                           </block>
                                         </next>
                                       </block>
-                                    </next>
-                                  </block>
-                                </statement>
-                                <statement name="CASE_RIGHT">
-                                  <block type="tactic_or_intro_right" id="jN(N-rvG|*UV!c}R_#Ph">
-                                    <next>
-                                      <block type="tactic_show" id="b1;G%lvq7aaFUWmf;PJ$">
-                                        <field name="PROPOSITION">(p ∧ r)</field>
+                                    </statement>
+                                    <statement name="CASE_RIGHT">
+                                      <block type="tactic_check_hyp">
+                                        <field name="HYPOTHESIS">hr</field>
+                                        <field name="PROPOSITION">r</field>
                                         <next>
-                                          <block type="tactic_and_intro" id="9x2N70P_(^,,W?7+}0{{">
-                                            <statement name="PROOF_LEFT">
-                                              <block type="tactic_show" id="rLYIADs$1VRs7`=#0}^!">
-                                                <field name="PROPOSITION">p</field>
+                                          <block type="tactic_show">
+                                            <field name="PROPOSITION">(p ∧ q) ∨ (p ∧ r)</field>
+                                            <next>
+                                              <block type="tactic_or_intro_right">
                                                 <next>
-                                                  <block type="tactic_exact" id="mf07XCB.q$`(uR)5`sh!">
-                                                    <field name="TERM">hp</field>
+                                                  <block type="tactic_show">
+                                                    <field name="PROPOSITION">p ∧ r</field>
+                                                    <next>
+                                                      <block type="tactic_and_intro">
+                                                        <statement name="PROOF_LEFT">
+                                                          <block type="tactic_show">
+                                                            <field name="PROPOSITION">p</field>
+                                                            <next>
+                                                              <block type="tactic_exact">
+                                                                <field name="TERM">hp</field>
+                                                              </block>
+                                                            </next>
+                                                          </block>
+                                                        </statement>
+                                                        <statement name="PROOF_RIGHT">
+                                                          <block type="tactic_show">
+                                                            <field name="PROPOSITION">r</field>
+                                                            <next>
+                                                              <block type="tactic_exact">
+                                                                <field name="TERM">hr</field>
+                                                              </block>
+                                                            </next>
+                                                          </block>
+                                                        </statement>
+                                                      </block>
+                                                    </next>
                                                   </block>
                                                 </next>
                                               </block>
-                                            </statement>
-                                            <statement name="PROOF_RIGHT">
-                                              <block type="tactic_show" id=".c2!i5|vov}qs[;EmwX;">
-                                                <field name="PROPOSITION">r</field>
-                                                <next>
-                                                  <block type="tactic_exact" id="UYeI;_oZ.3,X:m4xfeNM">
-                                                    <field name="TERM">hr</field>
-                                                  </block>
-                                                </next>
-                                              </block>
-                                            </statement>
+                                            </next>
                                           </block>
                                         </next>
                                       </block>
-                                    </next>
+                                    </statement>
                                   </block>
-                                </statement>
+                                </next>
                               </block>
                             </next>
                           </block>
-                        </next>
+                        </statement>
                       </block>
-                    </statement>
+                    </next>
                   </block>
                 </next>
               </block>
             </next>
           </block>
-        </next>
+        </statement>
+        <statement name="PROOF_MPR">
+          <block type="tactic_intro">
+            <field name="HYPOTHESIS">h</field>
+            <next>
+              <block type="tactic_check_hyp">
+                <field name="HYPOTHESIS">h</field>
+                <field name="PROPOSITION">(p ∧ q) ∨ (p ∧ r)</field>
+                <next>
+                  <block type="tactic_show">
+                    <field name="PROPOSITION">p ∧ (q ∨ r)</field>
+                    <next>
+                      <block type="tactic_or_elim">
+                        <field name="HYPOTHESIS">h</field>
+                        <field name="HYPOTHESIS_LEFT">h1</field>
+                        <field name="HYPOTHESIS_RIGHT">h2</field>
+                        <statement name="CASE_LEFT">
+                          <block type="tactic_check_hyp">
+                            <field name="HYPOTHESIS">h1</field>
+                            <field name="PROPOSITION">p ∧ q</field>
+                            <next>
+                              <block type="tactic_show">
+                                <field name="PROPOSITION">p ∧ (q ∨ r)</field>
+                                <next>
+                                  <block type="tactic_and_elim">
+                                    <field name="HYPOTHESIS">h1</field>
+                                    <field name="HYPOTHESIS_LEFT">hp</field>
+                                    <field name="HYPOTHESIS_RIGHT">hq</field>
+                                    <statement name="DO">
+                                      <block type="tactic_check_hyp">
+                                        <field name="HYPOTHESIS">hp</field>
+                                        <field name="PROPOSITION">p</field>
+                                        <next>
+                                          <block type="tactic_check_hyp">
+                                            <field name="HYPOTHESIS">hq</field>
+                                            <field name="PROPOSITION">q</field>
+                                            <next>
+                                                <block type="tactic_and_intro">
+                                                  <statement name="PROOF_LEFT">
+                                                    <block type="tactic_show">
+                                                      <field name="PROPOSITION">p</field>
+                                                      <next>
+                                                        <block type="tactic_exact">
+                                                          <field name="TERM">hp</field>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                  <statement name="PROOF_RIGHT">
+                                                    <block type="tactic_show">
+                                                      <field name="PROPOSITION">q ∨ r</field>
+                                                      <next>
+                                                        <block type="tactic_or_intro_left">
+                                                          <next>
+                                                            <block type="tactic_show">
+                                                              <field name="PROPOSITION">q</field>
+                                                              <next>
+                                                                <block type="tactic_exact">
+                                                                  <field name="TERM">hq</field>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </statement>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="CASE_RIGHT">
+                          <block type="tactic_check_hyp">
+                            <field name="HYPOTHESIS">h2</field>
+                            <field name="PROPOSITION">p ∧ r</field>
+                            <next>
+                              <block type="tactic_show">
+                                <field name="PROPOSITION">p ∧ (q ∨ r)</field>
+                                <next>
+                                  <block type="tactic_and_elim">
+                                    <field name="HYPOTHESIS">h2</field>
+                                    <field name="HYPOTHESIS_LEFT">hp</field>
+                                    <field name="HYPOTHESIS_RIGHT">hr</field>
+                                    <statement name="DO">
+                                      <block type="tactic_check_hyp">
+                                        <field name="HYPOTHESIS">hp</field>
+                                        <field name="PROPOSITION">p</field>
+                                        <next>
+                                          <block type="tactic_check_hyp">
+                                            <field name="HYPOTHESIS">hr</field>
+                                            <field name="PROPOSITION">r</field>
+                                            <next>
+                                                <block type="tactic_and_intro">
+                                                  <statement name="PROOF_LEFT">
+                                                    <block type="tactic_show">
+                                                      <field name="PROPOSITION">p</field>
+                                                      <next>
+                                                        <block type="tactic_exact">
+                                                          <field name="TERM">hp</field>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                  <statement name="PROOF_RIGHT">
+                                                    <block type="tactic_show">
+                                                      <field name="PROPOSITION">q ∨ r</field>
+                                                      <next>
+                                                        <block type="tactic_or_intro_right">
+                                                          <next>
+                                                            <block type="tactic_show">
+                                                              <field name="PROPOSITION">r</field>
+                                                              <next>
+                                                                <block type="tactic_exact">
+                                                                  <field name="TERM">hr</field>
+                                                                </block>
+                                                              </next>
+                                                            </block>
+                                                          </next>
+                                                        </block>
+                                                      </next>
+                                                    </block>
+                                                  </statement>
+                                                </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </statement>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
       </block>
     </statement>
   </block>

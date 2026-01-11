@@ -61,6 +61,7 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_exact' },
                     { kind: 'block', type: 'tactic_apply' },
                     { kind: 'block', type: 'tactic_and_intro' },
+                    { kind: 'block', type: 'tactic_iff_intro' },
                     { kind: 'block', type: 'tactic_and_elim' },
                     { kind: 'block', type: 'tactic_or_intro_left' },
                     { kind: 'block', type: 'tactic_or_intro_right' },
@@ -88,7 +89,7 @@ const EasyLeanWorkspace = () => {
             xml: orCommXml
         },
         'distrib': {
-            name: 'Distributivity: P ∧ (Q ∨ R) -> (P ∧ Q) ∨ (P ∧ R)',
+            name: 'Distributivity: P ∧ (Q ∨ R) ↔ (P ∧ Q) ∨ (P ∧ R)',
             xml: distribXml
         },
         'demorgan': {

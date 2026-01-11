@@ -71,6 +71,15 @@ leanGenerator.forBlock['tactic_and_intro'] = function (block) {
     return `  apply And.intro\n  ·\n${leftProof}\n  ·\n${rightProof}\n`;
 };
 
+leanGenerator.forBlock['tactic_iff_intro'] = function (block) {
+    let mpProof = leanGenerator.statementToCode(block, 'PROOF_MP');
+    let mprProof = leanGenerator.statementToCode(block, 'PROOF_MPR');
+    if (!mpProof.trim()) mpProof = '    sorry\n';
+    if (!mprProof.trim()) mprProof = '    sorry\n';
+
+    return `  apply Iff.intro\n  ·\n${mpProof}\n  ·\n${mprProof}\n`;
+};
+
 leanGenerator.forBlock['tactic_and_elim'] = function (block) {
     const h = block.getFieldValue('HYPOTHESIS');
     const h1 = block.getFieldValue('HYPOTHESIS_LEFT');
