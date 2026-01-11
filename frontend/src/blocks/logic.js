@@ -241,6 +241,21 @@ export const defineBlocks = () => {
         }
     };
 
+    // Tactic: Intro Variable (Forall Intro)
+    Blockly.Blocks['tactic_intro_variable'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("יהי")
+                .appendField(new Blockly.FieldTextInput("x"), "VARIABLE")
+                .appendField("איבר כלשהו מסוג")
+                .appendField(new Blockly.FieldTextInput("α"), "TYPE");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Introduce an arbitrary variable (intro)");
+        }
+    };
+
     // Tactic: Contradiction (Apply Negation)
     Blockly.Blocks['tactic_contradiction'] = {
         init: function () {

@@ -27,39 +27,34 @@
                             <field name="HYPOTHESIS">h2</field>
                             <field name="PROPOSITION">∀ x : α, Q x</field>
                             <next>
-                              <block type="tactic_intro">
-                                <field name="HYPOTHESIS">x</field>
+                              <block type="tactic_intro_variable">
+                                <field name="VARIABLE">x</field>
+                                <field name="TYPE">α</field>
                                 <next>
-                                  <block type="tactic_check_hyp">
-                                    <field name="HYPOTHESIS">x</field>
-                                    <field name="PROPOSITION">α</field>
+                                  <block type="tactic_show">
+                                    <field name="PROPOSITION">P x ∧ Q x</field>
                                     <next>
-                                      <block type="tactic_show">
-                                        <field name="PROPOSITION">P x ∧ Q x</field>
-                                        <next>
-                                          <block type="tactic_and_intro">
-                                            <statement name="PROOF_LEFT">
-                                                <block type="tactic_show">
-                                                    <field name="PROPOSITION">P x</field>
-                                                    <next>
-                                                        <block type="tactic_apply">
-                                                            <field name="TERM">h1</field>
-                                                        </block>
-                                                    </next>
-                                                </block>
-                                            </statement>
-                                            <statement name="PROOF_RIGHT">
-                                                 <block type="tactic_show">
-                                                    <field name="PROPOSITION">Q x</field>
-                                                    <next>
-                                                        <block type="tactic_apply">
-                                                            <field name="TERM">h2</field>
-                                                        </block>
-                                                    </next>
-                                                </block>
-                                            </statement>
-                                          </block>
-                                        </next>
+                                      <block type="tactic_and_intro">
+                                        <statement name="PROOF_LEFT">
+                                            <block type="tactic_show">
+                                                <field name="PROPOSITION">P x</field>
+                                                <next>
+                                                    <block type="tactic_apply">
+                                                        <field name="TERM">h1</field>
+                                                    </block>
+                                                </next>
+                                            </block>
+                                        </statement>
+                                        <statement name="PROOF_RIGHT">
+                                             <block type="tactic_show">
+                                                <field name="PROPOSITION">Q x</field>
+                                                <next>
+                                                    <block type="tactic_apply">
+                                                        <field name="TERM">h2</field>
+                                                    </block>
+                                                </next>
+                                            </block>
+                                        </statement>
                                       </block>
                                     </next>
                                   </block>

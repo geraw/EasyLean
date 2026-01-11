@@ -61,6 +61,7 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'theorem' },
                     { kind: 'block', type: 'lemma' },
                     { kind: 'block', type: 'tactic_intro' },
+                    { kind: 'block', type: 'tactic_intro_variable' },
                     { kind: 'block', type: 'tactic_have' },
                     { kind: 'block', type: 'tactic_exact' },
                     { kind: 'block', type: 'tactic_apply' },

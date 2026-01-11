@@ -42,6 +42,13 @@ leanGenerator.forBlock['tactic_by_negation'] = function (block) {
     return `  intro ${hypothesis}\n`;
 };
 
+// Generator for 'tactic_intro_variable'
+leanGenerator.forBlock['tactic_intro_variable'] = function (block) {
+    const variable = block.getFieldValue('VARIABLE');
+    const type = block.getFieldValue('TYPE');
+    return `  intro ${variable}\n  have : ${type} := ${variable}\n`;
+};
+
 // Generator for 'tactic_contradiction'
 leanGenerator.forBlock['tactic_contradiction'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
