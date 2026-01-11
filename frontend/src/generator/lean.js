@@ -13,19 +13,21 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
 // Generator for 'theorem'
 leanGenerator.forBlock['theorem'] = function (block) {
     const name = block.getFieldValue('NAME');
+    const params = block.getFieldValue('PARAMETERS');
     const proposition = block.getFieldValue('PROPOSITION');
     const proof = leanGenerator.statementToCode(block, 'PROOF');
 
     // Basic Lean 4 theorem structure
     const PREAMBLE = ``;
-    return `${PREAMBLE}\ntheorem ${name} : ${proposition} := by\n${proof}\n`;
+    return `${PREAMBLE}\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
 };
 
 leanGenerator.forBlock['lemma'] = function (block) {
     const name = block.getFieldValue('NAME');
+    const params = block.getFieldValue('PARAMETERS');
     const proposition = block.getFieldValue('PROPOSITION');
     const proof = leanGenerator.statementToCode(block, 'PROOF');
-    return `\ntheorem ${name} : ${proposition} := by\n${proof}\n`;
+    return `\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
 };
 
 // Generator for 'tactic_intro'

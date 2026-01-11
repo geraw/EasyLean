@@ -11,6 +11,9 @@ export const defineBlocks = () => {
                 .appendField("משפט:")
                 .appendField(new Blockly.FieldTextInput("thm_name"), "NAME");
             this.appendDummyInput()
+                .appendField("משתנים/הקשר (אופציונלי):")
+                .appendField(new Blockly.FieldTextInput(""), "PARAMETERS");
+            this.appendDummyInput()
                 .appendField("הוכחה עבור:")
                 .appendField(new Blockly.FieldTextInput("P -> P"), "PROPOSITION");
             this.appendStatementInput("PROOF")
@@ -28,6 +31,9 @@ export const defineBlocks = () => {
             this.appendDummyInput()
                 .appendField("טענת עזר (למה):")
                 .appendField(new Blockly.FieldTextInput("lemma_name"), "NAME");
+            this.appendDummyInput()
+                .appendField("משתנים/הקשר (אופציונלי):")
+                .appendField(new Blockly.FieldTextInput(""), "PARAMETERS");
             this.appendDummyInput()
                 .appendField("הוכחה עבור:")
                 .appendField(new Blockly.FieldTextInput("P -> Q"), "PROPOSITION");

@@ -1,0 +1,82 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="theorem" x="20" y="20">
+    <field name="NAME">quantifier_and_distrib</field>
+    <field name="PARAMETERS">{α : Type} {P Q : α → Prop}</field>
+    <field name="PROPOSITION">((∀ x : α, P x) ∧ (∀ x : α, Q x)) → (∀ x : α, P x ∧ Q x)</field>
+    <statement name="PROOF">
+      <block type="tactic_intro">
+        <field name="HYPOTHESIS">h</field>
+        <next>
+          <block type="tactic_check_hyp">
+            <field name="HYPOTHESIS">h</field>
+            <field name="PROPOSITION">(∀ x : α, P x) ∧ (∀ x : α, Q x)</field>
+            <next>
+              <block type="tactic_show">
+                <field name="PROPOSITION">∀ x : α, P x ∧ Q x</field>
+                <next>
+                  <block type="tactic_and_elim">
+                    <field name="HYPOTHESIS">h</field>
+                    <field name="HYPOTHESIS_LEFT">h1</field>
+                    <field name="HYPOTHESIS_RIGHT">h2</field>
+                    <statement name="DO">
+                      <block type="tactic_check_hyp">
+                        <field name="HYPOTHESIS">h1</field>
+                        <field name="PROPOSITION">∀ x : α, P x</field>
+                        <next>
+                          <block type="tactic_check_hyp">
+                            <field name="HYPOTHESIS">h2</field>
+                            <field name="PROPOSITION">∀ x : α, Q x</field>
+                            <next>
+                              <block type="tactic_intro">
+                                <field name="HYPOTHESIS">x</field>
+                                <next>
+                                  <block type="tactic_check_hyp">
+                                    <field name="HYPOTHESIS">x</field>
+                                    <field name="PROPOSITION">α</field>
+                                    <next>
+                                      <block type="tactic_show">
+                                        <field name="PROPOSITION">P x ∧ Q x</field>
+                                        <next>
+                                          <block type="tactic_and_intro">
+                                            <statement name="PROOF_LEFT">
+                                                <block type="tactic_show">
+                                                    <field name="PROPOSITION">P x</field>
+                                                    <next>
+                                                        <block type="tactic_apply">
+                                                            <field name="TERM">h1</field>
+                                                        </block>
+                                                    </next>
+                                                </block>
+                                            </statement>
+                                            <statement name="PROOF_RIGHT">
+                                                 <block type="tactic_show">
+                                                    <field name="PROPOSITION">Q x</field>
+                                                    <next>
+                                                        <block type="tactic_apply">
+                                                            <field name="TERM">h2</field>
+                                                        </block>
+                                                    </next>
+                                                </block>
+                                            </statement>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
