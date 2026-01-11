@@ -286,4 +286,48 @@ export const defineBlocks = () => {
             this.setTooltip("Prove an intermediate auxiliary claim (have)");
         }
     };
+    // Tactic: Use (Exists Intro)
+    Blockly.Blocks['tactic_use'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("השתמש בערך")
+                .appendField(new Blockly.FieldTextInput("x"), "TERM")
+                .appendField("כדי להוכיח קיום");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Use a specific value to prove an existence claim (use)");
+        }
+    };
+
+    // Tactic: Obtain (Exists Elim)
+    Blockly.Blocks['tactic_obtain'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("חלץ מטענת קיום")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField("את האיבר")
+                .appendField(new Blockly.FieldTextInput("x"), "VARIABLE")
+                .appendField("ואת התכונה")
+                .appendField(new Blockly.FieldTextInput("hx"), "HYPOTHESIS_BODY");
+            this.appendStatementInput("DO")
+                .setCheck("tactic");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(200);
+            this.setTooltip("Destructure an existence claim (obtain)");
+        }
+    };
+
+    // Tactic: Contradiction (Auto)
+    Blockly.Blocks['tactic_auto_contradiction'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("סיום בסתירה (אוטומטי)");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Automatically find a contradiction in the context");
+        }
+    };
 };

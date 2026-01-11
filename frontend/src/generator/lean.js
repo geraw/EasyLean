@@ -131,3 +131,21 @@ leanGenerator.forBlock['tactic_have'] = function (block) {
     if (!proof.trim()) proof = '    sorry\n';
     return `  have ${hypothesis} : ${proposition} := by\n${proof}\n`;
 };
+
+leanGenerator.forBlock['tactic_use'] = function (block) {
+    const term = block.getFieldValue('TERM');
+    return `  apply Exists.intro ${term}\n`;
+};
+
+leanGenerator.forBlock['tactic_obtain'] = function (block) {
+    const h = block.getFieldValue('HYPOTHESIS');
+    const x = block.getFieldValue('VARIABLE');
+    const hx = block.getFieldValue('HYPOTHESIS_BODY');
+    let branch = leanGenerator.statementToCode(block, 'DO');
+    if (!branch.trim()) branch = '    sorry\n';
+    return `  cases ${h} with\n  | intro ${x} ${hx} =>\n${branch}\n`;
+};
+
+leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
+    return `  contradiction\n`;
+};

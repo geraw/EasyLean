@@ -11,6 +11,7 @@ import distribXml from '../examples/distributivity.xml?raw';
 import deMorganXml from '../examples/de_morgan.xml?raw';
 
 import quantifiersXml from '../examples/quantifiers.xml?raw';
+import notExistsIffForallNotXml from '../examples/not_exists_iff_forall_not.xml?raw';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
 // react-blockly uses getAllVariables() which is deprecated/removed in newer Blockly
@@ -76,6 +77,9 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_check_hyp' },
                     { kind: 'block', type: 'tactic_by_negation' },
                     { kind: 'block', type: 'tactic_contradiction' },
+                    { kind: 'block', type: 'tactic_use' },
+                    { kind: 'block', type: 'tactic_obtain' },
+                    { kind: 'block', type: 'tactic_auto_contradiction' },
                 ],
             },
         ],
@@ -106,6 +110,10 @@ const EasyLeanWorkspace = () => {
         'quantifiers': {
             name: 'Quantifiers: ((∀x, P x) ∧ (∀x, Q x)) → (∀x, P x ∧ Q x)',
             xml: quantifiersXml
+        },
+        'not_exists_iff_forall_not': {
+            name: 'Not Exists <-> Forall Not: ¬ (∃ x, P x) ↔ ∀ x, ¬ P x',
+            xml: notExistsIffForallNotXml
         }
     };
 
