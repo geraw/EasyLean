@@ -17,19 +17,15 @@ leanGenerator.forBlock['theorem'] = function (block) {
     const proof = leanGenerator.statementToCode(block, 'PROOF');
 
     // Basic Lean 4 theorem structure
-    const PREAMBLE = `
-def MySet (α : Type) := α → Prop
-
-def MySet.mem (x : α) (s : MySet α) : Prop := s x
-infix:50 " ∈ " => MySet.mem
-
-def MySet.subset (s₁ s₂ : MySet α) := ∀ x, x ∈ s₁ → x ∈ s₂
-infix:50 " ⊆ " => MySet.subset
-
-def MySet.inter (s₁ s₂ : MySet α) : MySet α := λ x => x ∈ s₁ ∧ x ∈ s₂
-infix:70 " ∩ " => MySet.inter
-`;
+    const PREAMBLE = ``;
     return `${PREAMBLE}\ntheorem ${name} : ${proposition} := by\n${proof}\n`;
+};
+
+leanGenerator.forBlock['lemma'] = function (block) {
+    const name = block.getFieldValue('NAME');
+    const proposition = block.getFieldValue('PROPOSITION');
+    const proof = leanGenerator.statementToCode(block, 'PROOF');
+    return `\ntheorem ${name} : ${proposition} := by\n${proof}\n`;
 };
 
 // Generator for 'tactic_intro'
@@ -117,4 +113,12 @@ leanGenerator.forBlock['tactic_check_hyp'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
     const proposition = block.getFieldValue('PROPOSITION');
     return `  have : ${proposition} := ${hypothesis}\n`;
+};
+
+leanGenerator.forBlock['tactic_have'] = function (block) {
+    const hypothesis = block.getFieldValue('HYPOTHESIS');
+    const proposition = block.getFieldValue('PROPOSITION');
+    let proof = leanGenerator.statementToCode(block, 'PROOF');
+    if (!proof.trim()) proof = '    sorry\n';
+    return `  have ${hypothesis} : ${proposition} := by\n${proof}\n`;
 };

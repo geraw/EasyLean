@@ -22,6 +22,24 @@ export const defineBlocks = () => {
         }
     };
 
+    // Example Block: Lemma (Top level)
+    Blockly.Blocks['lemma'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("טענת עזר (למה):")
+                .appendField(new Blockly.FieldTextInput("lemma_name"), "NAME");
+            this.appendDummyInput()
+                .appendField("הוכחה עבור:")
+                .appendField(new Blockly.FieldTextInput("P -> Q"), "PROPOSITION");
+            this.appendStatementInput("PROOF")
+                .setCheck("tactic")
+                .appendField("הוכחה:");
+            this.setColour(230);
+            this.setTooltip("הגדרת טענת עזר");
+            this.setHelpUrl("");
+        }
+    };
+
     // Tactic: Intro (Assume)
     Blockly.Blocks['tactic_intro'] = {
         init: function () {
@@ -227,6 +245,24 @@ export const defineBlocks = () => {
             this.setNextStatement(true, "tactic");
             this.setColour(160);
             this.setTooltip("Apply a negation hypothesis to reach a contradiction (apply)");
+        }
+    };
+
+    // Tactic: Have (Auxiliary Claim)
+    Blockly.Blocks['tactic_have'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נוכיח טענת עזר")
+                .appendField(new Blockly.FieldTextInput("h_aux"), "HYPOTHESIS")
+                .appendField(":")
+                .appendField(new Blockly.FieldTextInput("P"), "PROPOSITION");
+            this.appendStatementInput("PROOF")
+                .setCheck("tactic")
+                .appendField("הוכחה:");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(180); // Same color as other 'logic structure' blocks? Or distinct? 180 is check_hyp (verification). 230 is theorem. Maybe 210.
+            this.setTooltip("Prove an intermediate auxiliary claim (have)");
         }
     };
 };

@@ -19,9 +19,9 @@ app.post('/verify', (req, res) => {
         return res.status(400).json({ error: 'No Lean code provided' });
     }
 
-    const tempDir = os.tmpdir();
-    // Use a random filename to avoid collisions
-    const tempFile = path.join(tempDir, `proof_${Date.now()}_${Math.random().toString(36).substring(7)}.lean`);
+    // Use a fixed file in the project directory so imports work
+    const projectDir = path.join(__dirname, 'lean_project');
+    const tempFile = path.join(projectDir, `Proof_${Date.now()}.lean`);
 
     fs.writeFile(tempFile, leanCode, (err) => {
         if (err) {
@@ -29,8 +29,8 @@ app.post('/verify', (req, res) => {
             return res.status(500).json({ error: 'Failed to write temporary file' });
         }
 
-        // Execute lean command
-        exec(`lean "${tempFile}"`, (error, stdout, stderr) => {
+        // Execute lean command within the project context
+        exec(`lean "${tempFile}"`, { cwd: projectDir }, (error, stdout, stderr) => {
             // Clean up the temporary file
             fs.unlink(tempFile, (unlinkErr) => {
                 if (unlinkErr) console.error('Error deleting temp file:', unlinkErr);
@@ -40,8 +40,8 @@ app.post('/verify', (req, res) => {
                 // Lean returns non-zero exit code on verify failure (usually)
                 // But sometimes it's just a proof error which is "success" in terms of running the tool, but failure in proof.
                 // actually Lean 4 returns error on syntax/proof errors.
-                return res.json({ 
-                    output: stdout + stderr, 
+                return res.json({
+                    output: stdout + stderr,
                     exitCode: error.code,
                     error: error.message
                 });

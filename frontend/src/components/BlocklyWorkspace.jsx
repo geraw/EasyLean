@@ -57,7 +57,10 @@ const EasyLeanWorkspace = () => {
                 name: 'לוגיקה',
                 colour: '#5C81A6',
                 contents: [
+                    { kind: 'block', type: 'theorem' },
+                    { kind: 'block', type: 'lemma' },
                     { kind: 'block', type: 'tactic_intro' },
+                    { kind: 'block', type: 'tactic_have' },
                     { kind: 'block', type: 'tactic_exact' },
                     { kind: 'block', type: 'tactic_apply' },
                     { kind: 'block', type: 'tactic_and_intro' },
@@ -122,9 +125,31 @@ const EasyLeanWorkspace = () => {
             setWorkspace(ws);
         }
 
-        const code = leanGenerator.workspaceToCode(ws);
-        // Prepend common variables so users don't have to declare them for simple proofs
-        const prelude = 'variable (p q r : Prop)\n\n';
+        // Sort top blocks by Y coordinate to ensure Lemmas come before Theorems
+        const topBlocks = ws.getTopBlocks(true); // true = ordered by position? logic says no usually.
+        // Actually getTopBlocks(true) usually sorts by position, but let's be safe.
+        topBlocks.sort((a, b) => {
+            return a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y;
+        });
+
+        let code = '';
+        topBlocks.forEach(block => {
+            code += leanGenerator.blockToCode(block);
+        });
+
+        // Prepend common variables and Set definitions (Polyfill for standard library)
+        const mySetPreamble = `
+/*
+def MySet (α : Type) := α → Prop
+def MySet.mem (x : α) (s : MySet α) : Prop := s x
+infix:50 " ∈ " => MySet.mem
+def MySet.subset (s₁ s₂ : MySet α) := ∀ x, x ∈ s₁ → x ∈ s₂
+infix:50 " ⊆ " => MySet.subset
+def MySet.inter (s₁ s₂ : MySet α) : MySet α := λ x => x ∈ s₁ ∧ x ∈ s₂
+infix:70 " ∩ " => MySet.inter
+*/
+`;
+        const prelude = /*mySetPreamble +*/ 'variable (p q r : Prop)\n\n';
         setLeanCode(prelude + code);
     };
 
