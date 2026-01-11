@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import { defineBlocks } from '../blocks/logic';
@@ -198,6 +198,36 @@ infix:70 " ∩ " => MySet.inter
         }
     };
 
+    const fileInputRef = useRef(null);
+
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const xmlContent = e.target.result;
+            if (xmlContent && workspace) {
+                workspace.clear();
+                try {
+                    const dom = Blockly.utils.xml.textToDom(xmlContent);
+                    Blockly.Xml.domToWorkspace(dom, workspace);
+                    setXml(xmlContent); // Update XML state
+                } catch (error) {
+                    console.error("Error loading XML file:", error);
+                    alert("Error loading XML file. Please ensure it is valid Blockly XML.");
+                }
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const triggerFileUpload = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
             <h1 style={{ margin: '0 0 20px 0' }}>EasyLean - הוכחות בכיף</h1>
@@ -245,42 +275,65 @@ infix:70 " ∩ " => MySet.inter
                         <button
                             onClick={runProof}
                             style={{
-                                flex: 1,
-                                padding: '10px',
-                                fontSize: '18px',
-                                background: status === 'running' ? '#ccc' : '#4CAF50',
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                backgroundColor: '#4CAF50',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',
-                                cursor: status === 'running' ? 'not-allowed' : 'pointer'
+                                cursor: 'pointer',
+                                flex: 1
                             }}
-                            disabled={status === 'running'}
                         >
-                            הרץ הוכחה
+                            בדוק הוכחה (Run)
                         </button>
                         <button
                             onClick={downloadXml}
                             style={{
-                                padding: '10px',
-                                fontSize: '18px',
-                                background: '#2196F3', // Blue for save
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                backgroundColor: '#2196F3',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                flex: 1
                             }}
                         >
-                            שמור XML
+                            שמור (Download XML)
                         </button>
+                        <button
+                            onClick={triggerFileUpload}
+                            style={{
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                backgroundColor: '#FF9800',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                flex: 1
+                            }}
+                        >
+                            טען (Load XML)
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            accept=".xml"
+                            style={{ display: 'none' }}
+                        />
                     </div>
+
 
                     <div style={{ flexGrow: 1, padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr' }}>
                         <h3 style={{ marginTop: 0, textAlign: 'right', direction: 'rtl' }}>פלט (Output):</h3>
                         <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{output}</pre>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
