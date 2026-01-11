@@ -9,7 +9,7 @@ import andCommXml from '../examples/and_comm.xml?raw';
 import orCommXml from '../examples/or_comm.xml?raw';
 import distribXml from '../examples/distributivity.xml?raw';
 import deMorganXml from '../examples/de_morgan.xml?raw';
-import setsXml from '../examples/sets_inter.xml?raw';
+
 import quantifiersXml from '../examples/quantifiers.xml?raw';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
@@ -31,6 +31,7 @@ const EasyLeanWorkspace = () => {
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="theorem" x="20" y="20">
     <field name="NAME">hello_world</field>
+    <field name="PARAMETERS">{p : Prop}</field>
     <field name="PROPOSITION">p -> p</field>
     <statement name="PROOF">
       <block type="tactic_intro">
@@ -101,10 +102,7 @@ const EasyLeanWorkspace = () => {
             name: 'De Morgan: ¬(P ∨ Q) -> ¬P ∧ ¬Q',
             xml: deMorganXml
         },
-        'sets': {
-            name: 'Sets: A ∩ B ⊆ B ∩ A',
-            xml: setsXml
-        },
+
         'quantifiers': {
             name: 'Quantifiers: ((∀x, P x) ∧ (∀x, Q x)) → (∀x, P x ∧ Q x)',
             xml: quantifiersXml
@@ -155,7 +153,7 @@ def MySet.inter (s₁ s₂ : MySet α) : MySet α := λ x => x ∈ s₁ ∧ x �
 infix:70 " ∩ " => MySet.inter
 */
 `;
-        const prelude = /*mySetPreamble +*/ 'variable (p q r : Prop)\n\n';
+        const prelude = /*mySetPreamble +*/ '';
         setLeanCode(prelude + code);
     };
 

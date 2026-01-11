@@ -1,6 +1,7 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="theorem" id="SpqUzG1L.M/rBf+ib9~y" x="670" y="110">
     <field name="NAME">my_p_implies_p</field>
+    <field name="PARAMETERS">{p : Prop}</field>
     <field name="PROPOSITION">p -&gt; p</field>
     <statement name="PROOF">
       <block type="tactic_intro" id="E7(lK;V%aiAB3b1,5un3">

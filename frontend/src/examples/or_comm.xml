@@ -1,6 +1,7 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="theorem" id="TN`?xhL9M{ShgF%zrtb8" x="570" y="90">
     <field name="NAME">my_or_comm</field>
+    <field name="PARAMETERS">{p q : Prop}</field>
     <field name="PROPOSITION">p ∨ q -&gt; q ∨ p</field>
     <statement name="PROOF">
       <block type="tactic_intro" id="VjemdI3j5O`d#}o%S%-8">

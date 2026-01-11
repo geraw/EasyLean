@@ -1,6 +1,7 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <block type="theorem" id="OE.,wLyZA~:o{OnsKLs+" x="20" y="20">
     <field name="NAME">demorgan_not_or</field>
+    <field name="PARAMETERS">{p q : Prop}</field>
     <field name="PROPOSITION">¬(p ∨ q) -&gt; ¬p ∧ ¬q</field>
     <statement name="PROOF">
       <block type="tactic_intro" id="LSa58OyYBLZ{yZA-H!L@">
