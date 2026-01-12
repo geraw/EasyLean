@@ -1,5 +1,5 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
-  <block type="theorem" id="theorem1" x="50" y="50">
+  <block type="theorem" id="theorem1" x="297" y="30">
     <field name="NAME">not_exists_iff_forall_not</field>
     <field name="PARAMETERS">{α : Type} {P : α → Prop}</field>
     <field name="PROPOSITION">¬ (∃ x, P x) ↔ ∀ x, ¬ P x</field>
@@ -9,31 +9,52 @@
           <block type="tactic_intro" id="intro1">
             <field name="HYPOTHESIS">h</field>
             <next>
-              <block type="tactic_intro_variable" id="intro2">
-                <field name="VARIABLE">a</field>
-                <field name="TYPE">α</field>
+              <block type="tactic_check_hyp" id="=CkIF`I2W?Sa,NM^DYP^">
+                <field name="HYPOTHESIS">h</field>
+                <field name="PROPOSITION">¬ (∃ x, P x)</field>
                 <next>
-                  <block type="tactic_by_negation" id="intro3">
-                    <field name="HYPOTHESIS">ha</field>
+                  <block type="tactic_show" id="FcMR,005dDn@ev(p#kPE">
+                    <field name="PROPOSITION"> ∀ x, ¬ P x</field>
                     <next>
-                        <block type="tactic_have" id="have1">
-                            <field name="HYPOTHESIS">h_exists</field>
-                            <field name="PROPOSITION">∃ x, P x</field>
-                            <statement name="PROOF">
-                                <block type="tactic_use" id="use1">
-                                    <field name="TERM">a</field>
-                                    <next>
-                                        <block type="tactic_apply" id="apply1">
-                                            <field name="TERM">ha</field>
-                                        </block>
-                                    </next>
-                                </block>
-                            </statement>
+                      <block type="tactic_intro_variable" id="intro2">
+                        <field name="VARIABLE">a</field>
+                        <field name="TYPE">α</field>
+                        <next>
+                          <block type="tactic_show" id="m!Ff,hz`4pE,39El$Q!{">
+                            <field name="PROPOSITION"> ¬ P a</field>
                             <next>
-                                <block type="tactic_auto_contradiction" id="contra1">
-                                </block>
+                              <block type="tactic_by_negation" id="intro3">
+                                <field name="HYPOTHESIS">ha</field>
+                                <next>
+                                  <block type="tactic_check_hyp" id="k,Kxa|.y5F~u1c1mg?sw">
+                                    <field name="HYPOTHESIS">ha</field>
+                                    <field name="PROPOSITION">P a</field>
+                                    <next>
+                                      <block type="tactic_have" id="have1">
+                                        <field name="HYPOTHESIS">h_exists</field>
+                                        <field name="PROPOSITION">∃ x, P x</field>
+                                        <statement name="PROOF">
+                                          <block type="tactic_use" id="use1">
+                                            <field name="TERM">a</field>
+                                            <next>
+                                              <block type="tactic_apply" id="apply1">
+                                                <field name="TERM">ha</field>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </statement>
+                                        <next>
+                                          <block type="tactic_auto_contradiction" id="contra1"></block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
                             </next>
-                        </block>
+                          </block>
+                        </next>
+                      </block>
                     </next>
                   </block>
                 </next>
@@ -42,7 +63,7 @@
           </block>
         </statement>
         <statement name="PROOF_MPR">
-            <block type="tactic_intro" id="intro_right1">
+          <block type="tactic_intro" id="intro_right1">
             <field name="HYPOTHESIS">h</field>
             <next>
               <block type="tactic_by_negation" id="intro_right2">
@@ -53,14 +74,13 @@
                     <field name="VARIABLE">x</field>
                     <field name="HYPOTHESIS_BODY">hx</field>
                     <statement name="DO">
-                         <block type="tactic_check_hyp" id="have_not_px">
-                            <field name="HYPOTHESIS">h x</field>
-                            <field name="PROPOSITION">¬ P x</field>
-                            <next>
-                                <block type="tactic_auto_contradiction" id="contra2">
-                                </block>
-                            </next>
-                        </block>
+                      <block type="tactic_check_hyp" id="have_not_px">
+                        <field name="HYPOTHESIS">h x</field>
+                        <field name="PROPOSITION">¬ P x</field>
+                        <next>
+                          <block type="tactic_auto_contradiction" id="contra2"></block>
+                        </next>
+                      </block>
                     </statement>
                   </block>
                 </next>
