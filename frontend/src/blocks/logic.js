@@ -290,7 +290,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_use'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("השתמש בערך")
+                .appendField("נשתמש בערך")
                 .appendField(new Blockly.FieldTextInput("x"), "TERM")
                 .appendField("כדי להוכיח קיום");
             this.setPreviousStatement(true, "tactic");
