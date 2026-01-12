@@ -66,22 +66,45 @@
           <block type="tactic_intro" id="intro_right1">
             <field name="HYPOTHESIS">h</field>
             <next>
-              <block type="tactic_by_negation" id="intro_right2">
-                <field name="HYPOTHESIS">h_exists</field>
+              <block type="tactic_check_hyp" id="check_h_right">
+                <field name="HYPOTHESIS">h</field>
+                <field name="PROPOSITION">∀ x, ¬ P x</field>
                 <next>
-                  <block type="tactic_obtain" id="obtain1">
-                    <field name="HYPOTHESIS">h_exists</field>
-                    <field name="VARIABLE">x</field>
-                    <field name="HYPOTHESIS_BODY">hx</field>
-                    <statement name="DO">
-                      <block type="tactic_check_hyp" id="have_not_px">
-                        <field name="HYPOTHESIS">h x</field>
-                        <field name="PROPOSITION">¬ P x</field>
+                  <block type="tactic_show" id="show_goal_right">
+                    <field name="PROPOSITION">¬ (∃ x, P x)</field>
+                    <next>
+                      <block type="tactic_by_negation" id="intro_right2">
+                        <field name="HYPOTHESIS">h_exists</field>
                         <next>
-                          <block type="tactic_auto_contradiction" id="contra2"></block>
+                          <block type="tactic_check_hyp" id="check_h_exists">
+                            <field name="HYPOTHESIS">h_exists</field>
+                            <field name="PROPOSITION">∃ x, P x</field>
+                            <next>
+                              <block type="tactic_obtain" id="obtain1">
+                                <field name="HYPOTHESIS">h_exists</field>
+                                <field name="VARIABLE">x</field>
+                                <field name="HYPOTHESIS_BODY">hx</field>
+                                <statement name="DO">
+                                  <block type="tactic_check_hyp" id="check_hx">
+                                    <field name="HYPOTHESIS">hx</field>
+                                    <field name="PROPOSITION">P x</field>
+                                    <next>
+                                      <block type="tactic_check_hyp" id="have_not_px">
+                                        <field name="HYPOTHESIS">h x</field>
+                                        <field name="PROPOSITION">¬ P x</field>
+                                        <next>
+                                          <block type="tactic_auto_contradiction" id="contra2"></block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </statement>
+                              </block>
+                            </next>
+                          </block>
                         </next>
                       </block>
-                    </statement>
+                    </next>
                   </block>
                 </next>
               </block>
