@@ -237,7 +237,7 @@ infix:70 " ∩ " => MySet.inter
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
             <h1 style={{ margin: '0 0 20px 0' }}>EasyLean - הוכחות בכיף</h1>
 
             <div style={{ display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0 }}>
