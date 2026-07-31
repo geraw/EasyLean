@@ -10,6 +10,9 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
     return code + nextCode;
 };
 
+// Helper function to append the block ID as a Lean comment
+const tag = (block) => ` -- @block_id: ${block.id}`;
+
 // Generator for 'theorem'
 leanGenerator.forBlock['theorem'] = function (block) {
     const name = block.getFieldValue('NAME');
@@ -19,7 +22,7 @@ leanGenerator.forBlock['theorem'] = function (block) {
 
     // Basic Lean 4 theorem structure
     const PREAMBLE = ``;
-    return `${PREAMBLE}\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
+    return `${PREAMBLE}\ntheorem ${name} ${params} : ${proposition} := by${tag(block)}\n${proof}\n`;
 };
 
 leanGenerator.forBlock['lemma'] = function (block) {
@@ -27,62 +30,62 @@ leanGenerator.forBlock['lemma'] = function (block) {
     const params = block.getFieldValue('PARAMETERS');
     const proposition = block.getFieldValue('PROPOSITION');
     const proof = leanGenerator.statementToCode(block, 'PROOF');
-    return `\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
+    return `\ntheorem ${name} ${params} : ${proposition} := by${tag(block)}\n${proof}\n`;
 };
 
 // Generator for 'tactic_intro'
 leanGenerator.forBlock['tactic_intro'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
-    return `  intro ${hypothesis}\n`;
+    return `  intro ${hypothesis}${tag(block)}\n`;
 };
 
 // Generator for 'tactic_by_negation'
 leanGenerator.forBlock['tactic_by_negation'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
-    return `  intro ${hypothesis}\n`;
+    return `  intro ${hypothesis}${tag(block)}\n`;
 };
 
 // Generator for 'tactic_intro_variable'
 leanGenerator.forBlock['tactic_intro_variable'] = function (block) {
     const variable = block.getFieldValue('VARIABLE');
     const type = block.getFieldValue('TYPE');
-    return `  intro ${variable}\n  have : ${type} := ${variable}\n`;
+    return `  intro ${variable}${tag(block)}\n  have : ${type} := ${variable}${tag(block)}\n`;
 };
 
 // Generator for 'tactic_contradiction'
 leanGenerator.forBlock['tactic_contradiction'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
-    return `  apply ${hypothesis}\n`;
+    return `  apply ${hypothesis}${tag(block)}\n`;
 };
 
 // Generator for 'tactic_exact'
 leanGenerator.forBlock['tactic_exact'] = function (block) {
     const term = block.getFieldValue('TERM');
-    return `  exact ${term}\n`;
+    return `  exact ${term}${tag(block)}\n`;
 };
 
 // Generator for 'tactic_apply'
 leanGenerator.forBlock['tactic_apply'] = function (block) {
     const term = block.getFieldValue('TERM');
-    return `  apply ${term}\n`;
+    return `  apply ${term}${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_and_intro'] = function (block) {
     let leftProof = leanGenerator.statementToCode(block, 'PROOF_LEFT');
     let rightProof = leanGenerator.statementToCode(block, 'PROOF_RIGHT');
-    if (!leftProof.trim()) leftProof = '    sorry\n';
-    if (!rightProof.trim()) rightProof = '    sorry\n';
+    if (!leftProof.trim()) leftProof = `    sorry${tag(block)}\n`;
+    if (!rightProof.trim()) rightProof = `    sorry${tag(block)}\n`;
 
-    return `  apply And.intro\n  ·\n${leftProof}\n  ·\n${rightProof}\n`;
+    return `  apply And.intro${tag(block)}\n  ·${tag(block)}\n${leftProof}\n  ·${tag(block)}\n${rightProof}\n`;
 };
 
 leanGenerator.forBlock['tactic_iff_intro'] = function (block) {
     let mpProof = leanGenerator.statementToCode(block, 'PROOF_MP');
     let mprProof = leanGenerator.statementToCode(block, 'PROOF_MPR');
-    if (!mpProof.trim()) mpProof = '    sorry\n';
-    if (!mprProof.trim()) mprProof = '    sorry\n';
+    if (!mpProof.trim()) mpProof = `    sorry${tag(block)}\n`;
+    if (!mprProof.trim()) mprProof = `    sorry${tag(block)}\n`;
 
-    return `  apply Iff.intro\n  ·\n${mpProof}\n  ·\n${mprProof}\n`;
+    return `  apply Iff.intro${tag(block)}\n  ·${tag(block)}\n${mpProof}\n  ·${tag(block)}\n${mprProof}\n`;
 };
 
 leanGenerator.forBlock['tactic_and_elim'] = function (block) {
@@ -90,16 +93,16 @@ leanGenerator.forBlock['tactic_and_elim'] = function (block) {
     const h1 = block.getFieldValue('HYPOTHESIS_LEFT');
     const h2 = block.getFieldValue('HYPOTHESIS_RIGHT');
     let branch = leanGenerator.statementToCode(block, 'DO');
-    if (!branch.trim()) branch = '    sorry\n';
-    return `  cases ${h} with\n  | intro ${h1} ${h2} =>\n${branch}\n`;
+    if (!branch.trim()) branch = `    sorry${tag(block)}\n`;
+    return `  cases ${h} with${tag(block)}\n  | intro ${h1} ${h2} =>${tag(block)}\n${branch}\n`;
 };
 
 leanGenerator.forBlock['tactic_or_intro_left'] = function (block) {
-    return `  apply Or.inl\n`;
+    return `  apply Or.inl${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_or_intro_right'] = function (block) {
-    return `  apply Or.inr\n`;
+    return `  apply Or.inr${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_or_elim'] = function (block) {
@@ -108,33 +111,33 @@ leanGenerator.forBlock['tactic_or_elim'] = function (block) {
     const hRight = block.getFieldValue('HYPOTHESIS_RIGHT');
     let leftBranch = leanGenerator.statementToCode(block, 'CASE_LEFT');
     let rightBranch = leanGenerator.statementToCode(block, 'CASE_RIGHT');
-    if (!leftBranch.trim()) leftBranch = '    sorry\n';
-    if (!rightBranch.trim()) rightBranch = '    sorry\n';
-    return `  cases ${h} with\n  | inl ${hLeft} =>\n${leftBranch}\n  | inr ${hRight} =>\n${rightBranch}\n`;
+    if (!leftBranch.trim()) leftBranch = `    sorry${tag(block)}\n`;
+    if (!rightBranch.trim()) rightBranch = `    sorry${tag(block)}\n`;
+    return `  cases ${h} with${tag(block)}\n  | inl ${hLeft} =>${tag(block)}\n${leftBranch}\n  | inr ${hRight} =>${tag(block)}\n${rightBranch}\n`;
 };
 
 leanGenerator.forBlock['tactic_show'] = function (block) {
     const proposition = block.getFieldValue('PROPOSITION');
-    return `  show ${proposition}\n`;
+    return `  show ${proposition}${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_check_hyp'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
     const proposition = block.getFieldValue('PROPOSITION');
-    return `  have : ${proposition} := ${hypothesis}\n`;
+    return `  have : ${proposition} := ${hypothesis}${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_have'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
     const proposition = block.getFieldValue('PROPOSITION');
     let proof = leanGenerator.statementToCode(block, 'PROOF');
-    if (!proof.trim()) proof = '    sorry\n';
-    return `  have ${hypothesis} : ${proposition} := by\n${proof}\n`;
+    if (!proof.trim()) proof = `    sorry${tag(block)}\n`;
+    return `  have ${hypothesis} : ${proposition} := by${tag(block)}\n${proof}\n`;
 };
 
 leanGenerator.forBlock['tactic_use'] = function (block) {
     const term = block.getFieldValue('TERM');
-    return `  apply Exists.intro ${term}\n`;
+    return `  apply Exists.intro ${term}${tag(block)}\n`;
 };
 
 leanGenerator.forBlock['tactic_obtain'] = function (block) {
@@ -142,10 +145,10 @@ leanGenerator.forBlock['tactic_obtain'] = function (block) {
     const x = block.getFieldValue('VARIABLE');
     const hx = block.getFieldValue('HYPOTHESIS_BODY');
     let branch = leanGenerator.statementToCode(block, 'DO');
-    if (!branch.trim()) branch = '    sorry\n';
-    return `  cases ${h} with\n  | intro ${x} ${hx} =>\n${branch}\n`;
+    if (!branch.trim()) branch = `    sorry${tag(block)}\n`;
+    return `  cases ${h} with${tag(block)}\n  | intro ${x} ${hx} =>${tag(block)}\n${branch}\n`;
 };
 
 leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
-    return `  contradiction\n`;
+    return `  contradiction${tag(block)}\n`;
 };

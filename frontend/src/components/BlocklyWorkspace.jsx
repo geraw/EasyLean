@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import { defineBlocks } from '../blocks/logic';
@@ -47,10 +47,6 @@ const EasyLeanWorkspace = () => {
   </block>
 </xml>
 `;
-
-    const toolboxLabels = {
-        'logic': 'לוגיקה'
-    };
 
     const toolboxConfiguration = {
         kind: 'categoryToolbox',
@@ -138,7 +134,7 @@ const EasyLeanWorkspace = () => {
         }
 
         // Sort top blocks by Y coordinate to ensure Lemmas come before Theorems
-        const topBlocks = ws.getTopBlocks(true); // true = ordered by position? logic says no usually.
+        const topBlocks = [...ws.getTopBlocks(true)]; // true = ordered by position? logic says no usually.
         // Actually getTopBlocks(true) usually sorts by position, but let's be safe.
         topBlocks.sort((a, b) => {
             return a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y;
@@ -185,9 +181,41 @@ infix:70 " ∩ " => MySet.inter
         }
     };
 
+    const extractBlockIdFromError = (leanErrorOutput, generatedCode) => {
+        // 1. Find the line number in Lean's standard error output
+        // Looking for a pattern like ":4:12"
+        const lineMatch = leanErrorOutput.match(/:(\d+):/); 
+        
+        if (!lineMatch) return null;
+        
+        // Lean line numbers are 1-indexed, arrays are 0-indexed
+        const lineNumber = parseInt(lineMatch[1], 10) - 1; 
+        
+        // 2. Split the code into an array of lines
+        const codeLines = generatedCode.split('\n');
+        
+        if (lineNumber < 0 || lineNumber >= codeLines.length) return null;
+        
+        const targetLine = codeLines[lineNumber];
+        
+        // 3. Extract the ID from our custom comment tag
+        const idMatch = targetLine.match(/-- @block_id: (\S+)/);
+        
+        return idMatch ? idMatch[1] : null;
+    };
+
     const runProof = async () => {
         setStatus('running');
         setOutput('Running Lean...');
+
+        // CLEAR ALL PREVIOUS WARNINGS before running the new check
+        if (workspace) {
+            const allBlocks = workspace.getAllBlocks();
+            allBlocks.forEach(block => {
+                block.setWarningText(null);
+            });
+        }
+
         try {
             // Check if we are checking against a local backend or remote?
             // For now assuming localhost:3001
@@ -198,7 +226,23 @@ infix:70 " ∩ " => MySet.inter
                 setOutput(response.data.output || 'No output (Success!)');
             } else {
                 setStatus('error');
-                setOutput(response.data.output);
+                const errorText = response.data.output;
+                setOutput(errorText);
+
+                // 2. Extract the Block ID from the error
+                const faultyBlockId = extractBlockIdFromError(errorText, leanCode);
+                
+                // 3. Highlight the block
+                if (faultyBlockId && workspace) {
+                    const faultyBlock = workspace.getBlockById(faultyBlockId);
+                    if (faultyBlock) {
+                        // Set a warning badge on the block
+                        faultyBlock.setWarningText("Lean Error: " + errorText.split('\n')[0]);
+                        
+                        // Optional: Visually select the block to draw attention to it
+                        faultyBlock.select(); 
+                    }
+                }
             }
         } catch (error) {
             setStatus('error');
@@ -234,6 +278,12 @@ infix:70 " ∩ " => MySet.inter
         if (fileInputRef.current) {
             fileInputRef.current.click();
         }
+    };
+
+    const getDisplayCode = (code) => {
+        // This regex looks for " -- @block_id:" followed by any non-whitespace characters
+        // and removes it, but keeps the newline.
+        return code.replace(/ -- @block_id: \S+/g, '');
     };
 
     return (
@@ -276,7 +326,11 @@ infix:70 " ∩ " => MySet.inter
 
                     <div style={{ padding: '10px', background: '#f5f5f5', borderRadius: '5px', textAlign: 'left', direction: 'ltr' }}>
                         <h3 style={{ marginTop: 0, textAlign: 'right', direction: 'rtl' }}>קוד שנוצר (Lean 4):</h3>
-                        <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: '10px', margin: 0, maxHeight: '200px', overflowY: 'auto' }}>{leanCode}</pre>
+                        <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: '10px', margin: 0, maxHeight: '200px', overflowY: 'auto' }}>
+                            {/* Use getDisplayCode for code without comments */}
+                            {getDisplayCode(leanCode)} 
+                            {/* {leanCode} */}
+                        </pre>
                     </div>
 
                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -285,16 +339,15 @@ infix:70 " ∩ " => MySet.inter
                             style={{
                                 padding: '10px 20px',
                                 fontSize: '16px',
-                                backgroundColor: '#4CAF50',
+                                backgroundColor: status === 'running' ? '#9E9E9E' : '#4CAF50',
+                                cursor: status === 'running' ? 'not-allowed' : 'pointer',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',
-                                cursor: 'pointer',
                                 flex: 1
                             }}
                         >
-                            בדוק הוכחה (Run)
-                        </button>
+                            {status === 'running' ? 'בודק...' : 'בדוק הוכחה (Run)'}                        </button>
                         <button
                             onClick={downloadXml}
                             style={{
