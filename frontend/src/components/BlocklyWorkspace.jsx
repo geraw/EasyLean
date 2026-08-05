@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import { defineBlocks } from '../blocks/logic';
@@ -21,12 +21,63 @@ Blockly.Workspace.prototype.getAllVariables = function () {
 
 defineBlocks();
 
+const LEAN_SYMBOLS = {
+    '\\imp': '→',
+    '\\not': '¬',
+    '\\and': '∧',
+    '\\or': '∨',
+    '\\forall': '∀',
+    '\\exists': '∃',
+    '\\iff': '↔',
+    '\\le': '≤',
+    '\\ge': '≥',
+    '\\ne': '≠'
+};
+
 const EasyLeanWorkspace = () => {
     const [xml, setXml] = useState('');
     const [leanCode, setLeanCode] = useState('');
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, running, success, error
     const [workspace, setWorkspace] = useState(null);
+
+    useEffect(() => {
+        if (!workspace) return;
+
+        const changeListener = (event) => {
+            // We only care about user typing into text fields
+            if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'field') {
+                const currentValue = event.newValue;
+                
+                if (typeof currentValue !== 'string') return;
+
+                let updatedValue = currentValue;
+
+                // Check if the current text contains any of our Lean commands
+                Object.keys(LEAN_SYMBOLS).forEach(command => {
+                    if (updatedValue.includes(command)) {
+                        // Replace all instances of the command with the unicode symbol
+                        updatedValue = updatedValue.replaceAll(command, LEAN_SYMBOLS[command]);
+                    }
+                });
+
+                // If a replacement occurred, update the block immediately
+                if (updatedValue !== currentValue) {
+                    const block = workspace.getBlockById(event.blockId);
+                    if (block) {
+                        // Update the field with the new unicode text
+                        block.setFieldValue(updatedValue, event.name);
+                    }
+                }
+            }
+        };
+
+        workspace.addChangeListener(changeListener);
+
+        return () => {
+            workspace.removeChangeListener(changeListener);
+        };
+    }, [workspace]);
 
     const initialXml = `
 <xml xmlns="https://developers.google.com/blockly/xml">
