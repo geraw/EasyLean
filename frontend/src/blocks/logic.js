@@ -330,4 +330,16 @@ export const defineBlocks = () => {
             this.setTooltip("Automatically find a contradiction in the context");
         }
     };
+
+    // Tactic: Assumption
+    Blockly.Blocks['tactic_assumption'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("על פי ההנחה");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("Automatically find an assumption matching current goal");
+        }
+    };
 };

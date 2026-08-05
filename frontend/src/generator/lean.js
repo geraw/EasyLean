@@ -152,3 +152,7 @@ leanGenerator.forBlock['tactic_obtain'] = function (block) {
 leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
     return `  contradiction${tag(block)}\n`;
 };
+
+leanGenerator.forBlock['tactic_assumption'] = function (block) {
+    return `  assumption${tag(block)}\n`;
+};

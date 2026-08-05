@@ -76,6 +76,8 @@ const EasyLeanWorkspace = () => {
                     { kind: 'block', type: 'tactic_use' },
                     { kind: 'block', type: 'tactic_obtain' },
                     { kind: 'block', type: 'tactic_auto_contradiction' },
+                    { kind: 'block', type: 'tactic_assumption' },
+
                 ],
             },
         ],
