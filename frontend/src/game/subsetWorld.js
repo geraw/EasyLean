@@ -106,7 +106,7 @@ export const subsetLevels = [
 כותבים \`h1\` ואחריו \`h2\`, עם רווח ביניהם. כלומר, \`h1 h2\` היא הוכחה ל-\`x ∈ B\`.
 
 נסו להשתמש בזה כדי להשלים את השלב הזה. אם אתם צריכים רמז, לחצו על "הצג רמז".`,
-        newTacticsBlocks: [],
+        newTacticsBlocks: ['tactic_apply'],
         newTacticsInfo: [],
         newDefinitions: [
             {

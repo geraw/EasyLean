@@ -101,7 +101,7 @@ const GameWorkspace = () => {
         setOutput('מריץ בדיקה...');
         try {
             const response = await axios.post('http://localhost:3001/verify', { leanCode: code });
-            if (response.data.exitCode === 0) {
+            if (response.data.exitCode === 0 && !response.data.output.includes('warning')) {
                 setStatus('success');
                 setOutput(response.data.output || 'הצלחה!');
             } else {
@@ -190,7 +190,7 @@ const GameWorkspace = () => {
                         בדוק הוכחה
                     </button>
 
-                    <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr', maxHeight: '150px' }}>
+                    <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr', minHeight: '80px' }}>
                         <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{output}</pre>
                     </div>
 
