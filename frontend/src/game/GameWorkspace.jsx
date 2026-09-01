@@ -15,6 +15,22 @@ Blockly.Workspace.prototype.getAllVariables = function () {
 defineBlocks();
 defineGameBlocks();
 
+const LEAN_SYMBOLS = {
+    '\\imp': '→',
+    '\\not': '¬',
+    '\\and': '∧',
+    '\\or': '∨',
+    '\\forall': '∀',
+    '\\exists': '∃',
+    '\\iff': '↔',
+    '\\le': '≤',
+    '\\ge': '≥',
+    '\\ne': '≠',
+    '\\in': '∈',
+    '\\mem': '∈',
+    '\\sub': '⊆',
+};
+
 // Very small markdown-ish renderer: blank-line-separated paragraphs,
 // "# " headings, `code` spans and *emphasis*.
 const renderInline = (text, keyPrefix) => {
@@ -54,8 +70,48 @@ const GameWorkspace = () => {
 
     const level = subsetLevels[levelIdx];
 
+    // Handle automatic replacement of Lean commands with unicode symbols
+    useEffect(() => {
+        if (!workspace) return;
+
+        const changeListener = (event) => {
+            // We only care about user typing into text fields
+            if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'field') {
+                const currentValue = event.newValue;
+                
+                if (typeof currentValue !== 'string') return;
+
+                let updatedValue = currentValue;
+
+                // Check if the current text contains any of our Lean commands
+                Object.keys(LEAN_SYMBOLS).forEach(command => {
+                    if (updatedValue.includes(command)) {
+                        // Replace all instances of the command with the unicode symbol
+                        updatedValue = updatedValue.replaceAll(command, LEAN_SYMBOLS[command]);
+                    }
+                });
+
+                // If a replacement occurred, update the block immediately
+                if (updatedValue !== currentValue) {
+                    const block = workspace.getBlockById(event.blockId);
+                    if (block) {
+                        // Update the field with the new unicode text
+                        block.setFieldValue(updatedValue, event.name);
+                    }
+                }
+            }
+        };
+
+        workspace.addChangeListener(changeListener);
+
+        return () => {
+            workspace.removeChangeListener(changeListener);
+        };
+    }, [workspace]);
+
     const toolboxConfiguration = useMemo(() => {
-        const blocks = [...new Set(subsetLevels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
+        const tacticBlocks = [...new Set(subsetLevels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
+        const theoremBlocks = [...new Set(subsetLevels.slice(0, levelIdx + 1).flatMap(l => l.newTheoremBlocks || []))];
         return {
             kind: 'categoryToolbox',
             contents: [
@@ -63,8 +119,14 @@ const GameWorkspace = () => {
                     kind: 'category',
                     name: 'טקטיקות',
                     colour: '#5C81A6',
-                    contents: blocks.map(type => ({ kind: 'block', type })),
+                    contents: tacticBlocks.map(type => ({ kind: 'block', type })),
                 },
+                {
+                    kind: 'category',
+                    name: 'משפטים',
+                    colour: '#5CA65C',
+                    contents: theoremBlocks.map(type => ({ kind: 'block', type })),
+                }
             ],
         };
     }, [levelIdx]);

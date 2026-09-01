@@ -156,3 +156,23 @@ leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
 leanGenerator.forBlock['tactic_assumption'] = function (block) {
     return `  assumption${tag(block)}\n`;
 };
+
+// Theorem block generators
+leanGenerator.forBlock['theorem_subset_transitive'] = function (block) {
+    const setA = block.getFieldValue('SET_A');
+    const setC = block.getFieldValue('SET_C');
+    const h1 = block.getFieldValue('H1');
+    const h2 = block.getFieldValue('H2');
+    const resultName = block.getFieldValue('RESULT');
+    return `  have ${resultName} : ${setA} ⊆ ${setC} := fun x hx => ${h2} (${h1} hx)${tag(block)}\n`;
+};
+
+leanGenerator.forBlock['theorem_modus_ponens_sets'] = function (block) {
+    const element = block.getFieldValue('ELEMENT');
+    const setA = block.getFieldValue('SET_A');
+    const setB = block.getFieldValue('SET_B');
+    const h1 = block.getFieldValue('H1');
+    const h2 = block.getFieldValue('H2');
+    const resultName = block.getFieldValue('RESULT');
+    return `  have ${resultName} : ${element} ∈ ${setB} := ${h2} ${h1}${tag(block)}\n`;
+};

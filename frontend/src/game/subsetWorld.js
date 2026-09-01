@@ -45,6 +45,7 @@ export const subsetLevels = [
 והיא סוגרת את המטרה: אם יש לכם ביטוי שהוא הוכחה מדויקת למטרה, \`exact\` עם
 הביטוי הזה יסגור אותה.`,
         newTacticsBlocks: ['tactic_exact'],
+        newTheoremBlocks: [],
         newTacticsInfo: [
             {
                 name: 'exact',
@@ -106,7 +107,8 @@ export const subsetLevels = [
 כותבים \`h1\` ואחריו \`h2\`, עם רווח ביניהם. כלומר, \`h1 h2\` היא הוכחה ל-\`x ∈ B\`.
 
 נסו להשתמש בזה כדי להשלים את השלב הזה. אם אתם צריכים רמז, לחצו על "הצג רמז".`,
-        newTacticsBlocks: ['tactic_apply'],
+        newTacticsBlocks: [],
+        newTheoremBlocks: ['theorem_modus_ponens_sets'],
         newTacticsInfo: [],
         newDefinitions: [
             {
@@ -163,6 +165,7 @@ export const subsetLevels = [
 בונים הוכחה לטענה הזו (למשל עם בלוק exact). לאחר שההנחה נוספה, אפשר
 להמשיך להוכיח את המטרה המקורית באמצעות הבלוק החדש הזה.`,
         newTacticsBlocks: ['tactic_have'],
+        newTheoremBlocks: ['theorem_subset_transitive'],
         newTacticsInfo: [
             {
                 name: 'have',
