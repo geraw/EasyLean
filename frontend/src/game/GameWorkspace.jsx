@@ -217,18 +217,12 @@ const GameWorkspace = () => {
                         <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>{level.goalLabel}</div>
                     </div>
 
-                    {(level.newTacticsInfo?.length > 0 || level.newDefinitions?.length > 0) && (
+                    {(level.newDefinitions?.length > 0) && (
                         <div style={{ padding: '10px', background: '#fff8e1', borderRadius: '5px' }}>
-                            {level.newTacticsInfo?.map(t => (
-                                <div key={t.name} style={{ marginBottom: '6px' }}>
-                                    <strong>טקטיקה חדשה: {t.name}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{t.doc}</div>
-                                </div>
-                            ))}
                             {level.newDefinitions?.map(d => (
                                 <div key={d.symbol} style={{ marginBottom: '6px' }}>
                                     <strong>הגדרה חדשה: {d.symbol}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{d.doc}</div>
+                                    <div style={{ fontSize: '1.1em' }}>{renderMarkdownLite(d.doc)}</div>
                                 </div>
                             ))}
                         </div>

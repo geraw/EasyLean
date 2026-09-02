@@ -24,9 +24,3 @@ body {
   width: 100%;
   height: 100%;
 }
-
-/* Keep editable Lean identifiers readable inside the RTL Blockly workspace. */
-.blocklyHtmlInput {
-  direction: ltr;
-  text-align: left;
-}

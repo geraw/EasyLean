@@ -67,7 +67,6 @@ export const defineBlocks = () => {
                 .appendField("מה שאנחנו רוצים להוכיח זה בדיוק")
                 .appendField(new Blockly.FieldTextInput("h"), "TERM");
             this.setPreviousStatement(true, "tactic");
-            this.setNextStatement(true, "tactic");
             this.setColour(160);
             this.setTooltip("tactic: exact");
             this.setHelpUrl("");
