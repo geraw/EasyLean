@@ -230,7 +230,7 @@ const GameWorkspace = () => {
 
                     <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
                         {hintsShown > 0 && level.hints.slice(0, hintsShown).map((h, i) => (
-                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {h}</p>
+                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {renderMarkdownLite(h)}</p>
                         ))}
                         {hintsShown < level.hints.length && (
                             <button onClick={() => setHintsShown(h => h + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
