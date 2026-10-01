@@ -88,6 +88,21 @@ export const defineBlocks = () => {
         }
     };
 
+    // Proof move: follow a rule to its premise using course language.
+    Blockly.Blocks['tactic_apply_rule'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("מה שצריך להוכיח הוא בדיוק המסקנה של")
+                .appendField(new Blockly.FieldTextInput("h1"), "RULE")
+                .appendField(", ולכן נעבור להוכיח את התנאי שלו");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip("מעבר להוכחת התנאי של כלל מתאים");
+            this.setHelpUrl("");
+        }
+    };
+
     // Tactic: And Intro (Split)
     Blockly.Blocks['tactic_and_intro'] = {
         init: function () {

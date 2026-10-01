@@ -44,6 +44,46 @@ const renderMarkdownLite = (text) => {
     });
 };
 
+const stripOuterParentheses = (text) => {
+    let result = text.trim();
+    let changed = true;
+    while (changed && result.startsWith('(') && result.endsWith(')')) {
+        let depth = 0;
+        changed = false;
+        for (let index = 0; index < result.length; index += 1) {
+            if (result[index] === '(') depth += 1;
+            if (result[index] === ')') depth -= 1;
+            if (depth === 0 && index < result.length - 1) break;
+            if (index === result.length - 1 && depth === 0) {
+                result = result.slice(1, -1).trim();
+                changed = true;
+            }
+        }
+    }
+    return result;
+};
+
+const findTopLevelArrow = (text) => {
+    let depth = 0;
+    for (let index = 0; index < text.length; index += 1) {
+        if (text[index] === '(') depth += 1;
+        if (text[index] === ')') depth -= 1;
+        if (depth === 0 && text[index] === '→') return index;
+        if (depth === 0 && text.slice(index, index + 2) === '->') return index;
+    }
+    return -1;
+};
+
+const formatProofGoal = (text) => {
+    const normalized = stripOuterParentheses(text || '');
+    const arrowIndex = findTopLevelArrow(normalized);
+    if (arrowIndex === -1) return normalized;
+    const arrowLength = normalized[arrowIndex] === '→' ? 1 : 2;
+    const left = formatProofGoal(normalized.slice(0, arrowIndex));
+    const right = formatProofGoal(normalized.slice(arrowIndex + arrowLength));
+    return `(${left} → ${right})`;
+};
+
 const GameWorkspace = ({
     levels = subsetLevels,
     worldName = subsetWorldName,
@@ -61,20 +101,46 @@ const GameWorkspace = ({
     const [hintsShown, setHintsShown] = useState(0);
     const [proofState, setProofState] = useState(null);
     const proofStateRequestRef = useRef(0);
+    const [selectedBlockId, setSelectedBlockId] = useState(null);
+    const errorBlockRef = useRef(null);
+
+    const clearBlockError = useCallback(() => {
+        if (errorBlockRef.current) {
+            const { block, colour } = errorBlockRef.current;
+            if (!block.isDisposed()) block.setColour(colour);
+            errorBlockRef.current = null;
+        }
+    }, []);
+
+    const markBlockError = useCallback((targetWorkspace, blockId) => {
+        clearBlockError();
+        const block = blockId && targetWorkspace.getBlockById(blockId);
+        if (!block) return;
+        errorBlockRef.current = { block, colour: block.getColour() };
+        block.setColour('#d93025');
+    }, [clearBlockError]);
     const workspaceListenerRef = useRef(null);
     const loadingWorkspaceRef = useRef(false);
 
     const handleWorkspaceInject = useCallback((ws) => {
         const listener = (event) => {
-            if (loadingWorkspaceRef.current || event.isUiEvent) return;
+            if (loadingWorkspaceRef.current) return;
+            if (event.type === 'selected') {
+                clearBlockError();
+                setSelectedBlockId(event.newElementId || null);
+                setWorkspaceRevision((revision) => revision + 1);
+                return;
+            }
+            if (event.isUiEvent) return;
             if (['create', 'delete', 'change', 'move'].includes(event.type)) {
+                clearBlockError();
                 setWorkspaceRevision((revision) => revision + 1);
             }
         };
         ws.addChangeListener(listener);
         workspaceListenerRef.current = { workspace: ws, listener };
         setWorkspace(ws);
-    }, []);
+    }, [clearBlockError]);
 
     const handleWorkspaceDispose = useCallback((ws) => {
         if (workspaceListenerRef.current?.workspace === ws) {
@@ -86,7 +152,7 @@ const GameWorkspace = ({
     const level = levels[levelIdx];
 
     const toolboxConfiguration = useMemo(() => {
-        const blocks = [...new Set(levels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
+        const blocks = level.toolboxBlocks || [...new Set(levels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
         return {
             kind: 'categoryToolbox',
             contents: [
@@ -115,16 +181,40 @@ const GameWorkspace = ({
         setOutput('');
         setHintsShown(0);
         setProofState(null);
+        setSelectedBlockId(null);
+        clearBlockError();
         loadingWorkspaceRef.current = false;
-    }, [workspace, levelIdx]);
+    }, [workspace, levelIdx, clearBlockError]);
 
-    const generateLeanCode = (includeFallback = true) => {
+    const generateLeanCode = (includeFallback = true, untilBlockId = null) => {
         if (!workspace) return '';
         const goalBlock = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');
         if (!goalBlock) return '';
-        let proof = leanGenerator.statementToCode(goalBlock, 'PROOF');
-        if (includeFallback && !proof.trim()) proof = '  sorry\n';
+        let proof = '';
+        let proofBlock = goalBlock.getInputTargetBlock('PROOF');
+        let selectedBlockFound = !untilBlockId;
+        while (proofBlock) {
+            if (proofBlock.id === untilBlockId) {
+                selectedBlockFound = true;
+                break;
+            }
+            proof += leanGenerator.blockToCode(proofBlock, true);
+            proofBlock = proofBlock.getNextBlock();
+        }
+        if (untilBlockId && !selectedBlockFound) proof = leanGenerator.statementToCode(goalBlock, 'PROOF');
+        if (!proof.trim()) proof = includeFallback ? '  sorry\n' : '  exact ?_\n';
         return `${preamble}\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n${proof}`;
+    };
+
+    const getLastProofBlockId = () => {
+        const goalBlock = workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
+        let proofBlock = goalBlock?.getInputTargetBlock('PROOF');
+        let lastBlockId = null;
+        while (proofBlock) {
+            lastBlockId = proofBlock.id;
+            proofBlock = proofBlock.getNextBlock();
+        }
+        return lastBlockId;
     };
 
     useEffect(() => {
@@ -137,18 +227,26 @@ const GameWorkspace = ({
         const timeout = setTimeout(async () => {
             try {
                 const response = await axios.post(proofStateEndpoint, {
-                    leanCode: generateLeanCode(false),
+                    leanCode: generateLeanCode(false, selectedBlockId),
                 });
-                if (proofStateRequestRef.current === requestId) setProofState(response.data);
+                if (proofStateRequestRef.current === requestId) {
+                    if (response.data.error) {
+                        markBlockError(workspace, selectedBlockId || getLastProofBlockId());
+                    } else {
+                        clearBlockError();
+                    }
+                    setProofState(response.data);
+                }
             } catch (error) {
                 if (proofStateRequestRef.current === requestId) {
+                    markBlockError(workspace, selectedBlockId || getLastProofBlockId());
                     setProofState({ loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' });
                 }
             }
         }, 180);
 
         return () => clearTimeout(timeout);
-    }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint]);
+    }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, selectedBlockId, clearBlockError, markBlockError]);
 
     const runProof = async () => {
         const code = generateLeanCode();
@@ -157,13 +255,16 @@ const GameWorkspace = ({
         try {
             const response = await axios.post('http://localhost:3001/verify', { leanCode: code });
             if (response.data.exitCode === 0) {
+                clearBlockError();
                 setStatus('success');
                 setOutput(response.data.output || 'הצלחה!');
             } else {
+                markBlockError(workspace, selectedBlockId || getLastProofBlockId());
                 setStatus('error');
                 setOutput(hideCompilerDetails ? 'עדיין לא. בדקו את סדר מהלכי ההוכחה ונסו שוב.' : response.data.output);
             }
         } catch (error) {
+            markBlockError(workspace, selectedBlockId || getLastProofBlockId());
             setStatus('error');
             setOutput(hideCompilerDetails ? 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.' : 'שגיאה בהתחברות לשרת: ' + error.message);
         }
@@ -186,7 +287,7 @@ const GameWorkspace = ({
             )}
             <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
             <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {proofState?.complete ? 'ההוכחה הושלמה' : proofState?.goal || proofState?.error || level.proposition}
+                {proofState?.complete ? 'ההוכחה הושלמה' : proofState?.goal ? formatProofGoal(proofState.goal) : proofState?.error || formatProofGoal(level.proposition)}
             </div>
         </div>
     );

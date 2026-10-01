@@ -66,9 +66,13 @@ app.post('/proof-state', (req, res) => {
 
         const output = result.stdout + result.stderr;
         const state = parseLeanProofState(output);
-        if (state) return res.json({ ...state, output });
+        const hasHardError = output.split(/\r?\n/)
+            .some((line) => line.includes('error:')
+                && !line.includes('unsolved goals')
+                && !line.includes("don't know how to synthesize placeholder"));
+        if (state && !hasHardError) return res.json({ ...state, output });
         if (!result.error) return res.json({ assumptions: [], goal: null, complete: true, output });
-        return res.json({ assumptions: [], goal: null, complete: false, error: 'לא ניתן לקרוא את מצב ההוכחה', output });
+        return res.json({ assumptions: [], goal: null, complete: false, error: 'יש שגיאה במהלך ההוכחה', output });
     });
 });
 

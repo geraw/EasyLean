@@ -67,6 +67,11 @@ leanGenerator.forBlock['tactic_apply'] = function (block) {
     return `  apply ${term}\n`;
 };
 
+leanGenerator.forBlock['tactic_apply_rule'] = function (block) {
+    const rule = block.getFieldValue('RULE');
+    return `  apply ${rule}\n`;
+};
+
 leanGenerator.forBlock['tactic_and_intro'] = function (block) {
     let leftProof = leanGenerator.statementToCode(block, 'PROOF_LEFT');
     let rightProof = leanGenerator.statementToCode(block, 'PROOF_RIGHT');
