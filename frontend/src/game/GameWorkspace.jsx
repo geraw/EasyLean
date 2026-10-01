@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
 import { leanGenerator } from '../generator/lean';
-import { subsetLevels, worldName, SET_PREAMBLE } from './subsetWorld';
+import { subsetLevels, worldName as subsetWorldName, SET_PREAMBLE } from './subsetWorld';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -44,34 +44,66 @@ const renderMarkdownLite = (text) => {
     });
 };
 
-const GameWorkspace = () => {
+const GameWorkspace = ({
+    levels = subsetLevels,
+    worldName = subsetWorldName,
+    preamble = SET_PREAMBLE,
+    toolboxLabel = 'טקטיקות',
+    newTacticsLabel = 'טקטיקה חדשה',
+    hideCompilerDetails = false,
+    proofStateEndpoint = null,
+}) => {
     const [levelIdx, setLevelIdx] = useState(0);
     const [workspace, setWorkspace] = useState(null);
-    const [leanCode, setLeanCode] = useState('');
+    const [workspaceRevision, setWorkspaceRevision] = useState(0);
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, running, success, error
     const [hintsShown, setHintsShown] = useState(0);
+    const [proofState, setProofState] = useState(null);
+    const proofStateRequestRef = useRef(0);
+    const workspaceListenerRef = useRef(null);
+    const loadingWorkspaceRef = useRef(false);
 
-    const level = subsetLevels[levelIdx];
+    const handleWorkspaceInject = useCallback((ws) => {
+        const listener = (event) => {
+            if (loadingWorkspaceRef.current || event.isUiEvent) return;
+            if (['create', 'delete', 'change', 'move'].includes(event.type)) {
+                setWorkspaceRevision((revision) => revision + 1);
+            }
+        };
+        ws.addChangeListener(listener);
+        workspaceListenerRef.current = { workspace: ws, listener };
+        setWorkspace(ws);
+    }, []);
+
+    const handleWorkspaceDispose = useCallback((ws) => {
+        if (workspaceListenerRef.current?.workspace === ws) {
+            ws.removeChangeListener(workspaceListenerRef.current.listener);
+            workspaceListenerRef.current = null;
+        }
+    }, []);
+
+    const level = levels[levelIdx];
 
     const toolboxConfiguration = useMemo(() => {
-        const blocks = [...new Set(subsetLevels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
+        const blocks = [...new Set(levels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
         return {
             kind: 'categoryToolbox',
             contents: [
                 {
                     kind: 'category',
-                    name: 'טקטיקות',
+                    name: toolboxLabel,
                     colour: '#5C81A6',
                     contents: blocks.map(type => ({ kind: 'block', type })),
                 },
             ],
         };
-    }, [levelIdx]);
+    }, [levelIdx, levels, toolboxLabel]);
 
     // (Re)load the level's starting XML whenever the level changes.
     useEffect(() => {
         if (!workspace) return;
+        loadingWorkspaceRef.current = true;
         workspace.clear();
         try {
             const dom = Blockly.utils.xml.textToDom(level.startXml);
@@ -81,22 +113,45 @@ const GameWorkspace = () => {
         }
         setStatus('idle');
         setOutput('');
-        setLeanCode('');
         setHintsShown(0);
+        setProofState(null);
+        loadingWorkspaceRef.current = false;
     }, [workspace, levelIdx]);
 
-    const generateLeanCode = () => {
+    const generateLeanCode = (includeFallback = true) => {
         if (!workspace) return '';
         const goalBlock = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');
         if (!goalBlock) return '';
         let proof = leanGenerator.statementToCode(goalBlock, 'PROOF');
-        if (!proof.trim()) proof = '  sorry\n';
-        return `${SET_PREAMBLE}\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n${proof}`;
+        if (includeFallback && !proof.trim()) proof = '  sorry\n';
+        return `${preamble}\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n${proof}`;
     };
+
+    useEffect(() => {
+        if (!proofStateEndpoint || !workspace) return undefined;
+
+        const requestId = proofStateRequestRef.current + 1;
+        proofStateRequestRef.current = requestId;
+        setProofState({ loading: true, assumptions: [], goal: level.proposition, complete: false });
+
+        const timeout = setTimeout(async () => {
+            try {
+                const response = await axios.post(proofStateEndpoint, {
+                    leanCode: generateLeanCode(false),
+                });
+                if (proofStateRequestRef.current === requestId) setProofState(response.data);
+            } catch (error) {
+                if (proofStateRequestRef.current === requestId) {
+                    setProofState({ loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' });
+                }
+            }
+        }, 180);
+
+        return () => clearTimeout(timeout);
+    }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint]);
 
     const runProof = async () => {
         const code = generateLeanCode();
-        setLeanCode(code);
         setStatus('running');
         setOutput('מריץ בדיקה...');
         try {
@@ -106,26 +161,66 @@ const GameWorkspace = () => {
                 setOutput(response.data.output || 'הצלחה!');
             } else {
                 setStatus('error');
-                setOutput(response.data.output);
+                setOutput(hideCompilerDetails ? 'עדיין לא. בדקו את סדר מהלכי ההוכחה ונסו שוב.' : response.data.output);
             }
         } catch (error) {
             setStatus('error');
-            setOutput('שגיאה בהתחברות לשרת: ' + error.message);
+            setOutput(hideCompilerDetails ? 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.' : 'שגיאה בהתחברות לשרת: ' + error.message);
         }
     };
 
-    const hasNextLevel = levelIdx + 1 < subsetLevels.length;
+    const hasNextLevel = levelIdx + 1 < levels.length;
+    const proofStatePanel = proofStateEndpoint && (
+        <div style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0 }}>
+            <h3 style={{ margin: '0 0 10px 0' }}>מצב ההוכחה</h3>
+            {proofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
+            <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
+            {proofState?.assumptions?.length > 0 ? (
+                proofState.assumptions.map((assumption) => (
+                    <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+                        {assumption.name} : {assumption.prop}
+                    </div>
+                ))
+            ) : (
+                <div style={{ color: '#555', marginBottom: '10px' }}>עדיין לא הוספנו הנחות.</div>
+            )}
+            <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
+            <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                {proofState?.complete ? 'ההוכחה הושלמה' : proofState?.goal || proofState?.error || level.proposition}
+            </div>
+        </div>
+    );
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
-            <h1 style={{ margin: '0 0 10px 0' }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {level.title}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                <h1 style={{ margin: 0 }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {level.title}</h1>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                    מעבר ישיר לשלב:
+                    <select
+                        value={levelIdx}
+                        onChange={(event) => setLevelIdx(Number(event.target.value))}
+                        aria-label="מעבר ישיר לשלב"
+                        style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #aaa', background: 'white' }}
+                    >
+                        {levels.map((availableLevel, index) => (
+                            <option key={availableLevel.id} value={index}>
+                                {availableLevel.levelNumber}/{availableLevel.totalLevels} — {availableLevel.title}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            </div>
 
             <div style={{ display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0 }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid #ccc', position: 'relative' }}>
-                    <div style={{ flex: 1, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+                <div style={{ flex: 1, minWidth: '520px', minHeight: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {proofStatePanel}
+                    <div style={{ flex: 1, minHeight: 0, border: '1px solid #ccc', position: 'relative', overflow: 'visible' }}>
+                        <div style={{ flex: 1, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
                         <BlocklyWorkspace
                             className="width-100"
-                            onInject={(ws) => setWorkspace(ws)}
+                            onInject={handleWorkspaceInject}
+                            onDispose={handleWorkspaceDispose}
                             toolboxConfiguration={toolboxConfiguration}
                             workspaceConfiguration={{
                                 rtl: true,
@@ -133,6 +228,7 @@ const GameWorkspace = () => {
                             }}
                             initialXml={level.startXml}
                         />
+                        </div>
                     </div>
                 </div>
 
@@ -159,7 +255,7 @@ const GameWorkspace = () => {
                         <div style={{ padding: '10px', background: '#fff8e1', borderRadius: '5px' }}>
                             {level.newTacticsInfo?.map(t => (
                                 <div key={t.name} style={{ marginBottom: '6px' }}>
-                                    <strong>טקטיקה חדשה: {t.name}</strong>
+                                    <strong>{newTacticsLabel}: {t.name}</strong>
                                     <div style={{ fontSize: '0.9em' }}>{t.doc}</div>
                                 </div>
                             ))}
