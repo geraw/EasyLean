@@ -202,7 +202,7 @@ describe('explainLeanMessage for negation', () => {
     const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
 
     it('explains reaching a contradiction when the goal is not ⊥', () => {
-        expect(explain(contradictionOnOtherGoal)).toBe('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה ("מסתירה נובע הכול").');
+        expect(explain(contradictionOnOtherGoal)).toBe('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו בגרירה "סתירה גוררת Q" ועברו להוכיח את התנאי שלה.');
     });
 
     it('explains two assumptions that do not contradict each other', () => {

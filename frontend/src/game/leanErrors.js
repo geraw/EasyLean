@@ -1,5 +1,5 @@
 import { formatProofGoal } from './formatProofGoal';
-import { isolateNegations } from './bidi';
+import { isolateFormulas } from './bidi';
 
 // Turns Lean's error messages into explanations in the terms the units use
 // (condition, conclusion, goal, assumption), so students never see Lean itself.
@@ -30,7 +30,7 @@ const EXPLANATIONS = [
     {
         // A contradiction used on a goal that is not ⊥ (see logic_contradiction / logic_not_elim).
         pattern: /^type mismatch\s*\n\s*absurd .+?\s*\nhas type\s*\n\s*False\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
-        explain: ([, goal]) => `המטרה היא ${formula(goal)}, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה ("מסתירה נובע הכול").`,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו בגרירה "סתירה גוררת ${formula(goal)}" ועברו להוכיח את התנאי שלה.`,
     },
     {
         // The two assumptions of a contradiction do not contradict each other,
@@ -112,7 +112,7 @@ const EXPLANATIONS = [
 export const explainLeanMessage = (text) => {
     for (const { pattern, explain } of EXPLANATIONS) {
         const match = text.match(pattern);
-        if (match) return isolateNegations(explain(match, text));
+        if (match) return isolateFormulas(explain(match, text));
     }
     return GENERIC_PROBLEM;
 };

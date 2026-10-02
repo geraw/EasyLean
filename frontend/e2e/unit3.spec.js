@@ -11,11 +11,12 @@ const notElim = (negation) => ['logic_not_elim', { NEGATION: negation }];
 const byCases = (formula, left, leftSteps, right, rightSteps) =>
     ['logic_by_cases', { FORMULA: formula, LEFT_NAME: left, RIGHT_NAME: right }, { LEFT: leftSteps, RIGHT: rightSteps }];
 const andIntro = (left, right) => ['logic_and_intro', {}, { LEFT: left, RIGHT: right }];
+const falseImplies = (formula, name) => ['logic_false_implies', { FORMULA: formula, HYPOTHESIS: name }];
 
 // A solution for each level, in the order of the unit.
 const SOLUTIONS = [
     [contradiction('hn', 'hp')],
-    [['logic_exfalso'], contradiction('hn', 'hp')],
+    [falseImplies('Q', 'hf'), applyRule('hf'), contradiction('hn', 'hp')],
     [notIntro('hn'), contradiction('hn', 'hp')],
     [notIntro('hp'), notElim('hnq'), applyRule('h'), exact('hp')],
     [assume('h'), andIntro(
@@ -26,7 +27,7 @@ const SOLUTIONS = [
     [assume('h'), byCases('P',
         'h1', [['logic_or_intro_right'], notIntro('hq'), notElim('h'), andIntro([exact('h1')], [exact('hq')])],
         'h2', [['logic_or_intro_left'], exact('h2')])],
-    [assume('h'), notIntro('hnp'), notElim('h'), assume('hp'), ['logic_exfalso'], contradiction('hnp', 'hp')],
+    [assume('h'), notIntro('hnp'), notElim('h'), assume('hp'), falseImplies('Q', 'hf'), applyRule('hf'), contradiction('hnp', 'hp')],
 ];
 
 const goToLevel = async (page, index) => {
@@ -61,7 +62,7 @@ test('reaching a contradiction on a goal that is not ⊥ is explained', async ({
     await goToLevel(page, 1);
     await buildProof(page, [contradiction('hn', 'hp')]);
     await expect(proofStatePanel(page).getByRole('alert'))
-        .toContainText('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה');
+        .toContainText('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו בגרירה "סתירה גוררת Q"');
 });
 
 test('proving a goal that is not a negation by assuming what it negates is explained', async ({ page }) => {
@@ -79,4 +80,15 @@ test('checking both possibilities gives one case with P and one with ¬P', async
     await expect(panel).toContainText('ההוכחה מתפצלת, ונשאר להוכיח 2 חלקים');
     await expect(panel).toContainText('h1 : P');
     await expect(panel).toContainText('h2 : ¬P');
+});
+
+test('"a contradiction implies Q" is an assumption, used like any implication', async ({ page }) => {
+    await goToLevel(page, 1);
+    const [fact, rule] = await buildProof(page, [falseImplies('Q', 'hf'), applyRule('hf')]);
+    let panel = await selectMove(page, fact);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(panel).toContainText('hf : ⊥ → Q');
+    panel = await selectMove(page, rule);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(panel).toContainText('סתירה (⊥)');
 });

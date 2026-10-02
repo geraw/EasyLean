@@ -8,7 +8,7 @@ import { formatProofGoal } from './formatProofGoal';
 import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
 import { goalLabel, openGoals } from './proofState';
-import { isolateNegations } from './bidi';
+import { isolateFormulas } from './bidi';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -29,7 +29,7 @@ const renderInline = (text, keyPrefix) => {
                 </code>
             );
         }
-        return isolateNegations(chunk).split(/\*(.+?)\*/g).map((seg, j) =>
+        return isolateFormulas(chunk).split(/\*(.+?)\*/g).map((seg, j) =>
             j % 2 === 1
                 ? <em key={`${keyPrefix}-i${i}-${j}`}>{seg}</em>
                 : <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{seg}</React.Fragment>
@@ -288,7 +288,7 @@ const GameWorkspace = ({
             {assumptions.length > 0 ? (
                 assumptions.map((assumption) => (
                     <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
-                        {assumption.name} : {assumption.prop}
+                        {assumption.name} : {assumption.prop.replace(/\bFalse\b/g, '⊥')}
                     </div>
                 ))
             ) : (
@@ -451,13 +451,13 @@ const GameWorkspace = ({
                             {level.newTacticsInfo?.map(t => (
                                 <div key={t.name} style={{ marginBottom: '6px' }}>
                                     <strong>{newTacticsLabel}: {t.name}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{isolateNegations(t.doc)}</div>
+                                    <div style={{ fontSize: '0.9em' }}>{isolateFormulas(t.doc)}</div>
                                 </div>
                             ))}
                             {level.newDefinitions?.map(d => (
                                 <div key={d.symbol} style={{ marginBottom: '6px' }}>
                                     <strong>הגדרה חדשה: {d.symbol}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{isolateNegations(d.doc)}</div>
+                                    <div style={{ fontSize: '0.9em' }}>{isolateFormulas(d.doc)}</div>
                                 </div>
                             ))}
                         </div>
@@ -465,7 +465,7 @@ const GameWorkspace = ({
 
                     <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
                         {hintsShown > 0 && level.hints.slice(0, hintsShown).map((h, i) => (
-                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {isolateNegations(h)}</p>
+                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {isolateFormulas(h)}</p>
                         ))}
                         {hintsShown < level.hints.length && (
                             <button onClick={() => setHintsShown(h => h + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>

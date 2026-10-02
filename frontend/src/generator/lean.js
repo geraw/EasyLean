@@ -182,12 +182,14 @@ leanGenerator.forBlock['logic_iff_elim'] = function (block) {
 
 // Unit 3 rules. As in unit 2, each one is the specific rule, so that it fails
 // on a goal or an assumption of the wrong kind: e.g. a contradiction only
-// closes the goal ⊥ (False), and reaching other goals needs ex falso first.
+// closes the goal ⊥ (False); to reach other goals, ⊥ → Q is used first.
 leanGenerator.forBlock['logic_contradiction'] = function (block) {
     return `  exact (absurd ${block.getFieldValue('HYPOTHESIS')} ${block.getFieldValue('NEGATION')} : False)\n`;
 };
 
-leanGenerator.forBlock['logic_exfalso'] = () => '  exfalso\n';
+leanGenerator.forBlock['logic_false_implies'] = function (block) {
+    return `  have ${block.getFieldValue('HYPOTHESIS')} : False → (${block.getFieldValue('FORMULA')}) := False.elim\n`;
+};
 
 leanGenerator.forBlock['logic_not_intro'] = function (block) {
     return `  apply Not.intro\n  intro ${block.getFieldValue('HYPOTHESIS')}\n`;

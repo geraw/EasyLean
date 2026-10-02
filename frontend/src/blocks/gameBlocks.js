@@ -128,10 +128,17 @@ export const defineGameBlocks = () => {
         }
     };
 
-    Blockly.Blocks['logic_exfalso'] = {
+    // Ex falso as a fact: the implication ⊥ → Q, which the move from unit 1
+    // ("pass to the condition of an implication") then uses.
+    Blockly.Blocks['logic_false_implies'] = {
         init: function () {
-            this.appendDummyInput().appendField("מסתירה נובע הכול: מספיק להגיע לסתירה");
-            move(this, NEGATION_COLOUR, 'אם נגיע לסתירה, הוכחנו כל מטרה.');
+            this.appendDummyInput()
+                .appendField("נשתמש בגרירה: סתירה גוררת")
+                .appendField(new Blockly.FieldTextInput("Q"), "FORMULA");
+            this.appendDummyInput()
+                .appendField("ונקרא לה")
+                .appendField(new Blockly.FieldTextInput("hf"), "HYPOTHESIS");
+            move(this, NEGATION_COLOUR, 'מסתירה נובעת כל טענה: הגרירה ⊥ → Q נכונה תמיד.');
         }
     };
 
