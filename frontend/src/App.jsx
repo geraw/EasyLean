@@ -3,6 +3,7 @@ import EasyLeanWorkspace from './components/BlocklyWorkspace';
 import GameWorkspace from './game/GameWorkspace';
 import { unit0Levels, unit0WorldName } from './game/unit0World';
 import { unit1Levels, unit1WorldName } from './game/unit1World';
+import { unit2Levels, unit2WorldName } from './game/unit2World';
 import './App.css';
 
 const modeButtonStyle = (active) => ({
@@ -23,7 +24,8 @@ const SHOW_SANDBOX = false;
 
 const UNITS = {
   unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
-  unit1: { levels: unit1Levels, worldName: unit1WorldName },
+  unit1: { levels: unit1Levels, worldName: unit1WorldName, next: { mode: 'unit2', label: 'ליחידה 2' } },
+  unit2: { levels: unit2Levels, worldName: unit2WorldName },
 };
 
 function App() {

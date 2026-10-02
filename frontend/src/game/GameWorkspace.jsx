@@ -7,6 +7,7 @@ import { defineGameBlocks } from '../blocks/gameBlocks';
 import { formatProofGoal } from './formatProofGoal';
 import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
+import { goalLabel, openGoals } from './proofState';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -187,7 +188,8 @@ const GameWorkspace = ({
     const locateProblem = (output, source, options) => {
         const problem = findLeanProblem(output, options);
         return {
-            blockId: (problem && source.lineBlockIds.get(problem.line)) || evaluatedBlockId || getLastProofBlockId(workspace),
+            blockId: (problem && ((problem.unsolved && source.partLastBlockIds.get(problem.line)) || source.lineBlockIds.get(problem.line)))
+                || evaluatedBlockId || getLastProofBlockId(workspace),
             message: problem?.message || GENERIC_PROBLEM,
         };
     };
@@ -207,10 +209,8 @@ const GameWorkspace = ({
 
         const requestId = proofStateRequestRef.current + 1;
         proofStateRequestRef.current = requestId;
-        setProofStates({
-            before: { loading: true, assumptions: [], goal: level.proposition, complete: false },
-            after: evaluatedBlockId ? { loading: true, assumptions: [], goal: level.proposition, complete: false } : null,
-        });
+        const loadingState = { loading: true, goals: [{ assumptions: [], goal: level.proposition }], complete: false };
+        setProofStates({ before: loadingState, after: evaluatedBlockId ? loadingState : null });
 
         const timeout = setTimeout(async () => {
             try {
@@ -221,10 +221,13 @@ const GameWorkspace = ({
                     responses.push(await axios.post(proofStateEndpoint, { leanCode: source.code }));
                 }
                 if (proofStateRequestRef.current === requestId) {
-                    // Replace the backend's generic error with an explanation of the problem.
-                    const states = responses.map(({ data }, index) => (data.error
-                        ? { ...data, problem: locateProblem(data.output, sources[index]) }
-                        : data));
+                    // Replace the backend's generic error with an explanation of the problem,
+                    // and read the open goals at the point the proof was cut.
+                    const states = responses.map(({ data }, index) => {
+                        if (data.error) return { ...data, problem: locateProblem(data.output, sources[index]) };
+                        const goals = openGoals(data.output || '', sources[index].stateLine);
+                        return { goals, complete: goals.length === 0, inPart: sources[index].inPart };
+                    });
                     const firstProblem = states.find((state) => state.problem)?.problem;
                     if (firstProblem) {
                         markBlockError(workspace, firstProblem.blockId, firstProblem.message);
@@ -237,7 +240,7 @@ const GameWorkspace = ({
                 if (proofStateRequestRef.current === requestId) {
                     markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace), 'לא ניתן לקבל את מצב ההוכחה כרגע.');
                     setProofStates({
-                        before: { loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' },
+                        before: { loading: false, goals: [], complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' },
                         after: null,
                     });
                 }
@@ -277,8 +280,29 @@ const GameWorkspace = ({
     const displayedProofState = proofView === 'after'
         ? (proofStates.after || proofStates.before)
         : proofStates.before;
+    // What we have and what is left to prove, for one goal.
+    const renderGoal = ({ assumptions, goal }, spacing) => (
+        <>
+            <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
+            {assumptions.length > 0 ? (
+                assumptions.map((assumption) => (
+                    <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+                        {assumption.name} : {assumption.prop}
+                    </div>
+                ))
+            ) : (
+                <div style={{ color: '#555', marginBottom: spacing }}>עדיין לא הוספנו הנחות.</div>
+            )}
+            <h4 style={{ margin: `${spacing} 0 6px 0` }}>מה נשאר להוכיח</h4>
+            <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                {formatProofGoal(goal || level.proposition)}
+            </div>
+        </>
+    );
     const proofStatePanel = proofStateEndpoint && (
-        <div role="region" aria-label="מצב ההוכחה" style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0 }}>
+        // Capped so the workspace above it keeps most of the height, even when a
+        // rule split the proof into several parts.
+        <div role="region" aria-label="מצב ההוכחה" style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0, maxHeight: '40%', overflowY: 'auto', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
                 <h3 style={{ margin: 0 }}>מצב ההוכחה</h3>
                 {evaluatedBlockId && (
@@ -326,29 +350,27 @@ const GameWorkspace = ({
             {displayedProofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
             {displayedProofState?.complete ? (
                 // Nothing is left to prove, so there are no assumptions to list either.
-                <div style={{ color: '#1e7e34', fontWeight: 'bold' }}>✓ ההוכחה הושלמה: הוכחנו את מה שהתבקשנו.</div>
+                <div style={{ color: '#1e7e34', fontWeight: 'bold' }}>
+                    {displayedProofState.inPart ? '✓ החלק הזה של ההוכחה הושלם.' : '✓ ההוכחה הושלמה: הוכחנו את מה שהתבקשנו.'}
+                </div>
             ) : displayedProofState?.error ? (
                 <div role="alert" style={{ color: '#b3261e', lineHeight: 1.6 }}>
                     ⚠ {displayedProofState.problem?.message || displayedProofState.error}
                 </div>
-            ) : (
+            ) : (displayedProofState?.goals?.length ?? 0) > 1 ? (
+                // A rule split the proof: each part, side by side, with its own assumptions and goal.
                 <>
-                    <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
-                    {displayedProofState?.assumptions?.length > 0 ? (
-                        displayedProofState.assumptions.map((assumption) => (
-                            <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
-                                {assumption.name} : {assumption.prop}
+                    <div style={{ marginBottom: '8px' }}>ההוכחה מתפצלת, ונשאר להוכיח {displayedProofState.goals.length} חלקים:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {displayedProofState.goals.map((goal, index) => (
+                            <div key={index} style={{ flex: '1 1 220px', background: 'white', border: '1px solid #b7cbea', borderRadius: '5px', padding: '8px' }}>
+                                <h4 style={{ margin: '0 0 6px 0', color: '#1a4f9c' }}>{goalLabel(goal, index)}</h4>
+                                {renderGoal(goal, '4px')}
                             </div>
-                        ))
-                    ) : (
-                        <div style={{ color: '#555', marginBottom: '10px' }}>עדיין לא הוספנו הנחות.</div>
-                    )}
-                    <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
-                    <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                        {formatProofGoal(displayedProofState?.goal || level.proposition)}
+                        ))}
                     </div>
                 </>
-            )}
+            ) : renderGoal(displayedProofState?.goals?.[0] || { assumptions: [], goal: level.proposition }, '10px')}
         </div>
     );
 
@@ -388,6 +410,9 @@ const GameWorkspace = ({
                                 // right edge, so the open toolbox no longer covers where moves are dropped.
                                 toolboxPosition: 'end',
                                 grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+                                // Proofs with several parts (unit 2 on) can be wider than the
+                                // workspace; zoom buttons let students fit them in.
+                                zoom: { controls: true, wheel: false, startScale: 1, maxScale: 1.5, minScale: 0.5, scaleSpeed: 1.2 },
                             }}
                             initialXml={level.startXml}
                         />

@@ -17,23 +17,35 @@ const stripOuterParentheses = (text) => {
     return result;
 };
 
-const findTopLevelArrow = (text) => {
+// Binary connectives from the loosest to the tightest (Lean's precedence);
+// all of them group to the right, so splitting at the first one is correct.
+const CONNECTIVES = [['↔', ['↔', '<->']], ['→', ['→', '->']], ['∨', ['∨', '\\/']], ['∧', ['∧', '/\\']]];
+
+// The first top-level (not parenthesized) occurrence of the connective.
+const findTopLevel = (text, spellings) => {
     let depth = 0;
     for (let index = 0; index < text.length; index += 1) {
         if (text[index] === '(') depth += 1;
         if (text[index] === ')') depth -= 1;
-        if (depth === 0 && text[index] === '→') return index;
-        if (depth === 0 && text.slice(index, index + 2) === '->') return index;
+        if (depth !== 0) continue;
+        const spelling = spellings.find((candidate) => text.startsWith(candidate, index));
+        // `<->` also contains `->`, which must not be read as an implication.
+        if (spelling && !(spelling === '->' && text[index - 1] === '<')) return { index, length: spelling.length };
     }
-    return -1;
+    return null;
 };
 
+// Writes every compound formula in parentheses, so students never need to
+// know which connective binds tighter: `P ∧ Q → R` is `((P ∧ Q) → R)`.
 export const formatProofGoal = (text) => {
     const normalized = stripOuterParentheses(text || '');
-    const arrowIndex = findTopLevelArrow(normalized);
-    if (arrowIndex === -1) return normalized;
-    const arrowLength = normalized[arrowIndex] === '→' ? 1 : 2;
-    const left = formatProofGoal(normalized.slice(0, arrowIndex));
-    const right = formatProofGoal(normalized.slice(arrowIndex + arrowLength));
-    return `(${left} → ${right})`;
+    for (const [symbol, spellings] of CONNECTIVES) {
+        const found = findTopLevel(normalized, spellings);
+        if (!found) continue;
+        const left = formatProofGoal(normalized.slice(0, found.index));
+        const right = formatProofGoal(normalized.slice(found.index + found.length));
+        return `(${left} ${symbol} ${right})`;
+    }
+    if (normalized.startsWith('¬')) return `¬${formatProofGoal(normalized.slice(1))}`;
+    return normalized;
 };

@@ -154,3 +154,39 @@ leanGenerator.forBlock['tactic_obtain'] = function (block) {
 leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
     return `  contradiction\n`;
 };
+
+// Unit 2 rules. Each one generates the specific introduction or elimination
+// rule, so that a rule used on the wrong connective fails instead of Lean
+// quietly doing something else (e.g. `constructor` proves an "or" by its left side).
+leanGenerator.forBlock['logic_and_intro'] = () => '  apply And.intro\n';
+
+leanGenerator.forBlock['logic_and_elim'] = function (block) {
+    const h = block.getFieldValue('HYPOTHESIS');
+    return `  have ${block.getFieldValue('LEFT_NAME')} := And.left ${h}\n  have ${block.getFieldValue('RIGHT_NAME')} := And.right ${h}\n`;
+};
+
+leanGenerator.forBlock['logic_or_intro_left'] = () => '  apply Or.inl\n';
+
+leanGenerator.forBlock['logic_or_intro_right'] = () => '  apply Or.inr\n';
+
+leanGenerator.forBlock['logic_or_elim'] = function (block) {
+    return `  cases ${block.getFieldValue('HYPOTHESIS')} with\n`;
+};
+
+leanGenerator.forBlock['logic_iff_intro'] = () => '  apply Iff.intro\n';
+
+leanGenerator.forBlock['logic_iff_elim'] = function (block) {
+    const h = block.getFieldValue('HYPOTHESIS');
+    return `  have ${block.getFieldValue('FORWARD_NAME')} := Iff.mp ${h}\n  have ${block.getFieldValue('BACKWARD_NAME')} := Iff.mpr ${h}\n`;
+};
+
+// Moves that split the proof: for each part, the statement input holding its
+// sub-proof and the line that opens that part in Lean (at the move's indentation).
+export const leanBranches = {
+    logic_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
+    logic_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
+    logic_or_elim: (block) => [
+        { input: 'LEFT', header: `| inl ${block.getFieldValue('LEFT_NAME')} =>` },
+        { input: 'RIGHT', header: `| inr ${block.getFieldValue('RIGHT_NAME')} =>` },
+    ],
+};

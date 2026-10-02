@@ -21,21 +21,32 @@ export const openWorld = async (page, worldName) => {
 };
 
 // Appends moves to the goal's proof through the dev-only workspace hook.
-// Each step is [blockType, { FIELD: value }]; resolves to the new block ids.
+// Each step is [blockType, { FIELD: value }, { INPUT: [steps] }]: the optional
+// third element fills the parts of a rule that splits the proof. Resolves to
+// the new block ids, each move before the moves inside it.
 export const buildProof = (page, steps) => page.evaluate((steps) => {
     const workspace = window.__easyleanWorkspace;
     const goal = workspace.getTopBlocks(true).find((b) => b.type === 'game_goal');
-    let connection = goal.getInput('PROOF').connection;
-    return steps.map(([type, fields = {}]) => {
+    const ids = [];
+    const build = (connection, steps) => steps.forEach(([type, fields = {}, parts = {}]) => {
         const block = workspace.newBlock(type);
         Object.entries(fields).forEach(([name, value]) => block.setFieldValue(value, name));
         block.initSvg();
         block.render();
         connection.connect(block.previousConnection);
+        ids.push(block.id);
+        Object.entries(parts).forEach(([input, partSteps]) => build(block.getInput(input).connection, partSteps));
         connection = block.nextConnection;
-        return block.id;
     });
+    build(goal.getInput('PROOF').connection, steps);
+    return ids;
 }, steps);
+
+// Removes every move, leaving the goal block with an empty proof.
+export const clearProof = (page) => page.evaluate(() => {
+    const workspace = window.__easyleanWorkspace;
+    workspace.getTopBlocks(true).find((b) => b.type === 'game_goal').getInputTargetBlock('PROOF')?.dispose(false);
+});
 
 // Clicks a block like a user would: on its own top row (the right edge, as the
 // workspace is RTL). A locator click waits for the block to stop moving, which

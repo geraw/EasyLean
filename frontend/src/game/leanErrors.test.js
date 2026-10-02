@@ -87,6 +87,7 @@ describe('findLeanProblem', () => {
         expect(findLeanProblem(holeAndUnsolved, { includeUnsolvedGoals: true })).toEqual({
             line: 4,
             message: 'ההוכחה עוד לא הושלמה: נשאר להוכיח (P → P).',
+            unsolved: true,
         });
     });
 
@@ -96,5 +97,65 @@ describe('findLeanProblem', () => {
 
     it('returns null for clean output', () => {
         expect(findLeanProblem('')).toBeNull();
+    });
+});
+
+// Real Lean 4.26 output for unit 2 rules used on the wrong connective.
+const andIntroOnOr = `Proof.lean:5:2: error: Tactic \`apply\` failed: could not unify the conclusion of \`@And.intro\`
+  ?a ∧ ?b
+with the goal
+  P ∨ Q
+
+Note: The full type of \`@And.intro\` is
+  ∀ {a b : Prop}, a → b → a ∧ b
+
+P Q : Prop
+⊢ P ∨ Q
+`;
+const orInlOnAnd = andIntroOnOr.replaceAll('And.intro', 'Or.inl').replace('?a ∧ ?b', '?a ∨ ?b').replace('P ∨ Q', 'P ∧ Q');
+const iffIntroOnAtom = andIntroOnOr.replaceAll('And.intro', 'Iff.intro').replace('?a ∧ ?b', '?a ↔ ?b').replace('  P ∨ Q', '  P');
+const andElimOnIff = `Proof.lean:5:22: error: Application type mismatch: The argument
+  h
+has type
+  P ↔ Q
+but is expected to have type
+  ?m.3 ∧ ?m.4
+in the application
+  And.left h
+`;
+const iffElimOnAnd = andElimOnIff.replace('P ↔ Q', 'P ∧ Q').replace('?m.3 ∧ ?m.4', '?m.3 ↔ ?m.4').replace('And.left h', 'Iff.mp h');
+const casesOnAnd = `Proof.lean:6:2: error: Invalid alternative name \`inl\`: Expected \`intro\`
+Proof.lean:8:2: error: Invalid alternative name \`inr\`: Expected \`intro\`
+`;
+const casesOnAtom = `Proof.lean:5:2: error: Tactic \`cases\` failed: major premise type is not an inductive type
+  P
+
+Explanation: the \`cases\` tactic is for constructor-based reasoning.
+`;
+
+describe('explainLeanMessage for and, or, iff', () => {
+    const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
+
+    it('explains proving both sides of a goal that is not an "and"', () => {
+        expect(explain(andIntroOnOr)).toBe('המטרה היא (P ∨ Q), והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.');
+    });
+
+    it('explains choosing a side of a goal that is not an "or"', () => {
+        expect(explain(orInlOnAnd)).toBe('המטרה היא (P ∧ Q), והיא לא טענת "או", ולכן אין בה צד לבחור להוכיח.');
+    });
+
+    it('explains proving both directions of a goal that is not an "iff"', () => {
+        expect(explain(iffIntroOnAtom)).toBe('המטרה היא P, והיא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים להוכיח.');
+    });
+
+    it('explains using an assumption as an "and" or an "iff" when it is not one', () => {
+        expect(explain(andElimOnIff)).toBe('h אומרת (P ↔ Q), וזו לא טענת "וגם", ולכן אי אפשר להסיק ממנה שני צדדים.');
+        expect(explain(iffElimOnAnd)).toBe('h אומרת (P ∧ Q), וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.');
+    });
+
+    it('explains splitting into cases by an assumption that is not an "or"', () => {
+        const message = 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.';
+        expect(explain(casesOnAnd)).toBe(message);
+        expect(explain(casesOnAtom)).toBe(message);
     });
 });

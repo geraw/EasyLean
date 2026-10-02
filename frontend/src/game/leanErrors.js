@@ -32,6 +32,28 @@ const EXPLANATIONS = [
         explain: ([, term, actual, expected]) => `${term.trim()} אומרת ${formula(actual)}, אבל המטרה היא ${formula(expected)}. אפשר לסגור את המטרה רק בעזרת הנחה שאומרת בדיוק את המטרה.`,
     },
     {
+        // A rule for proving a connective, used on a goal of another kind.
+        pattern: /could not unify the conclusion of `@(And\.intro|Or\.inl|Or\.inr|Iff\.intro)`[\s\S]*?\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, rule, goal]) => ({
+            'And.intro': `המטרה היא ${formula(goal)}, והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.`,
+            'Or.inl': `המטרה היא ${formula(goal)}, והיא לא טענת "או", ולכן אין בה צד לבחור להוכיח.`,
+            'Or.inr': `המטרה היא ${formula(goal)}, והיא לא טענת "או", ולכן אין בה צד לבחור להוכיח.`,
+            'Iff.intro': `המטרה היא ${formula(goal)}, והיא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים להוכיח.`,
+        })[rule],
+    },
+    {
+        // A rule for using "and" / "iff", applied to an assumption of another kind.
+        pattern: /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type[\s\S]*?in the application\s*\n\s*(And|Iff)\./,
+        explain: ([, name, type, connective]) => (connective === 'And'
+            ? `${name} אומרת ${formula(type)}, וזו לא טענת "וגם", ולכן אי אפשר להסיק ממנה שני צדדים.`
+            : `${name} אומרת ${formula(type)}, וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.`),
+    },
+    {
+        // Splitting into cases by an assumption that is not an "or".
+        pattern: /^Invalid alternative name `inl`|^Tactic `cases` failed: major premise type is not an inductive type/,
+        explain: () => 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.',
+    },
+    {
         // apply h, where the conclusion of h is not the goal
         pattern: /could not unify the conclusion of `(.+?)`\s*\n\s*(.+?)\s*\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
         explain: ([, name, conclusion, goal]) => `המסקנה (צד ימין) של ${name} היא ${formula(conclusion)}, אבל המטרה היא ${formula(goal)}. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה זהה למטרה.`,
@@ -79,15 +101,16 @@ export const explainLeanMessage = (text) => {
     return GENERIC_PROBLEM;
 };
 
-// The first problem worth showing a student, as { line, message }, or null.
+// The first problem worth showing a student, as { line, message, unsolved }, or null.
 // Holes left on purpose to compute a proof state are not problems, and
 // neither are unsolved goals unless the whole proof is being checked.
 export const findLeanProblem = (output, { includeUnsolvedGoals = false } = {}) => {
     for (const { line, severity, text } of parseLeanMessages(output)) {
         if (severity !== 'error') continue;
         if (/don't know how to synthesize placeholder/.test(text)) continue;
-        if (!includeUnsolvedGoals && /^unsolved goals/.test(text)) continue;
-        return { line, message: explainLeanMessage(text) };
+        const unsolved = /^unsolved goals/.test(text);
+        if (!includeUnsolvedGoals && unsolved) continue;
+        return { line, message: explainLeanMessage(text), unsolved };
     }
     return null;
 };

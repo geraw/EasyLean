@@ -27,3 +27,25 @@ describe('formatProofGoal', () => {
         expect(formatProofGoal(undefined)).toBe('');
     });
 });
+
+describe('formatProofGoal with and, or, iff, not', () => {
+    it('wraps every connective in parentheses, following Lean precedence', () => {
+        expect(formatProofGoal('P ∧ Q → Q ∧ P')).toBe('((P ∧ Q) → (Q ∧ P))');
+        expect(formatProofGoal('P ∨ Q ∧ R')).toBe('(P ∨ (Q ∧ R))');
+        expect(formatProofGoal('P ∧ Q ↔ Q ∧ P')).toBe('((P ∧ Q) ↔ (Q ∧ P))');
+        expect(formatProofGoal('P → Q ↔ R')).toBe('((P → Q) ↔ R)');
+    });
+
+    it('groups a repeated connective to the right', () => {
+        expect(formatProofGoal('P ∧ Q ∧ R')).toBe('(P ∧ (Q ∧ R))');
+    });
+
+    it('keeps negation tight', () => {
+        expect(formatProofGoal('¬P ∨ Q')).toBe('(¬P ∨ Q)');
+        expect(formatProofGoal('¬(P ∧ Q)')).toBe('¬(P ∧ Q)');
+    });
+
+    it('does not read the ASCII iff as an implication', () => {
+        expect(formatProofGoal('P <-> Q')).toBe('(P ↔ Q)');
+    });
+});

@@ -16,7 +16,14 @@ export const loadWorkspace = (xml) => {
 // [type, { FIELD: value }]; returns the created blocks in order.
 export const buildProof = (workspace, steps) => {
     const goal = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');
-    let connection = goal.getInput('PROOF').connection;
+    return buildInto(goal, 'PROOF', steps);
+};
+
+// Like buildProof, but into a statement input of any block (a part of a rule
+// that splits the proof).
+export const buildInto = (parent, input, steps) => {
+    const workspace = parent.workspace;
+    let connection = parent.getInput(input).connection;
     return steps.map(([type, fields = {}]) => {
         const block = workspace.newBlock(type);
         Object.entries(fields).forEach(([name, value]) => block.setFieldValue(value, name));
