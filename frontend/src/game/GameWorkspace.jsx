@@ -297,20 +297,27 @@ const GameWorkspace = ({
                 )}
             </div>
             {displayedProofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
-            <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
-            {displayedProofState?.assumptions?.length > 0 ? (
-                displayedProofState.assumptions.map((assumption) => (
-                    <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
-                        {assumption.name} : {assumption.prop}
-                    </div>
-                ))
+            {displayedProofState?.complete ? (
+                // Nothing is left to prove, so there are no assumptions to list either.
+                <div style={{ color: '#1e7e34', fontWeight: 'bold' }}>✓ ההוכחה הושלמה: הוכחנו את מה שהתבקשנו.</div>
             ) : (
-                <div style={{ color: '#555', marginBottom: '10px' }}>עדיין לא הוספנו הנחות.</div>
+                <>
+                    <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
+                    {displayedProofState?.assumptions?.length > 0 ? (
+                        displayedProofState.assumptions.map((assumption) => (
+                            <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+                                {assumption.name} : {assumption.prop}
+                            </div>
+                        ))
+                    ) : (
+                        <div style={{ color: '#555', marginBottom: '10px' }}>עדיין לא הוספנו הנחות.</div>
+                    )}
+                    <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
+                    <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                        {displayedProofState?.goal ? formatProofGoal(displayedProofState.goal) : displayedProofState?.error || formatProofGoal(level.proposition)}
+                    </div>
+                </>
             )}
-            <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
-            <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {displayedProofState?.complete ? 'ההוכחה הושלמה' : displayedProofState?.goal ? formatProofGoal(displayedProofState.goal) : displayedProofState?.error || formatProofGoal(level.proposition)}
-            </div>
         </div>
     );
 

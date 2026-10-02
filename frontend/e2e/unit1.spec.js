@@ -29,6 +29,8 @@ test('selecting a move shows the proof state before and after it', async ({ page
     await expect(panel).not.toContainText('ההוכחה הושלמה');
     await page.getByLabel('אחרי המהלך').check();
     await expect(panel).toContainText('ההוכחה הושלמה');
+    await expect(panel).not.toContainText('עדיין לא הוספנו הנחות');
+    await expect(panel).not.toContainText('מה נשאר להוכיח');
 
     panel = await selectMove(page, intro);
     await page.getByLabel('לפני המהלך').check();
