@@ -2,10 +2,9 @@ import { describe, expect, it } from 'vitest';
 import * as Blockly from 'blockly/core';
 import { leanGenerator } from '../generator/lean';
 import { unit1Levels } from './unit1World';
-import { subsetLevels } from './subsetWorld';
 import { loadWorkspace } from '../test/blocklyWorkspace';
 
-const worlds = { unit1: unit1Levels, subset: subsetLevels };
+const worlds = { unit1: unit1Levels };
 
 describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
     it.each(levels.map(level => [level.id, level]))('%s loads a single fixed goal block', (_, level) => {

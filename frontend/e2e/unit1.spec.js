@@ -16,7 +16,7 @@ test('solving level 1 lets the student continue', async ({ page }) => {
 test('a wrong proof is rejected', async ({ page }) => {
     await buildProof(page, [['tactic_intro', { HYPOTHESIS: 'h' }], ['tactic_exact', { TERM: 'nope' }]]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-    await expect(page.getByText('עדיין לא. בדקו את סדר מהלכי ההוכחה ונסו שוב.')).toBeVisible();
+    await expect(page.getByText('אין הנחה בשם nope. בדקו את השם מול ההנחות שבמצב ההוכחה.').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toHaveCount(0);
 });
 
@@ -29,6 +29,8 @@ test('selecting a move shows the proof state before and after it', async ({ page
     await expect(panel).not.toContainText('ההוכחה הושלמה');
     await page.getByLabel('אחרי המהלך').check();
     await expect(panel).toContainText('ההוכחה הושלמה');
+    await expect(panel).not.toContainText('עדיין לא הוספנו הנחות');
+    await expect(panel).not.toContainText('מה נשאר להוכיח');
 
     panel = await selectMove(page, intro);
     await page.getByLabel('לפני המהלך').check();
@@ -101,6 +103,28 @@ test('deleting the evaluated move moves the marker to the block Blockly selects 
     await expect(page.locator(`g.blocklyBlock[data-id="${exact}"]`)).toHaveCount(0);
     await expect.poll(() => evaluatedBlockIds(page)).toEqual(await selectedBlockIds(page));
     expect(await evaluatedBlockIds(page)).not.toContain(exact);
+});
+
+test('an empty proof is not accepted', async ({ page }) => {
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    await expect(page.getByText('ההוכחה עוד לא הושלמה: נשאר להוכיח (P → P).')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'לשלב הבא' })).toHaveCount(0);
+});
+
+test('a move that does not fit is explained on its block and in the panel', async ({ page }) => {
+    await page.getByRole('combobox').selectOption('3');
+    const [, , , rule] = await buildProof(page, [
+        ['tactic_intro', { HYPOTHESIS: 'h1' }],
+        ['tactic_intro', { HYPOTHESIS: 'h2' }],
+        ['tactic_intro', { HYPOTHESIS: 'h3' }],
+        ['tactic_apply_rule', { RULE: 'h1' }],
+    ]);
+    const explanation = 'המסקנה (צד ימין) של h1 היא Q, אבל המטרה היא R.';
+    await selectMove(page, rule);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(proofStatePanel(page).getByRole('alert')).toContainText(explanation);
+    await expect.poll(() => page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getIcon('warning')?.getText?.() ?? null, rule))
+        .toContain(explanation);
 });
 
 test('the proof state panel fits on the screen', async ({ page }) => {

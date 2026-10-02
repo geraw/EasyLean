@@ -78,41 +78,24 @@ app.post('/proof-state', (req, res) => {
 
 app.post('/verify', (req, res) => {
     const { leanCode } = req.body;
+    if (!leanCode) return res.status(400).json({ error: 'No Lean code provided' });
 
-    if (!leanCode) {
-        return res.status(400).json({ error: 'No Lean code provided' });
-    }
-
-    // Use a fixed file in the project directory so imports work
-    const projectDir = path.join(__dirname, 'lean_project');
-    const tempFile = path.join(projectDir, `Proof_${Date.now()}.lean`);
-
-    fs.writeFile(tempFile, leanCode, (err) => {
-        if (err) {
-            console.error('Error writing file:', err);
+    // runLean gives each request its own file; a shared name let concurrent
+    // checks overwrite each other's proofs.
+    runLean(leanCode, (writeError, result) => {
+        if (writeError) {
+            console.error('Error writing file:', writeError);
             return res.status(500).json({ error: 'Failed to write temporary file' });
         }
-
-        // Execute lean command within the project context
-        exec(`lean "${tempFile}"`, { cwd: projectDir }, (error, stdout, stderr) => {
-            // Clean up the temporary file
-            fs.unlink(tempFile, (unlinkErr) => {
-                if (unlinkErr) console.error('Error deleting temp file:', unlinkErr);
+        // Lean exits non-zero when the proof has errors.
+        if (result.error) {
+            return res.json({
+                output: result.stdout + result.stderr,
+                exitCode: result.error.code,
+                error: result.error.message,
             });
-
-            if (error) {
-                // Lean returns non-zero exit code on verify failure (usually)
-                // But sometimes it's just a proof error which is "success" in terms of running the tool, but failure in proof.
-                // actually Lean 4 returns error on syntax/proof errors.
-                return res.json({
-                    output: stdout + stderr,
-                    exitCode: error.code,
-                    error: error.message
-                });
-            }
-
-            res.json({ output: stdout, exitCode: 0 });
-        });
+        }
+        res.json({ output: result.stdout, exitCode: 0 });
     });
 });
 
