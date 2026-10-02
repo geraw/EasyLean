@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/EasyLean/',
+  test: {
+    // e2e/ holds the Playwright specs, which Vitest must not pick up.
+    include: ['src/**/*.test.{js,jsx}'],
+  },
 })

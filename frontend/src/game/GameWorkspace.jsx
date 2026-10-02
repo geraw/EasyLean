@@ -4,8 +4,9 @@ import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
-import { leanGenerator } from '../generator/lean';
 import { subsetLevels, worldName as subsetWorldName, SET_PREAMBLE } from './subsetWorld';
+import { formatProofGoal } from './formatProofGoal';
+import { generateGameLeanCode, getLastProofBlockId } from './gameLeanCode';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -44,46 +45,6 @@ const renderMarkdownLite = (text) => {
     });
 };
 
-const stripOuterParentheses = (text) => {
-    let result = text.trim();
-    let changed = true;
-    while (changed && result.startsWith('(') && result.endsWith(')')) {
-        let depth = 0;
-        changed = false;
-        for (let index = 0; index < result.length; index += 1) {
-            if (result[index] === '(') depth += 1;
-            if (result[index] === ')') depth -= 1;
-            if (depth === 0 && index < result.length - 1) break;
-            if (index === result.length - 1 && depth === 0) {
-                result = result.slice(1, -1).trim();
-                changed = true;
-            }
-        }
-    }
-    return result;
-};
-
-const findTopLevelArrow = (text) => {
-    let depth = 0;
-    for (let index = 0; index < text.length; index += 1) {
-        if (text[index] === '(') depth += 1;
-        if (text[index] === ')') depth -= 1;
-        if (depth === 0 && text[index] === '→') return index;
-        if (depth === 0 && text.slice(index, index + 2) === '->') return index;
-    }
-    return -1;
-};
-
-const formatProofGoal = (text) => {
-    const normalized = stripOuterParentheses(text || '');
-    const arrowIndex = findTopLevelArrow(normalized);
-    if (arrowIndex === -1) return normalized;
-    const arrowLength = normalized[arrowIndex] === '→' ? 1 : 2;
-    const left = formatProofGoal(normalized.slice(0, arrowIndex));
-    const right = formatProofGoal(normalized.slice(arrowIndex + arrowLength));
-    return `(${left} → ${right})`;
-};
-
 const GameWorkspace = ({
     levels = subsetLevels,
     worldName = subsetWorldName,
@@ -99,9 +60,11 @@ const GameWorkspace = ({
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, running, success, error
     const [hintsShown, setHintsShown] = useState(0);
-    const [proofState, setProofState] = useState(null);
+    const [proofStates, setProofStates] = useState({ before: null, after: null });
+    const [proofView, setProofView] = useState('before');
     const proofStateRequestRef = useRef(0);
-    const [selectedBlockId, setSelectedBlockId] = useState(null);
+    const [evaluatedBlockId, setEvaluatedBlockId] = useState(null);
+    const evaluatedBlockIdRef = useRef(null);
     const errorBlockRef = useRef(null);
 
     const clearBlockError = useCallback(() => {
@@ -127,11 +90,25 @@ const GameWorkspace = ({
             if (loadingWorkspaceRef.current) return;
             if (event.type === 'selected') {
                 clearBlockError();
-                setSelectedBlockId(event.newElementId || null);
+                // While a field is being edited Blockly deselects its block;
+                // that block is still the one being worked on, so evaluate it.
+                const focusedNode = Blockly.getFocusManager().getFocusedNode();
+                const editedBlockId = focusedNode instanceof Blockly.Field ? focusedNode.getSourceBlock()?.id : null;
+                const nextEvaluatedBlockId = event.newElementId || editedBlockId;
+                if (nextEvaluatedBlockId) {
+                    evaluatedBlockIdRef.current = nextEvaluatedBlockId;
+                    setEvaluatedBlockId(nextEvaluatedBlockId);
+                }
                 setWorkspaceRevision((revision) => revision + 1);
                 return;
             }
-            if (event.isUiEvent) return;
+            if (event.isUiEvent) {
+                return;
+            }
+            if (event.type === 'delete' && event.ids?.includes(evaluatedBlockIdRef.current)) {
+                evaluatedBlockIdRef.current = null;
+                setEvaluatedBlockId(null);
+            }
             if (['create', 'delete', 'change', 'move'].includes(event.type)) {
                 clearBlockError();
                 setWorkspaceRevision((revision) => revision + 1);
@@ -139,6 +116,8 @@ const GameWorkspace = ({
         };
         ws.addChangeListener(listener);
         workspaceListenerRef.current = { workspace: ws, listener };
+        // Lets the end-to-end tests (e2e/) build proofs without fragile mouse drags.
+        if (import.meta.env.DEV) window.__easyleanWorkspace = ws;
         setWorkspace(ws);
     }, [clearBlockError]);
 
@@ -180,73 +159,70 @@ const GameWorkspace = ({
         setStatus('idle');
         setOutput('');
         setHintsShown(0);
-        setProofState(null);
-        setSelectedBlockId(null);
+        setProofStates({ before: null, after: null });
+        setProofView('before');
+        evaluatedBlockIdRef.current = null;
+        setEvaluatedBlockId(null);
         clearBlockError();
         loadingWorkspaceRef.current = false;
     }, [workspace, levelIdx, clearBlockError]);
 
-    const generateLeanCode = (includeFallback = true, untilBlockId = null) => {
-        if (!workspace) return '';
-        const goalBlock = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');
-        if (!goalBlock) return '';
-        let proof = '';
-        let proofBlock = goalBlock.getInputTargetBlock('PROOF');
-        let selectedBlockFound = !untilBlockId;
-        while (proofBlock) {
-            if (proofBlock.id === untilBlockId) {
-                selectedBlockFound = true;
-                break;
-            }
-            proof += leanGenerator.blockToCode(proofBlock, true);
-            proofBlock = proofBlock.getNextBlock();
-        }
-        if (untilBlockId && !selectedBlockFound) proof = leanGenerator.statementToCode(goalBlock, 'PROOF');
-        if (!proof.trim()) proof = includeFallback ? '  sorry\n' : '  exact ?_\n';
-        return `${preamble}\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n${proof}`;
-    };
+    const generateLeanCode = (includeFallback = true, untilBlockId = null, includeUntilBlock = false) =>
+        generateGameLeanCode(workspace, level, preamble, { includeFallback, untilBlockId, includeUntilBlock });
 
-    const getLastProofBlockId = () => {
-        const goalBlock = workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
-        let proofBlock = goalBlock?.getInputTargetBlock('PROOF');
-        let lastBlockId = null;
-        while (proofBlock) {
-            lastBlockId = proofBlock.id;
-            proofBlock = proofBlock.getNextBlock();
-        }
-        return lastBlockId;
-    };
+    // Our own marker for the evaluated block, since Blockly's selection outline
+    // comes and goes with focus. Re-applied on every change in case the block's
+    // SVG was rebuilt (e.g. deleted and restored by undo).
+    useEffect(() => {
+        const root = evaluatedBlockId && workspace?.getBlockById(evaluatedBlockId)?.getSvgRoot();
+        if (!root) return undefined;
+        Blockly.utils.dom.addClass(root, 'easyleanEvaluated');
+        return () => Blockly.utils.dom.removeClass(root, 'easyleanEvaluated');
+    }, [workspace, evaluatedBlockId, workspaceRevision]);
 
     useEffect(() => {
         if (!proofStateEndpoint || !workspace) return undefined;
 
         const requestId = proofStateRequestRef.current + 1;
         proofStateRequestRef.current = requestId;
-        setProofState({ loading: true, assumptions: [], goal: level.proposition, complete: false });
+        setProofStates({
+            before: { loading: true, assumptions: [], goal: level.proposition, complete: false },
+            after: evaluatedBlockId ? { loading: true, assumptions: [], goal: level.proposition, complete: false } : null,
+        });
 
         const timeout = setTimeout(async () => {
             try {
-                const response = await axios.post(proofStateEndpoint, {
-                    leanCode: generateLeanCode(false, selectedBlockId),
-                });
+                const responses = [await axios.post(proofStateEndpoint, {
+                    leanCode: generateLeanCode(false, evaluatedBlockId),
+                })];
+                if (evaluatedBlockId) {
+                    responses.push(await axios.post(proofStateEndpoint, {
+                        leanCode: generateLeanCode(false, evaluatedBlockId, true),
+                    }));
+                }
                 if (proofStateRequestRef.current === requestId) {
-                    if (response.data.error) {
-                        markBlockError(workspace, selectedBlockId || getLastProofBlockId());
+                    const before = responses[0].data;
+                    const after = responses[1]?.data || null;
+                    if (before.error || after?.error) {
+                        markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
                     } else {
                         clearBlockError();
                     }
-                    setProofState(response.data);
+                    setProofStates({ before, after });
                 }
             } catch (error) {
                 if (proofStateRequestRef.current === requestId) {
-                    markBlockError(workspace, selectedBlockId || getLastProofBlockId());
-                    setProofState({ loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' });
+                    markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
+                    setProofStates({
+                        before: { loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' },
+                        after: null,
+                    });
                 }
             }
         }, 180);
 
         return () => clearTimeout(timeout);
-    }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, selectedBlockId, clearBlockError, markBlockError]);
+    }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
     const runProof = async () => {
         const code = generateLeanCode();
@@ -259,25 +235,71 @@ const GameWorkspace = ({
                 setStatus('success');
                 setOutput(response.data.output || 'הצלחה!');
             } else {
-                markBlockError(workspace, selectedBlockId || getLastProofBlockId());
+                markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
                 setStatus('error');
                 setOutput(hideCompilerDetails ? 'עדיין לא. בדקו את סדר מהלכי ההוכחה ונסו שוב.' : response.data.output);
             }
         } catch (error) {
-            markBlockError(workspace, selectedBlockId || getLastProofBlockId());
+            markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
             setStatus('error');
             setOutput(hideCompilerDetails ? 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.' : 'שגיאה בהתחברות לשרת: ' + error.message);
         }
     };
 
     const hasNextLevel = levelIdx + 1 < levels.length;
+    const displayedProofState = proofView === 'after'
+        ? (proofStates.after || proofStates.before)
+        : proofStates.before;
     const proofStatePanel = proofStateEndpoint && (
-        <div style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0 }}>
-            <h3 style={{ margin: '0 0 10px 0' }}>מצב ההוכחה</h3>
-            {proofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
+        <div role="region" aria-label="מצב ההוכחה" style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                <h3 style={{ margin: 0 }}>מצב ההוכחה</h3>
+                {evaluatedBlockId && (
+                    <div
+                        role="radiogroup"
+                        aria-label="תצוגת מצב ההוכחה"
+                        // Keep DOM focus (and with it Blockly's selection) in the workspace:
+                        // no mousedown focus, and no <label>, which would focus its radio on click.
+                        onMouseDownCapture={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                        onPointerDownCapture={(event) => event.stopPropagation()}
+                        style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
+                    >
+                        <span
+                            onClick={() => setProofView('before')}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <input
+                                type="radio"
+                                name="proof-view"
+                                value="before"
+                                aria-label="לפני המהלך"
+                                checked={proofView === 'before'}
+                                onChange={() => setProofView('before')}
+                            />
+                            {' '}לפני המהלך
+                        </span>
+                        <span
+                            onClick={() => proofStates.after && setProofView('after')}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <input
+                                type="radio"
+                                name="proof-view"
+                                value="after"
+                                aria-label="אחרי המהלך"
+                                checked={proofView === 'after'}
+                                disabled={!proofStates.after}
+                                onChange={() => setProofView('after')}
+                            />
+                            {' '}אחרי המהלך
+                        </span>
+                    </div>
+                )}
+            </div>
+            {displayedProofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
-            {proofState?.assumptions?.length > 0 ? (
-                proofState.assumptions.map((assumption) => (
+            {displayedProofState?.assumptions?.length > 0 ? (
+                displayedProofState.assumptions.map((assumption) => (
                     <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
                         {assumption.name} : {assumption.prop}
                     </div>
@@ -287,13 +309,13 @@ const GameWorkspace = ({
             )}
             <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
             <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {proofState?.complete ? 'ההוכחה הושלמה' : proofState?.goal ? formatProofGoal(proofState.goal) : proofState?.error || formatProofGoal(level.proposition)}
+                {displayedProofState?.complete ? 'ההוכחה הושלמה' : displayedProofState?.goal ? formatProofGoal(displayedProofState.goal) : displayedProofState?.error || formatProofGoal(level.proposition)}
             </div>
         </div>
     );
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0 }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {level.title}</h1>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
@@ -315,7 +337,6 @@ const GameWorkspace = ({
 
             <div style={{ display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0 }}>
                 <div style={{ flex: 1, minWidth: '520px', minHeight: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {proofStatePanel}
                     <div style={{ flex: 1, minHeight: 0, border: '1px solid #ccc', position: 'relative', overflow: 'visible' }}>
                         <div style={{ flex: 1, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
                         <BlocklyWorkspace
@@ -331,6 +352,7 @@ const GameWorkspace = ({
                         />
                         </div>
                     </div>
+                    {proofStatePanel}
                 </div>
 
                 <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
