@@ -46,7 +46,7 @@ export const unit2Levels = [
     {
         id: 'unit2-1',
         levelNumber: 1,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'משתמשים בהנחה מסוג "וגם"',
         name: 'unit2_l1_and_elim',
         variableLine: 'variable {P Q : Prop}',
@@ -78,7 +78,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-2',
         levelNumber: 2,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'מוכיחים טענה מסוג "וגם"',
         name: 'unit2_l2_and_intro',
         variableLine: 'variable {P Q : Prop}',
@@ -113,7 +113,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-3',
         levelNumber: 3,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'מחליפים את הצדדים',
         name: 'unit2_l3_and_comm',
         variableLine: 'variable {P Q : Prop}',
@@ -144,7 +144,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-4',
         levelNumber: 4,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'מוכיחים טענה מסוג "או"',
         name: 'unit2_l4_or_intro',
         variableLine: 'variable {P Q : Prop}',
@@ -174,7 +174,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-5',
         levelNumber: 5,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'חלוקה למקרים',
         name: 'unit2_l5_or_elim',
         variableLine: 'variable {P Q R : Prop}',
@@ -212,7 +212,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-6',
         levelNumber: 6,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'קודם מקרים, אחר כך צד',
         name: 'unit2_l6_or_comm',
         variableLine: 'variable {P Q : Prop}',
@@ -245,7 +245,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-7',
         levelNumber: 7,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'משתמשים בהנחה מסוג "אם ורק אם"',
         name: 'unit2_l7_iff_elim',
         variableLine: 'variable {P Q : Prop}',
@@ -280,7 +280,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
     {
         id: 'unit2-8',
         levelNumber: 8,
-        totalLevels: 8,
+        totalLevels: 9,
         title: 'מוכיחים טענה מסוג "אם ורק אם"',
         name: 'unit2_l8_iff_intro',
         variableLine: 'variable {P Q : Prop}',
@@ -305,8 +305,44 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
             'בכיוון הראשון המטרה היא (P ∧ Q) → (Q ∧ P): הניחו את התנאי, הסיקו ממנו את שני הצדדים, והוכיחו את Q ∧ P בשני חלקים.',
             'הכיוון השני זהה, עם P ו־Q בתפקידים הפוכים.',
         ],
-        conclusion: `סיימתם את יחידה 2. אתם יודעים להשתמש ב"וגם", ב"או" וב"אם ורק אם" שבהנחות, ולהוכיח כל אחד מהם:
-"וגם" בשני חלקים, "או" בבחירת צד (אחרי חלוקה למקרים, אם צריך), ו"אם ורק אם" בשני כיוונים.`,
+        conclusion: `אתם יודעים להשתמש ב"וגם", ב"או" וב"אם ורק אם" שבהנחות, ולהוכיח כל אחד מהם:
+"וגם" בשני חלקים, "או" בבחירת צד (אחרי חלוקה למקרים, אם צריך), ו"אם ורק אם" בשני כיוונים.
+בשלב הבונוס תשלבו את כל הכללים בהוכחה אחת.`,
         startXml: goalXml('((P ∧ Q) ↔ (Q ∧ P))'),
+    },
+    {
+        id: 'unit2-9',
+        levelNumber: 9,
+        totalLevels: 9,
+        title: 'שלב בונוס: פילוג',
+        name: 'unit2_l9_distributivity',
+        variableLine: 'variable {P Q R : Prop}',
+        params: '',
+        proposition: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
+        goalLabel: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
+        objects: [],
+        assumptions: [],
+        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        introduction: `# בונוס: פילוג
+
+הטענה הזאת אומרת ש"וגם" מתפלג על "או": אם P נכונה, וגם Q או R נכונה,
+אז "P וגם Q" נכונה, או "P וגם R" נכונה.
+
+בהוכחה תשתמשו כמעט בכל מה שלמדתם ביחידה: הנחת תנאי, שימוש ב"וגם", חלוקה למקרים, בחירת צד של "או", והוכחת "וגם".
+כדאי לבנות את ההוכחה צעד אחר צעד, ולבדוק במצב ההוכחה מה נשאר להוכיח בכל חלק.
+
+שימו לב לשמות: כל הנחה צריכה שם משלה. אם ההנחות h1 ו־h2 כבר בידכם, תנו למקרים שמות אחרים.`,
+        newTacticsBlocks: [],
+        newTacticsInfo: [],
+        newDefinitions: [],
+        hints: [
+            'הניחו את התנאי וקראו לו h, והסיקו ממנו את שני הצדדים: h1 : P ו־h2 : Q ∨ R.',
+            'חלקו למקרים לפי h2, ותנו למקרים שמות חדשים, למשל hq ו־hr.',
+            'במקרה ש־Q נכון, אפשר להוכיח את צד שמאל של המטרה, P ∧ Q: בחרו בו, והוכיחו אותו בשני חלקים בעזרת h1 ו־hq.',
+            'במקרה ש־R נכון, בחרו בצד ימין, P ∧ R, והוכיחו אותו באותו אופן בעזרת h1 ו־hr.',
+        ],
+        conclusion: `סיימתם את יחידה 2, כולל שלב הבונוס! בהוכחה אחת השתמשתם ב"וגם" ובחלוקה למקרים,
+בחרתם צד של "או" בתוך כל מקרה, והוכחתם "וגם" בשני חלקים.`,
+        startXml: goalXml('((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))'),
     },
 ];

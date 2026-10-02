@@ -21,11 +21,14 @@ const SOLUTIONS = [
     [assume('h'), orCases('h', 'h1', [['logic_or_intro_right'], exact('h1')], 'h2', [['logic_or_intro_left'], exact('h2')])],
     [['logic_iff_elim', { HYPOTHESIS: 'h', FORWARD_NAME: 'h1', BACKWARD_NAME: 'h2' }], applyRule('h2'), exact('hq')],
     [['logic_iff_intro', {}, { FORWARD: swapAnd, BACKWARD: swapAnd }]],
+    [assume('h'), andElim('h', 'h1', 'h2'), orCases('h2',
+        'hq', [['logic_or_intro_left'], andIntro([exact('h1')], [exact('hq')])],
+        'hr', [['logic_or_intro_right'], andIntro([exact('h1')], [exact('hr')])])],
 ];
 
 const goToLevel = async (page, index) => {
     await page.getByRole('combobox').selectOption(String(index));
-    await expect(page.getByRole('heading', { name: new RegExp(`שלב ${index + 1}/8`) })).toBeVisible();
+    await expect(page.getByRole('heading', { name: new RegExp(`שלב ${index + 1}/9`) })).toBeVisible();
 };
 
 test.beforeEach(async ({ page }) => {
@@ -38,7 +41,7 @@ SOLUTIONS.forEach((solution, index) => {
         await clearProof(page);
         await buildProof(page, solution);
         await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-        await expect(page.getByRole('button', { name: index < 7 ? 'לשלב הבא' : 'שלבים נוספים בקרוב...' })).toBeVisible();
+        await expect(page.getByRole('button', { name: index < SOLUTIONS.length - 1 ? 'לשלב הבא' : 'שלבים נוספים בקרוב...' })).toBeVisible();
     });
 });
 
@@ -87,7 +90,7 @@ test('unit 1 leads to unit 2', async ({ page }) => {
     await buildProof(page, [assume('h1'), assume('h2'), assume('h3'), applyRule('h2'), applyRule('h1'), exact('h3')]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await page.getByRole('button', { name: 'ליחידה 2' }).click();
-    await expect(page.getByRole('heading', { name: /יחידה 2 - וגם, או, אם ורק אם — שלב 1\/8/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /יחידה 2 - וגם, או, אם ורק אם — שלב 1\/9/ })).toBeVisible();
     await settledProofState(page);
 });
 
