@@ -78,3 +78,12 @@ test('/proof-state reports a broken move as an error', { skip: !hasLean && 'lean
     assert.equal(body.complete, false);
     assert.equal(body.error, 'יש שגיאה במהלך ההוכחה');
 });
+
+// Regression: /verify used one file name per millisecond, so simultaneous
+// checks could read each other's proofs.
+test('/verify keeps simultaneous checks apart', { skip: !hasLean && 'lean not installed' }, async () => {
+    const good = theorem('  intro h\n  exact h1 h\n');
+    const bad = theorem('  intro h\n  exact h\n');
+    const results = await Promise.all(Array.from({ length: 6 }, (_, i) => post('/verify', { leanCode: i % 2 ? bad : good })));
+    assert.deepEqual(results.map(({ body }) => body.exitCode === 0), [true, false, true, false, true, false]);
+});
