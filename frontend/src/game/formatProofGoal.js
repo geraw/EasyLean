@@ -47,5 +47,7 @@ export const formatProofGoal = (text) => {
         return `(${left} ${symbol} ${right})`;
     }
     if (normalized.startsWith('¬')) return `¬${formatProofGoal(normalized.slice(1))}`;
+    // Lean's False is the contradiction, written ⊥ in the course.
+    if (normalized === 'False') return '⊥';
     return normalized;
 };

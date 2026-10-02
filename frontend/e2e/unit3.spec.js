@@ -1,0 +1,82 @@
+import { test, expect, openWorld, buildProof, clearProof, selectMove, proofStatePanel } from './helpers';
+
+const UNIT3 = 'יחידה 3 - שלילה והוכחה בשלילה';
+
+const exact = (term) => ['tactic_exact', { TERM: term }];
+const assume = (name) => ['tactic_intro', { HYPOTHESIS: name }];
+const applyRule = (rule) => ['tactic_apply_rule', { RULE: rule }];
+const contradiction = (negation, hypothesis) => ['logic_contradiction', { NEGATION: negation, HYPOTHESIS: hypothesis }];
+const notIntro = (name) => ['logic_not_intro', { HYPOTHESIS: name }];
+const notElim = (negation) => ['logic_not_elim', { NEGATION: negation }];
+const byCases = (formula, left, leftSteps, right, rightSteps) =>
+    ['logic_by_cases', { FORMULA: formula, LEFT_NAME: left, RIGHT_NAME: right }, { LEFT: leftSteps, RIGHT: rightSteps }];
+const andIntro = (left, right) => ['logic_and_intro', {}, { LEFT: left, RIGHT: right }];
+
+// A solution for each level, in the order of the unit.
+const SOLUTIONS = [
+    [contradiction('hn', 'hp')],
+    [['logic_exfalso'], contradiction('hn', 'hp')],
+    [notIntro('hn'), contradiction('hn', 'hp')],
+    [notIntro('hp'), notElim('hnq'), applyRule('h'), exact('hp')],
+    [assume('h'), andIntro(
+        [notIntro('hp'), notElim('h'), ['logic_or_intro_left'], exact('hp')],
+        [notIntro('hq'), notElim('h'), ['logic_or_intro_right'], exact('hq')])],
+    [assume('h'), ['logic_by_contradiction', { HYPOTHESIS: 'hn' }], contradiction('h', 'hn')],
+    [byCases('P', 'h1', [applyRule('hpq'), exact('h1')], 'h2', [applyRule('hnpq'), exact('h2')])],
+    [assume('h'), byCases('P',
+        'h1', [['logic_or_intro_right'], notIntro('hq'), notElim('h'), andIntro([exact('h1')], [exact('hq')])],
+        'h2', [['logic_or_intro_left'], exact('h2')])],
+    [assume('h'), notIntro('hnp'), notElim('h'), assume('hp'), ['logic_exfalso'], contradiction('hnp', 'hp')],
+];
+
+const goToLevel = async (page, index) => {
+    await page.getByRole('combobox').selectOption(String(index));
+    await expect(page.getByRole('heading', { name: new RegExp(`שלב ${index + 1}/9`) })).toBeVisible();
+};
+
+test.beforeEach(async ({ page }) => {
+    await openWorld(page, UNIT3);
+});
+
+SOLUTIONS.forEach((solution, index) => {
+    test(`level ${index + 1} is solved by its solution`, async ({ page }) => {
+        await goToLevel(page, index);
+        await clearProof(page);
+        await buildProof(page, solution);
+        await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+        await expect(page.getByRole('button', { name: index < SOLUTIONS.length - 1 ? 'לשלב הבא' : 'שלבים נוספים בקרוב...' })).toBeVisible();
+    });
+});
+
+test('a contradiction is shown as ⊥ in the proof state', async ({ page }) => {
+    await goToLevel(page, 2);
+    const [assumeNegation] = await buildProof(page, [notIntro('hn')]);
+    const panel = await selectMove(page, assumeNegation);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(panel).toContainText('hn : ¬P');
+    await expect(panel).toContainText('סתירה (⊥)');
+});
+
+test('reaching a contradiction on a goal that is not ⊥ is explained', async ({ page }) => {
+    await goToLevel(page, 1);
+    await buildProof(page, [contradiction('hn', 'hp')]);
+    await expect(proofStatePanel(page).getByRole('alert'))
+        .toContainText('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה');
+});
+
+test('proving a goal that is not a negation by assuming what it negates is explained', async ({ page }) => {
+    await goToLevel(page, 5);
+    await buildProof(page, [assume('h'), notIntro('hn')]);
+    await expect(proofStatePanel(page).getByRole('alert'))
+        .toContainText('המטרה היא P, והיא לא שלילה');
+});
+
+test('checking both possibilities gives one case with P and one with ¬P', async ({ page }) => {
+    await goToLevel(page, 6);
+    const [cases] = await buildProof(page, [byCases('P', 'h1', [], 'h2', [])]);
+    const panel = await selectMove(page, cases);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(panel).toContainText('ההוכחה מתפצלת, ונשאר להוכיח 2 חלקים');
+    await expect(panel).toContainText('h1 : P');
+    await expect(panel).toContainText('h2 : ¬P');
+});

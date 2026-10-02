@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { findLeanProblem, explainLeanMessage, parseLeanMessages, GENERIC_PROBLEM } from './leanErrors';
+import { findLeanProblem, explainLeanMessage as explainWithIsolates, parseLeanMessages, GENERIC_PROBLEM } from './leanErrors';
+import { withoutIsolates } from './bidi';
+
+const explainLeanMessage = (text) => withoutIsolates(explainWithIsolates(text));
 
 // Real Lean 4.26 output for typical mistakes (file path shortened).
 const typeMismatch = `Proof.lean:4:2: error: Type mismatch
@@ -157,5 +160,60 @@ describe('explainLeanMessage for and, or, iff', () => {
         const message = 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.';
         expect(explain(casesOnAnd)).toBe(message);
         expect(explain(casesOnAtom)).toBe(message);
+    });
+});
+
+// Real Lean 4.26 output for unit 3 rules used the wrong way.
+const contradictionOnOtherGoal = `Proof.lean:5:2: error: Type mismatch
+  absurd hp hn
+has type
+  False
+but is expected to have type
+  Q
+`;
+const notContradicting = `Proof.lean:5:19: error: Application type mismatch: The argument
+  hn
+has type
+  ¬Q
+but is expected to have type
+  ¬P
+in the application
+  absurd hp hn
+`;
+const notANegation = `Proof.lean:5:20: error: Application type mismatch: The argument
+  hn
+has type
+  Q
+but is expected to have type
+  ¬?m.2
+in the application
+  absurd ?m.4 hn
+`;
+const notIntroOnAtom = `Proof.lean:5:2: error: Tactic \`apply\` failed: could not unify the conclusion of \`@Not.intro\`
+  False
+with the goal
+  P
+
+Note: The full type of \`@Not.intro\` is
+  ∀ {a : Prop}, (a → False) → ¬a
+`;
+
+describe('explainLeanMessage for negation', () => {
+    const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
+
+    it('explains reaching a contradiction when the goal is not ⊥', () => {
+        expect(explain(contradictionOnOtherGoal)).toBe('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה ("מסתירה נובע הכול").');
+    });
+
+    it('explains two assumptions that do not contradict each other', () => {
+        expect(explain(notContradicting)).toBe('hn אומרת ¬Q, אבל השלילה של ההנחה האחרת בבלוק היא ¬P, ולכן הן לא סותרות זו את זו.');
+    });
+
+    it('explains using an assumption as a negation when it is not one', () => {
+        expect(explain(notANegation)).toBe('hn אומרת Q, וזו לא שלילה, ולכן אין טענה שהיא שוללת.');
+    });
+
+    it('explains proving a goal that is not a negation by assuming what it negates', () => {
+        expect(explain(notIntroOnAtom)).toBe('המטרה היא P, והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת.');
     });
 });

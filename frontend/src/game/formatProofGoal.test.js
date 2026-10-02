@@ -49,3 +49,10 @@ describe('formatProofGoal with and, or, iff, not', () => {
         expect(formatProofGoal('P <-> Q')).toBe('(P ↔ Q)');
     });
 });
+
+describe('formatProofGoal with contradiction', () => {
+    it('writes Lean\'s False as ⊥', () => {
+        expect(formatProofGoal('False')).toBe('⊥');
+        expect(formatProofGoal('P → False')).toBe('(P → ⊥)');
+    });
+});

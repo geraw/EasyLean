@@ -1,4 +1,5 @@
 import { formatProofGoal } from './formatProofGoal';
+import { isolateNegations } from './bidi';
 
 // Turns Lean's error messages into explanations in the terms the units use
 // (condition, conclusion, goal, assumption), so students never see Lean itself.
@@ -27,18 +28,32 @@ const formula = (text) => formatProofGoal(text.trim());
 
 const EXPLANATIONS = [
     {
+        // A contradiction used on a goal that is not ⊥ (see logic_contradiction / logic_not_elim).
+        pattern: /^type mismatch\s*\n\s*absurd .+?\s*\nhas type\s*\n\s*False\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, ולא סתירה. כדי להשתמש בסתירה כאן, קודם עברו להוכיח סתירה ("מסתירה נובע הכול").`,
+    },
+    {
+        // The two assumptions of a contradiction do not contradict each other,
+        // or the assumption used as a negation is not one.
+        pattern: /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*\nin the application\s*\n\s*absurd /,
+        explain: ([, name, type, expected]) => (expected.includes('?')
+            ? `${name} אומרת ${formula(type)}, וזו לא שלילה, ולכן אין טענה שהיא שוללת.`
+            : `${name} אומרת ${formula(type)}, אבל השלילה של ההנחה האחרת בבלוק היא ${formula(expected)}, ולכן הן לא סותרות זו את זו.`),
+    },
+    {
         // exact h, where h is not the goal
         pattern: /^type mismatch\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
         explain: ([, term, actual, expected]) => `${term.trim()} אומרת ${formula(actual)}, אבל המטרה היא ${formula(expected)}. אפשר לסגור את המטרה רק בעזרת הנחה שאומרת בדיוק את המטרה.`,
     },
     {
         // A rule for proving a connective, used on a goal of another kind.
-        pattern: /could not unify the conclusion of `@(And\.intro|Or\.inl|Or\.inr|Iff\.intro)`[\s\S]*?\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
+        pattern: /could not unify the conclusion of `@(And\.intro|Or\.inl|Or\.inr|Iff\.intro|Not\.intro)`[\s\S]*?\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
         explain: ([, rule, goal]) => ({
             'And.intro': `המטרה היא ${formula(goal)}, והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.`,
             'Or.inl': `המטרה היא ${formula(goal)}, והיא לא טענת "או", ולכן אין בה צד לבחור להוכיח.`,
             'Or.inr': `המטרה היא ${formula(goal)}, והיא לא טענת "או", ולכן אין בה צד לבחור להוכיח.`,
             'Iff.intro': `המטרה היא ${formula(goal)}, והיא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים להוכיח.`,
+            'Not.intro': `המטרה היא ${formula(goal)}, והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת.`,
         })[rule],
     },
     {
@@ -93,10 +108,11 @@ const EXPLANATIONS = [
     },
 ];
 
+// Explanations are Hebrew with formulas inside, so negations are isolated (see bidi.js).
 export const explainLeanMessage = (text) => {
     for (const { pattern, explain } of EXPLANATIONS) {
         const match = text.match(pattern);
-        if (match) return explain(match, text);
+        if (match) return isolateNegations(explain(match, text));
     }
     return GENERIC_PROBLEM;
 };

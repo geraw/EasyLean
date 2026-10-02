@@ -4,9 +4,10 @@ import { leanGenerator } from '../generator/lean';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
 import { unit2Levels } from './unit2World';
+import { unit3Levels } from './unit3World';
 import { loadWorkspace } from '../test/blocklyWorkspace';
 
-const worlds = { unit0: unit0Levels, unit1: unit1Levels, unit2: unit2Levels };
+const worlds = { unit0: unit0Levels, unit1: unit1Levels, unit2: unit2Levels, unit3: unit3Levels };
 
 describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
     it.each(levels.map(level => [level.id, level]))('%s loads a single fixed goal block', (_, level) => {

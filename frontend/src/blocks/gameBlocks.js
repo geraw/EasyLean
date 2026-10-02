@@ -110,4 +110,76 @@ export const defineGameBlocks = () => {
             move(this, RULE_COLOUR, 'מההנחה "P אם ורק אם Q" נובעות הגרירות P → Q ו־Q → P.');
         }
     };
+
+    // Unit 3: negation. ¬P means "P leads to a contradiction"; the
+    // contradiction itself (Lean's False) is shown as ⊥.
+    const NEGATION_COLOUR = 330;
+
+    Blockly.Blocks['logic_contradiction'] = {
+        init: function () {
+            // Two rows, so nested proofs stay narrow enough for the workspace.
+            this.appendDummyInput()
+                .appendField("ההנחה")
+                .appendField(new Blockly.FieldTextInput("hn"), "NEGATION")
+                .appendField("היא השלילה של ההנחה")
+                .appendField(new Blockly.FieldTextInput("hp"), "HYPOTHESIS");
+            this.appendDummyInput().appendField("ולכן הגענו לסתירה");
+            move(this, NEGATION_COLOUR, 'טענה ושלילתה יחד הן סתירה.');
+        }
+    };
+
+    Blockly.Blocks['logic_exfalso'] = {
+        init: function () {
+            this.appendDummyInput().appendField("מסתירה נובע הכול: מספיק להגיע לסתירה");
+            move(this, NEGATION_COLOUR, 'אם נגיע לסתירה, הוכחנו כל מטרה.');
+        }
+    };
+
+    Blockly.Blocks['logic_not_intro'] = {
+        init: function () {
+            this.appendDummyInput().appendField("נוכיח את השלילה: נניח את הטענה שהיא שוללת");
+            this.appendDummyInput()
+                .appendField("ונקרא לה")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField("ונגיע לסתירה");
+            move(this, NEGATION_COLOUR, 'כדי להוכיח ¬P מניחים P ומגיעים לסתירה.');
+        }
+    };
+
+    Blockly.Blocks['logic_not_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נגיע לסתירה בעזרת השלילה")
+                .appendField(new Blockly.FieldTextInput("hn"), "NEGATION");
+            this.appendDummyInput().appendField("ולכן נוכיח את הטענה שהיא שוללת");
+            move(this, NEGATION_COLOUR, 'אם בידינו ¬P, כדי להגיע לסתירה מספיק להוכיח את P.');
+        }
+    };
+
+    Blockly.Blocks['logic_by_contradiction'] = {
+        init: function () {
+            this.appendDummyInput().appendField("נוכיח בשלילה: נניח שהמטרה לא נכונה");
+            this.appendDummyInput()
+                .appendField("ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField("ונגיע לסתירה");
+            move(this, NEGATION_COLOUR, 'כדי להוכיח P מניחים ¬P ומגיעים לסתירה (עיקרון של הלוגיקה הקלאסית).');
+        }
+    };
+
+    Blockly.Blocks['logic_by_cases'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נבדוק את שתי האפשרויות: הטענה")
+                .appendField(new Blockly.FieldTextInput("P"), "FORMULA")
+                .appendField("נכונה או לא נכונה");
+            this.appendStatementInput("LEFT").setCheck("tactic")
+                .appendField("אם היא נכונה, נקרא לזה")
+                .appendField(new Blockly.FieldTextInput("h1"), "LEFT_NAME");
+            this.appendStatementInput("RIGHT").setCheck("tactic")
+                .appendField("אם היא לא נכונה, נקרא לזה")
+                .appendField(new Blockly.FieldTextInput("h2"), "RIGHT_NAME");
+            move(this, NEGATION_COLOUR, 'כל טענה נכונה או לא נכונה; מוכיחים את המטרה בשני המקרים (עיקרון של הלוגיקה הקלאסית).');
+        }
+    };
 };

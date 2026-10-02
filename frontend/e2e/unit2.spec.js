@@ -41,7 +41,7 @@ SOLUTIONS.forEach((solution, index) => {
         await clearProof(page);
         await buildProof(page, solution);
         await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-        await expect(page.getByRole('button', { name: index < SOLUTIONS.length - 1 ? 'לשלב הבא' : 'שלבים נוספים בקרוב...' })).toBeVisible();
+        await expect(page.getByRole('button', { name: index < SOLUTIONS.length - 1 ? 'לשלב הבא' : 'ליחידה 3' })).toBeVisible();
     });
 });
 

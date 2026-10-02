@@ -8,6 +8,7 @@ import { formatProofGoal } from './formatProofGoal';
 import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
 import { goalLabel, openGoals } from './proofState';
+import { isolateNegations } from './bidi';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -28,7 +29,7 @@ const renderInline = (text, keyPrefix) => {
                 </code>
             );
         }
-        return chunk.split(/\*(.+?)\*/g).map((seg, j) =>
+        return isolateNegations(chunk).split(/\*(.+?)\*/g).map((seg, j) =>
             j % 2 === 1
                 ? <em key={`${keyPrefix}-i${i}-${j}`}>{seg}</em>
                 : <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{seg}</React.Fragment>
@@ -294,9 +295,14 @@ const GameWorkspace = ({
                 <div style={{ color: '#555', marginBottom: spacing }}>עדיין לא הוספנו הנחות.</div>
             )}
             <h4 style={{ margin: `${spacing} 0 6px 0` }}>מה נשאר להוכיח</h4>
-            <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {formatProofGoal(goal || level.proposition)}
-            </div>
+            {formatProofGoal(goal || level.proposition) === '⊥' ? (
+                // The contradiction goal is named in Hebrew, so it reads right to left.
+                <div style={{ fontWeight: 'bold' }}>סתירה (⊥)</div>
+            ) : (
+                <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                    {formatProofGoal(goal || level.proposition)}
+                </div>
+            )}
         </>
     );
     const proofStatePanel = proofStateEndpoint && (
@@ -445,13 +451,13 @@ const GameWorkspace = ({
                             {level.newTacticsInfo?.map(t => (
                                 <div key={t.name} style={{ marginBottom: '6px' }}>
                                     <strong>{newTacticsLabel}: {t.name}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{t.doc}</div>
+                                    <div style={{ fontSize: '0.9em' }}>{isolateNegations(t.doc)}</div>
                                 </div>
                             ))}
                             {level.newDefinitions?.map(d => (
                                 <div key={d.symbol} style={{ marginBottom: '6px' }}>
                                     <strong>הגדרה חדשה: {d.symbol}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{d.doc}</div>
+                                    <div style={{ fontSize: '0.9em' }}>{isolateNegations(d.doc)}</div>
                                 </div>
                             ))}
                         </div>
@@ -459,7 +465,7 @@ const GameWorkspace = ({
 
                     <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
                         {hintsShown > 0 && level.hints.slice(0, hintsShown).map((h, i) => (
-                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {h}</p>
+                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {isolateNegations(h)}</p>
                         ))}
                         {hintsShown < level.hints.length && (
                             <button onClick={() => setHintsShown(h => h + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
