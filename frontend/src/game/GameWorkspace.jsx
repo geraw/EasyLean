@@ -53,6 +53,9 @@ const GameWorkspace = ({
     newTacticsLabel = 'טקטיקה חדשה',
     hideCompilerDetails = false,
     proofStateEndpoint = null,
+    // After the last level, offers moving on to the next unit (e.g. "ליחידה 1").
+    nextWorldLabel = null,
+    onNextWorld = null,
 }) => {
     const [levelIdx, setLevelIdx] = useState(0);
     const [workspace, setWorkspace] = useState(null);
@@ -270,6 +273,7 @@ const GameWorkspace = ({
     };
 
     const hasNextLevel = levelIdx + 1 < levels.length;
+    const canContinue = hasNextLevel || Boolean(nextWorldLabel && onNextWorld);
     const displayedProofState = proofView === 'after'
         ? (proofStates.after || proofStates.before)
         : proofStates.before;
@@ -451,20 +455,20 @@ const GameWorkspace = ({
                         <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
                             {renderMarkdownLite(level.conclusion)}
                             <button
-                                onClick={() => setLevelIdx(i => i + 1)}
-                                disabled={!hasNextLevel}
+                                onClick={hasNextLevel ? () => setLevelIdx(i => i + 1) : onNextWorld}
+                                disabled={!canContinue}
                                 style={{
                                     marginTop: '10px',
                                     padding: '10px 20px',
                                     fontSize: '16px',
-                                    backgroundColor: hasNextLevel ? '#2196F3' : '#bbb',
+                                    backgroundColor: canContinue ? '#2196F3' : '#bbb',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '5px',
-                                    cursor: hasNextLevel ? 'pointer' : 'default',
+                                    cursor: canContinue ? 'pointer' : 'default',
                                 }}
                             >
-                                {hasNextLevel ? 'לשלב הבא' : 'שלבים נוספים בקרוב...'}
+                                {hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...'}
                             </button>
                         </div>
                     )}

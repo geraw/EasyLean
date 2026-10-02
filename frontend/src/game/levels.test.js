@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import * as Blockly from 'blockly/core';
 import { leanGenerator } from '../generator/lean';
+import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
 import { loadWorkspace } from '../test/blocklyWorkspace';
 
-const worlds = { unit1: unit1Levels };
+const worlds = { unit0: unit0Levels, unit1: unit1Levels };
 
 describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
     it.each(levels.map(level => [level.id, level]))('%s loads a single fixed goal block', (_, level) => {
-        const goals = loadWorkspace(level.startXml).getTopBlocks(false).filter(b => b.type === 'game_goal');
+        const goals = loadWorkspace(level.startXml).getTopBlocks(true).filter(b => b.type === 'game_goal');
         expect(goals).toHaveLength(1);
         expect(goals[0].isDeletable()).toBe(false);
     });

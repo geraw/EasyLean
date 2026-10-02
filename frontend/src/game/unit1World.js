@@ -1,16 +1,6 @@
+import { goalXml } from './levelXml';
+
 export const unit1WorldName = 'יחידה 1 - מהנחה למסקנה';
-
-const goalXml = (goal, context = 'אין הנחות פתיחה') => `<xml xmlns="https://developers.google.com/blockly/xml">
-  <block type="game_goal" x="20" y="20" deletable="false" movable="false">
-    <field name="GOAL_LABEL">${goal}</field>
-        <field name="CONTEXT_LABEL">${context}</field>
-  </block>
-</xml>`;
-
-const directProofInfo = {
-    name: 'סגירה ישירה',
-    doc: 'כאשר אחת ההנחות היא בדיוק המטרה, משתמשים בה כדי לסגור את ההוכחה.',
-};
 
 const assumeInfo = {
     name: 'הנחת תנאי',
@@ -42,9 +32,13 @@ export const unit1Levels = [
 הגרירה אומרת: אם התנאי מתקיים, אז גם המסקנה מתקיימת.
 
 כדי להוכיח גרירה, מניחים שהתנאי מתקיים ונותנים להנחה שם, ואז נשאר להוכיח את המסקנה.
-כאן המטרה היא \`P → P\`: נניח את P, ונשאר להוכיח את P. מכיוון שההנחה והמטרה זהות, אפשר לסיים מיד.`,
-        newTacticsBlocks: ['tactic_intro', 'tactic_exact'],
-        newTacticsInfo: [assumeInfo, directProofInfo],
+כאן המטרה היא \`P → P\`: נניח את P, ונשאר להוכיח את P. מכיוון שההנחה והמטרה זהות, אפשר לסיים מיד.
+
+חדש במסך: כשיש כמה מהלכים, לחיצה על מהלך מסמנת אותו בכחול, ובמצב ההוכחה אפשר לבחור "לפני המהלך" או "אחרי המהלך"
+כדי לראות איך המהלך שינה את ההנחות ואת המטרה. נסו זאת על בלוק "נניח": לפניו המטרה היא \`P → P\`, ואחריו יש בידינו את \`h : P\` והמטרה היא P.`,
+        // "זה בדיוק" (tactic_exact) is introduced in unit 0.
+        newTacticsBlocks: ['tactic_intro'],
+        newTacticsInfo: [assumeInfo],
         newDefinitions: [],
         hints: [
             'גררו את הבלוק "נניח את התנאי (צד שמאל) של הגרירה שאנחנו רוצים להוכיח ונקרא להנחה זאת" אל תוך המטרה.',
