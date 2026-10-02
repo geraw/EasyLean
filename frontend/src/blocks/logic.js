@@ -93,7 +93,7 @@ export const defineBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("מה שצריך להוכיח הוא בדיוק המסקנה של")
-                .appendField(new Blockly.FieldTextInput("h1"), "RULE")
+                .appendField(new Blockly.FieldTextInput("h"), "RULE")
                 .appendField(", ולכן נעבור להוכיח את התנאי שלו");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
