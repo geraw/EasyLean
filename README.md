@@ -99,6 +99,20 @@ Follow the on-screen instructions to complete the installation.
 
 ---
 
+## Testing
+
+There are three layers of tests. CI (`.github/workflows/test.yml`) runs all of them on every push and pull request.
+
+| Layer | Where | Run with | Needs |
+|---|---|---|---|
+| Frontend unit tests (Vitest): Lean code generation, goal formatting, level data | `frontend/src/**/*.test.js` | `cd frontend && npm test` | Node |
+| Backend tests (`node:test`): proof-state parser, `/verify` and `/proof-state` | `backend/test/` | `cd backend && npm test` | Node, Lean (the Lean-backed tests are skipped when `lean` is missing) |
+| End-to-end tests (Playwright): the real app in Chromium | `frontend/e2e/` | `cd frontend && npm run test:e2e` | Node, Lean, `npx playwright install chromium` once |
+
+The end-to-end tests start the backend and the Vite dev server themselves, or reuse them if they are already running. They build proofs through `window.__easyleanWorkspace`, which is only set in dev mode, and then click blocks and controls the way a student would. Use `npm run test:watch` in `frontend/` to re-run unit tests on save.
+
+---
+
 ## How It Works
 
 1. **Visual Editing**: The user constructs a proof visually by dragging, connecting, and nesting puzzle blocks (representing assumptions, theorems, and logical rules) in the workspace.

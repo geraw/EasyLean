@@ -116,6 +116,10 @@ app.post('/verify', (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`EasyLean backend running on port ${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`EasyLean backend running on port ${port}`);
+    });
+}
+
+module.exports = { app, parseLeanProofState };

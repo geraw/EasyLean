@@ -26,4 +26,10 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Playwright runs in Node, and its fixtures' `use` is not a React hook.
+    files: ['e2e/**/*.js', 'playwright.config.js'],
+    languageOptions: { globals: globals.node },
+    rules: { 'react-hooks/rules-of-hooks': 'off' },
+  },
 ])
