@@ -384,6 +384,9 @@ const GameWorkspace = ({
                             toolboxConfiguration={toolboxConfiguration}
                             workspaceConfiguration={{
                                 rtl: true,
+                                // Toolbox on the left: in RTL the proof hangs from the goal block's
+                                // right edge, so the open toolbox no longer covers where moves are dropped.
+                                toolboxPosition: 'end',
                                 grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
                             }}
                             initialXml={level.startXml}

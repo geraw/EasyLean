@@ -18,18 +18,21 @@ const modeButtonStyle = (active) => ({
 
 const PROOF_STATE_ENDPOINT = 'http://localhost:3001/proof-state';
 
+// Free mode is hidden for now; its code stays so it can come back later.
+const SHOW_SANDBOX = false;
+
 const UNITS = {
   unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
   unit1: { levels: unit1Levels, worldName: unit1WorldName },
 };
 
 function App() {
-  const [mode, setMode] = useState('sandbox');
+  const [mode, setMode] = useState('unit0');
 
   return (
     <div className="App">
       <div style={{ display: 'flex', gap: '6px', padding: '10px 20px 0 20px', direction: 'rtl', fontFamily: 'sans-serif', flexShrink: 0 }}>
-        <button style={modeButtonStyle(mode === 'sandbox')} onClick={() => setMode('sandbox')}>מצב חופשי</button>
+        {SHOW_SANDBOX && <button style={modeButtonStyle(mode === 'sandbox')} onClick={() => setMode('sandbox')}>מצב חופשי</button>}
         {Object.entries(UNITS).map(([unitMode, unit]) => (
           <button key={unitMode} style={modeButtonStyle(mode === unitMode)} onClick={() => setMode(unitMode)}>{unit.worldName}</button>
         ))}
