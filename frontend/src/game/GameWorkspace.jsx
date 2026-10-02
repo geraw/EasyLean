@@ -4,7 +4,6 @@ import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
-import { subsetLevels, worldName as subsetWorldName, SET_PREAMBLE } from './subsetWorld';
 import { formatProofGoal } from './formatProofGoal';
 import { generateGameLeanCode, getLastProofBlockId } from './gameLeanCode';
 
@@ -46,9 +45,9 @@ const renderMarkdownLite = (text) => {
 };
 
 const GameWorkspace = ({
-    levels = subsetLevels,
-    worldName = subsetWorldName,
-    preamble = SET_PREAMBLE,
+    levels,
+    worldName,
+    preamble = '',
     toolboxLabel = 'טקטיקות',
     newTacticsLabel = 'טקטיקה חדשה',
     hideCompilerDetails = false,

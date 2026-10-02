@@ -22,11 +22,10 @@ function App() {
     <div className="App">
       <div style={{ display: 'flex', gap: '6px', padding: '10px 20px 0 20px', direction: 'rtl', fontFamily: 'sans-serif', flexShrink: 0 }}>
         <button style={modeButtonStyle(mode === 'sandbox')} onClick={() => setMode('sandbox')}>מצב חופשי</button>
-        <button style={modeButtonStyle(mode === 'game')} onClick={() => setMode('game')}>משחק: עולם תת-קבוצות</button>
         <button style={modeButtonStyle(mode === 'unit1')} onClick={() => setMode('unit1')}>{unit1WorldName}</button>
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        {mode === 'sandbox' ? <EasyLeanWorkspace /> : mode === 'unit1' ? <GameWorkspace levels={unit1Levels} worldName={unit1WorldName} preamble="" toolboxLabel="מהלכי הוכחה" newTacticsLabel="מהלך חדש" hideCompilerDetails proofStateEndpoint="http://localhost:3001/proof-state" /> : <GameWorkspace />}
+        {mode === 'sandbox' ? <EasyLeanWorkspace /> : <GameWorkspace levels={unit1Levels} worldName={unit1WorldName} toolboxLabel="מהלכי הוכחה" newTacticsLabel="מהלך חדש" hideCompilerDetails proofStateEndpoint="http://localhost:3001/proof-state" />}
       </div>
     </div>
   );
