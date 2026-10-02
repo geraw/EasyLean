@@ -4,7 +4,7 @@ import { unit1Levels } from './unit1World';
 import { buildProof, loadWorkspace } from '../test/blocklyWorkspace';
 
 const level = unit1Levels[0];
-const header = '\nvariable {P : Prop}\n\ntheorem unit1_l1_identity  : P → P := by\n';
+const header = '\nset_option linter.unusedVariables false\nvariable {P : Prop}\n\ntheorem unit1_l1_identity  : P → P := by\n';
 const code = (workspace, options) => generateGameLeanCode(workspace, level, '', options);
 
 const solvedWorkspace = () => {
@@ -58,8 +58,8 @@ describe('generateGameLeanSource', () => {
         const { workspace, intro, exact } = solvedWorkspace();
         const { code, lineBlockIds } = generateGameLeanSource(workspace, level, '');
         const lines = code.split('\n');
-        expect(lines[4]).toBe('  intro h'); // line 5
-        expect([...lineBlockIds]).toEqual([[5, intro.id], [6, exact.id]]);
+        expect(lines[5]).toBe('  intro h'); // line 6
+        expect([...lineBlockIds]).toEqual([[6, intro.id], [7, exact.id]]);
     });
 });
 

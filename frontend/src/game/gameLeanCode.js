@@ -20,7 +20,9 @@ export const generateGameLeanSource = (workspace, level, preamble, { includeFall
         moves.push(block);
     }
 
-    const header = `${preamble}\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
+    // Levels often give assumptions the proof does not need, so Lean's
+    // unused-variable warnings are just noise here.
+    const header = `${preamble}\nset_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
     const lineBlockIds = new Map();
     let line = header.split('\n').length; // 1-based line of the first move
     let proof = '';
