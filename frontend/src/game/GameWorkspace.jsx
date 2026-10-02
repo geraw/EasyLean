@@ -450,8 +450,9 @@ const GameWorkspace = ({
                         בדוק הוכחה
                     </button>
 
-                    <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: 'left', direction: 'ltr', maxHeight: '150px' }}>
-                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{output}</pre>
+                    {/* Lean's raw output reads left to right; the explanations shown instead of it are Hebrew. */}
+                    <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: hideCompilerDetails ? 'right' : 'left', direction: hideCompilerDetails ? 'rtl' : 'ltr', maxHeight: '150px' }}>
+                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: hideCompilerDetails ? 'inherit' : undefined }}>{output}</pre>
                     </div>
 
                     {status === 'success' && (
