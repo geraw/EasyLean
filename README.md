@@ -12,6 +12,8 @@ The project is split into two main components:
 - **`backend/`**: A Node.js & Express server that receives generated Lean 4 code from the client, saves it temporarily, runs the local Lean compiler to verify the proof, and returns the compiler's output and exit status.
 - **`frontend/`**: A modern React + Vite application leveraging `react-blockly` to provide a visual interface for constructing proofs.
 
+The curriculum design (in Hebrew) lives in **[`docs/curriculum/`](docs/curriculum/README.md)**: one document per unit, plus the design principles, architecture and open decisions. When a change affects a unit, update its document in the same pull request.
+
 ---
 
 ## Prerequisites
