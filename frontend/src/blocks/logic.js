@@ -91,10 +91,12 @@ export const defineBlocks = () => {
     // Proof move: follow a rule to its premise using course language.
     Blockly.Blocks['tactic_apply_rule'] = {
         init: function () {
+            // Two rows: on one row the block is wider than the workspace.
             this.appendDummyInput()
                 .appendField("מה שצריך להוכיח הוא בדיוק המסקנה (צד ימין) של")
-                .appendField(new Blockly.FieldTextInput("h"), "RULE")
-                .appendField(", ולכן נעבור להוכיח את התנאי שלה (צד שמאל)");
+                .appendField(new Blockly.FieldTextInput("h"), "RULE");
+            this.appendDummyInput()
+                .appendField("ולכן נעבור להוכיח את התנאי שלה (צד שמאל)");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);

@@ -5,7 +5,8 @@ import axios from 'axios';
 import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
 import { formatProofGoal } from './formatProofGoal';
-import { generateGameLeanCode, getLastProofBlockId } from './gameLeanCode';
+import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
+import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -69,17 +70,27 @@ const GameWorkspace = ({
     const clearBlockError = useCallback(() => {
         if (errorBlockRef.current) {
             const { block, colour } = errorBlockRef.current;
-            if (!block.isDisposed()) block.setColour(colour);
+            if (!block.isDisposed()) {
+                block.setColour(colour);
+                block.setWarningText(null);
+            }
             errorBlockRef.current = null;
         }
     }, []);
 
-    const markBlockError = useCallback((targetWorkspace, blockId) => {
-        clearBlockError();
+    // Colours the block red and attaches the explanation as a warning icon,
+    // which opens a bubble with the text when clicked.
+    const markBlockError = useCallback((targetWorkspace, blockId, message) => {
         const block = blockId && targetWorkspace.getBlockById(blockId);
+        if (errorBlockRef.current?.block === block) {
+            block.setWarningText(message);
+            return;
+        }
+        clearBlockError();
         if (!block) return;
         errorBlockRef.current = { block, colour: block.getColour() };
         block.setColour('#d93025');
+        block.setWarningText(message);
     }, [clearBlockError]);
     const workspaceListenerRef = useRef(null);
     const loadingWorkspaceRef = useRef(false);
@@ -88,7 +99,6 @@ const GameWorkspace = ({
         const listener = (event) => {
             if (loadingWorkspaceRef.current) return;
             if (event.type === 'selected') {
-                clearBlockError();
                 // While a field is being edited Blockly deselects its block;
                 // that block is still the one being worked on, so evaluate it.
                 const focusedNode = Blockly.getFocusManager().getFocusedNode();
@@ -166,8 +176,18 @@ const GameWorkspace = ({
         loadingWorkspaceRef.current = false;
     }, [workspace, levelIdx, clearBlockError]);
 
-    const generateLeanCode = (includeFallback = true, untilBlockId = null, includeUntilBlock = false) =>
-        generateGameLeanCode(workspace, level, preamble, { includeFallback, untilBlockId, includeUntilBlock });
+    const generateLeanSource = (untilBlockId = null, includeUntilBlock = false) =>
+        generateGameLeanSource(workspace, level, preamble, { includeFallback: false, untilBlockId, includeUntilBlock });
+
+    // Where a failed check went wrong: the block whose code Lean complained
+    // about (falling back to the evaluated or last move) and an explanation.
+    const locateProblem = (output, source, options) => {
+        const problem = findLeanProblem(output, options);
+        return {
+            blockId: (problem && source.lineBlockIds.get(problem.line)) || evaluatedBlockId || getLastProofBlockId(workspace),
+            message: problem?.message || GENERIC_PROBLEM,
+        };
+    };
 
     // Our own marker for the evaluated block, since Blockly's selection outline
     // comes and goes with focus. Re-applied on every change in case the block's
@@ -191,27 +211,28 @@ const GameWorkspace = ({
 
         const timeout = setTimeout(async () => {
             try {
-                const responses = [await axios.post(proofStateEndpoint, {
-                    leanCode: generateLeanCode(false, evaluatedBlockId),
-                })];
-                if (evaluatedBlockId) {
-                    responses.push(await axios.post(proofStateEndpoint, {
-                        leanCode: generateLeanCode(false, evaluatedBlockId, true),
-                    }));
+                const sources = [generateLeanSource(evaluatedBlockId)];
+                if (evaluatedBlockId) sources.push(generateLeanSource(evaluatedBlockId, true));
+                const responses = [];
+                for (const source of sources) {
+                    responses.push(await axios.post(proofStateEndpoint, { leanCode: source.code }));
                 }
                 if (proofStateRequestRef.current === requestId) {
-                    const before = responses[0].data;
-                    const after = responses[1]?.data || null;
-                    if (before.error || after?.error) {
-                        markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
+                    // Replace the backend's generic error with an explanation of the problem.
+                    const states = responses.map(({ data }, index) => (data.error
+                        ? { ...data, problem: locateProblem(data.output, sources[index]) }
+                        : data));
+                    const firstProblem = states.find((state) => state.problem)?.problem;
+                    if (firstProblem) {
+                        markBlockError(workspace, firstProblem.blockId, firstProblem.message);
                     } else {
                         clearBlockError();
                     }
-                    setProofStates({ before, after });
+                    setProofStates({ before: states[0], after: states[1] || null });
                 }
-            } catch (error) {
+            } catch {
                 if (proofStateRequestRef.current === requestId) {
-                    markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
+                    markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace), 'לא ניתן לקבל את מצב ההוכחה כרגע.');
                     setProofStates({
                         before: { loading: false, assumptions: [], goal: null, complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' },
                         after: null,
@@ -224,22 +245,25 @@ const GameWorkspace = ({
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
     const runProof = async () => {
-        const code = generateLeanCode();
+        // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
+        const source = generateLeanSource();
         setStatus('running');
         setOutput('מריץ בדיקה...');
         try {
-            const response = await axios.post('http://localhost:3001/verify', { leanCode: code });
-            if (response.data.exitCode === 0) {
+            const response = await axios.post('http://localhost:3001/verify', { leanCode: source.code });
+            const usesSorry = /declaration uses 'sorry'/.test(response.data.output || '');
+            if (response.data.exitCode === 0 && !usesSorry) {
                 clearBlockError();
                 setStatus('success');
                 setOutput(response.data.output || 'הצלחה!');
             } else {
-                markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
+                const problem = locateProblem(response.data.output, source, { includeUnsolvedGoals: true });
+                markBlockError(workspace, problem.blockId, problem.message);
                 setStatus('error');
-                setOutput(hideCompilerDetails ? 'עדיין לא. בדקו את סדר מהלכי ההוכחה ונסו שוב.' : response.data.output);
+                setOutput(hideCompilerDetails ? problem.message : response.data.output);
             }
         } catch (error) {
-            markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace));
+            markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace), 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.');
             setStatus('error');
             setOutput(hideCompilerDetails ? 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.' : 'שגיאה בהתחברות לשרת: ' + error.message);
         }
@@ -299,6 +323,10 @@ const GameWorkspace = ({
             {displayedProofState?.complete ? (
                 // Nothing is left to prove, so there are no assumptions to list either.
                 <div style={{ color: '#1e7e34', fontWeight: 'bold' }}>✓ ההוכחה הושלמה: הוכחנו את מה שהתבקשנו.</div>
+            ) : displayedProofState?.error ? (
+                <div role="alert" style={{ color: '#b3261e', lineHeight: 1.6 }}>
+                    ⚠ {displayedProofState.problem?.message || displayedProofState.error}
+                </div>
             ) : (
                 <>
                     <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
@@ -313,7 +341,7 @@ const GameWorkspace = ({
                     )}
                     <h4 style={{ margin: '10px 0 6px 0' }}>מה נשאר להוכיח</h4>
                     <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                        {displayedProofState?.goal ? formatProofGoal(displayedProofState.goal) : displayedProofState?.error || formatProofGoal(level.proposition)}
+                        {formatProofGoal(displayedProofState?.goal || level.proposition)}
                     </div>
                 </>
             )}

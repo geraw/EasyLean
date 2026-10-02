@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateGameLeanCode, getLastProofBlockId } from './gameLeanCode';
+import { generateGameLeanCode, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { unit1Levels } from './unit1World';
 import { buildProof, loadWorkspace } from '../test/blocklyWorkspace';
 
@@ -50,6 +50,16 @@ describe('generateGameLeanCode', () => {
 
     it('returns an empty string without a goal block', () => {
         expect(code(null)).toBe('');
+    });
+});
+
+describe('generateGameLeanSource', () => {
+    it('maps each proof line to the move that produced it', () => {
+        const { workspace, intro, exact } = solvedWorkspace();
+        const { code, lineBlockIds } = generateGameLeanSource(workspace, level, '');
+        const lines = code.split('\n');
+        expect(lines[4]).toBe('  intro h'); // line 5
+        expect([...lineBlockIds]).toEqual([[5, intro.id], [6, exact.id]]);
     });
 });
 
