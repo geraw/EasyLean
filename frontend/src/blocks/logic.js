@@ -50,7 +50,7 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_intro'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("נניח את צד שמאל של הגרירה שאנחנו רוצים להוכיח ונקרא להנחה זאת")
+                .appendField("נניח את התנאי (צד שמאל) של הגרירה שאנחנו רוצים להוכיח ונקרא להנחה זאת")
                 .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
@@ -92,13 +92,13 @@ export const defineBlocks = () => {
     Blockly.Blocks['tactic_apply_rule'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("מה שצריך להוכיח הוא בדיוק המסקנה של")
+                .appendField("מה שצריך להוכיח הוא בדיוק המסקנה (צד ימין) של")
                 .appendField(new Blockly.FieldTextInput("h"), "RULE")
-                .appendField(", ולכן נעבור להוכיח את התנאי שלו");
+                .appendField(", ולכן נעבור להוכיח את התנאי שלה (צד שמאל)");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);
-            this.setTooltip("מעבר להוכחת התנאי של כלל מתאים");
+            this.setTooltip("מעבר להוכחת התנאי של גרירה שהמסקנה שלה היא המטרה");
             this.setHelpUrl("");
         }
     };
