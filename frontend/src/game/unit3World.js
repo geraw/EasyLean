@@ -197,13 +197,15 @@ export const unit3Levels = [
             { name: 'h', prop: 'P → Q' },
             { name: 'hnq', prop: '¬Q' },
         ],
-        toolboxBlocks: ['logic_not_intro', 'logic_not_elim', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_not_intro', 'logic_not_elim', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction', 'tactic_exact'],
         introduction: `# משתמשים בשלילה
 
 אם P גוררת את Q, ו־Q לא נכונה, אז גם P לא נכונה. נוכיח את זה.
 
 המטרה היא \`¬P\`, ולכן נניח את P וננסה להגיע לסתירה. אבל אין בידינו P וגם ¬P, אלא ¬Q.
-כשהמטרה היא סתירה ויש בידינו שלילה \`¬Q\`, מספיק להוכיח את Q: יחד עם ¬Q זו סתירה.`,
+כשהמטרה היא סתירה ויש בידינו שלילה \`¬Q\`, מספיק להוכיח את Q: יחד עם ¬Q זו סתירה.
+
+אפשר גם ללכת קדימה: מ־h ומ־P מסיקים את Q, ואז Q ו־¬Q הן טענה ושלילתה, כמו בשלב 1.`,
         newTacticsBlocks: ['logic_not_elim'],
         newTacticsInfo: [notElimInfo],
         newDefinitions: [],
@@ -211,9 +213,10 @@ export const unit3Levels = [
             'הניחו את P (בבלוק הוכחת השלילה) וקראו לה hp.',
             'השתמשו בבלוק "נגיע לסתירה בעזרת השלילה ?" עם hnq. המטרה תהיה Q.',
             'המסקנה של h היא Q: עברו להוכיח את התנאי שלה, P, וסגרו בעזרת hp.',
+            'או קדימה: מ־h ומ־hp הסיקו את Q (למשל hq), ואז hnq היא השלילה של hq: הגעתם לסתירה.',
         ],
-        conclusion: `מ־P → Q ומ־¬Q הסקתם ¬P. כדי להגיע לסתירה השתמשתם בשלילה ¬Q: הוכחתם את מה שהיא שוללת.
-אפשר גם להסיק קדימה: מ־h ומ־hp נובע Q, וההנחה hnq היא השלילה שלה.`,
+        conclusion: `מ־P → Q ומ־¬Q הסקתם ¬P (modus tollens). אחורה, השתמשתם בשלילה ¬Q: הוכחתם את מה שהיא שוללת.
+קדימה, הסקתם את Q, והיא ו־¬Q סותרות. בשלבים הבאים יופיעו שלילות של טענות שאין דרך להגיע אליהן קדימה, ושם השימוש בשלילה הכרחי.`,
         startXml: goalXml('¬P', 'h : (P → Q),  hnq : ¬Q'),
     },
     {

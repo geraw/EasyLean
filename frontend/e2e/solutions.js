@@ -122,7 +122,7 @@ export const UNITS = [
             ],
             [
                 { label: 'אחורה', note: 'מגיעים לסתירה בעזרת ¬Q: מוכיחים את Q.', steps: [notIntro('hp'), notElim('hnq'), applyRule('h'), exact('hp')] },
-                { label: 'קדימה', note: 'מ־h ו־hp נובע Q, ומ־hnq ו־Q נובעת סתירה.', steps: [notIntro('hp'), forward('h', 'hp', 'hq'), forward('hnq', 'hq', 'hb'), exact('hb')] },
+                { label: 'קדימה', note: 'מ־h ו־hp נובע Q, ו־hnq היא השלילה שלה: סתירה.', steps: [notIntro('hp'), forward('h', 'hp', 'hq'), contradiction('hnq', 'hq')] },
             ],
             [{
                 label: 'פתרון',
