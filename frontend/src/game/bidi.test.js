@@ -12,11 +12,17 @@ describe('isolateFormulas', () => {
 
     it('wraps formulas that start with ⊥, and ⊥ alone', () => {
         expect(isolateFormulas('הגרירה ⊥ → Q נכונה')).toBe(`הגרירה ${iso('⊥ → Q')} נכונה`);
-        expect(isolateFormulas('סתירה (⊥)')).toBe(`סתירה (${iso('⊥')})`);
+        expect(isolateFormulas('סתירה (⊥)')).toBe(`סתירה ${iso('(⊥)')}`);
     });
 
-    it('leaves text without ¬ or ⊥ alone', () => {
-        expect(isolateFormulas('h : (P → Q)')).toBe('h : (P → Q)');
+    it('wraps any formula with a logical symbol, whatever it starts with', () => {
+        expect(isolateFormulas('כלומר P → ⊥. לכן')).toBe(`כלומר ${iso('P → ⊥')}. לכן`);
+        expect(isolateFormulas('h : (P → Q)')).toBe(`h : ${iso('(P → Q)')}`);
+    });
+
+    it('leaves names and text without logical symbols alone', () => {
+        expect(isolateFormulas('מ־h1 ומ־hp נובע Q')).toBe('מ־h1 ומ־hp נובע Q');
+        expect(isolateFormulas('(צד שמאל)')).toBe('(צד שמאל)');
     });
 
     it('can be undone for comparing texts', () => {

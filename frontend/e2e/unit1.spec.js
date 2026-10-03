@@ -1,4 +1,6 @@
 import { test, expect, openWorld, buildProof, selectMove, selectedBlockIds, evaluatedBlockIds, editField, proofStatePanel, settledProofState } from './helpers';
+// Explanations isolate their formulas for right-to-left display.
+import { isolateFormulas } from '../src/game/bidi';
 
 const UNIT1 = 'יחידה 1 - מהנחה למסקנה';
 const SOLUTION = [['tactic_intro', { HYPOTHESIS: 'h' }], ['tactic_exact', { TERM: 'h' }]];
@@ -107,7 +109,7 @@ test('deleting the evaluated move moves the marker to the block Blockly selects 
 
 test('an empty proof is not accepted', async ({ page }) => {
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-    await expect(page.getByText('ההוכחה עוד לא הושלמה: נשאר להוכיח (P → P).')).toBeVisible();
+    await expect(page.getByText(isolateFormulas('ההוכחה עוד לא הושלמה: נשאר להוכיח (P → P).'))).toBeVisible();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toHaveCount(0);
 });
 

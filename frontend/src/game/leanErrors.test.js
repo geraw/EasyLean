@@ -87,7 +87,8 @@ describe('findLeanProblem', () => {
     });
 
     it('reports unsolved goals when the whole proof is checked', () => {
-        expect(findLeanProblem(holeAndUnsolved, { includeUnsolvedGoals: true })).toEqual({
+        const problem = findLeanProblem(holeAndUnsolved, { includeUnsolvedGoals: true });
+        expect({ ...problem, message: withoutIsolates(problem.message) }).toEqual({
             line: 4,
             message: 'ההוכחה עוד לא הושלמה: נשאר להוכיח (P → P).',
             unsolved: true,

@@ -1,26 +1,35 @@
-// Right-to-left text treats ¬ and ⊥ as neutral, so next to Hebrew "¬P"
-// shows as "P¬" and "⊥ → Q" as "Q → ⊥". Wrapping each formula that starts
-// with one of them in a left-to-right isolate (LRI … PDI) keeps it in order.
-// Formulas that start with a letter or a parenthesis are already laid out
-// correctly.
+// Right-to-left text treats the logical symbols as neutral, so next to Hebrew
+// a formula can come out in the wrong order: "¬P" as "P¬", "⊥ → Q" as
+// "Q → ⊥", and "P → ⊥" before a Hebrew word as "⊥ → P". Wrapping each formula
+// that contains a logical symbol in a left-to-right isolate (LRI … PDI) keeps
+// it in order.
 const LRI = '\u2066';
 const PDI = '\u2069';
 
-// From ¬ or ⊥ through the rest of the formula: letters, connectives,
-// parentheses and spaces, up to the last letter, ⊥ or closing parenthesis
-// (so a trailing space or punctuation before the Hebrew stays outside).
-const FORMULA = /[¬⊥][¬⊥A-Za-z0-9()∧∨→↔ ]*[A-Za-z0-9)⊥]|[¬⊥]/g;
+// A run of formula characters (names, connectives, parentheses, spaces) from
+// its first to its last name, ⊥ or parenthesis; a trailing space or
+// punctuation before the Hebrew stays outside. Only runs with a logical
+// symbol are formulas: a lone name like P reads the same either way.
+const FORMULA_RUN = /[A-Za-z0-9(¬⊥][A-Za-z0-9()¬⊥∧∨→↔ ]*[A-Za-z0-9)⊥]|[¬⊥]/g;
+const LOGICAL_SYMBOL = /[¬⊥∧∨→↔]/;
 
-export const isolateFormulas = (text) => text.replace(FORMULA, (match) => {
-    // A closing parenthesis of the surrounding text, as in "סתירה (⊥)", stays outside.
+const count = (text, char) => text.split(char).length - 1;
+
+export const isolateFormulas = (text) => text.replace(FORMULA_RUN, (match) => {
+    if (!LOGICAL_SYMBOL.test(match)) return match;
+    // Parentheses of the surrounding text, as in "סתירה (⊥)", stay outside.
     let formula = match;
-    let rest = '';
-    const unbalanced = () => formula.split(')').length > formula.split('(').length;
-    while (formula.endsWith(')') && unbalanced()) {
+    let before = '';
+    let after = '';
+    while (formula.endsWith(')') && count(formula, ')') > count(formula, '(')) {
         formula = formula.slice(0, -1).trimEnd();
-        rest = `)${rest}`;
+        after = `)${after}`;
     }
-    return `${LRI}${formula}${PDI}${rest}`;
+    while (formula.startsWith('(') && count(formula, '(') > count(formula, ')')) {
+        formula = formula.slice(1).trimStart();
+        before = `${before}(`;
+    }
+    return `${before}${LRI}${formula}${PDI}${after}`;
 });
 
 // For tests: the text as a student reads it, without the invisible isolates.

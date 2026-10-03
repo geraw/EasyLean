@@ -15,6 +15,9 @@ const LEVELS = [
     { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 6, proof: [
         ['logic_by_cases', { FORMULA: 'P', LEFT_NAME: 'h1', RIGHT_NAME: 'h2' }, {
             LEFT: [mp('hpq', 'h1', 'hq'), exact('hq')], RIGHT: [mp('hnpq', 'h2', 'hq'), exact('hq')] }]] },
+    // ¬P is P → ⊥: the forward step from a negation and the statement it negates gives ⊥.
+    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 2, proof: [
+        ['logic_not_intro', { HYPOTHESIS: 'hn' }], mp('hn', 'hp', 'hb'), exact('hb')] },
 ];
 
 LEVELS.forEach(({ unit, index, proof }) => {

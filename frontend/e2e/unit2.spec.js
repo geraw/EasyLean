@@ -1,4 +1,6 @@
 import { test, expect, openWorld, buildProof, clearProof, selectMove, proofStatePanel, settledProofState } from './helpers';
+// Explanations isolate their formulas for right-to-left display.
+import { isolateFormulas } from '../src/game/bidi';
 
 const UNIT2 = 'יחידה 2 - וגם, או, אם ורק אם';
 
@@ -69,7 +71,7 @@ test('a rule used on the wrong connective is explained', async ({ page }) => {
     await goToLevel(page, 3);
     await buildProof(page, [andIntro([exact('h')], [exact('h')])]);
     await expect(proofStatePanel(page).getByRole('alert'))
-        .toContainText('המטרה היא (Q ∨ P), והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.');
+        .toContainText(isolateFormulas('המטרה היא (Q ∨ P), והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.'));
 });
 
 test('level 6 starts with a side chosen too early, which gets stuck', async ({ page }) => {
