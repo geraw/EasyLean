@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- EasyLean: ∀∃ on the purple of the goal block. Drawn as strokes, so it
+       does not depend on the fonts installed on the viewer's machine. -->
+  <rect width="64" height="64" rx="14" fill="#975ba6"/>
+  <g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ∀ -->
+    <path d="M8 14 L18 50 L28 14"/>
+    <path d="M12.4 30 H23.6"/>
+    <!-- ∃ -->
+    <path d="M37 14 H55 V50 H37"/>
+    <path d="M40 32 H55"/>
+  </g>
+</svg>
