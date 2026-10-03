@@ -256,7 +256,7 @@ export const defineGameBlocks = () => {
                 .appendField("כדי להוכיח \"לכל\": יהי")
                 .appendField(new Blockly.FieldTextInput("?"), "VARIABLE")
                 .appendField("עצם שרירותי");
-            move(this, QUANTIFIER_COLOUR, 'כדי להוכיח "לכל x, P(x)" לוקחים עצם שרירותי x ומוכיחים את P(x).');
+            move(this, QUANTIFIER_COLOUR, 'כדי להוכיח "לכל x מתקיים P(x)" לוקחים עצם שרירותי x ומוכיחים את P(x).');
         }
     };
 
@@ -271,7 +271,7 @@ export const defineGameBlocks = () => {
             this.appendDummyInput()
                 .appendField("ונקרא לתוצאה")
                 .appendField(new Blockly.FieldTextInput("?"), "NAME");
-            move(this, QUANTIFIER_COLOUR, 'מ"לכל x, P(x)" נובע P(a) לכל עצם a.');
+            move(this, QUANTIFIER_COLOUR, 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a.');
         }
     };
 
