@@ -155,6 +155,11 @@ leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
     return `  contradiction\n`;
 };
 
+// Unit 1, forward: from h : P → Q and hp : P, the new assumption hq : Q.
+leanGenerator.forBlock['logic_modus_ponens'] = function (block) {
+    return `  have ${block.getFieldValue('NAME')} := ${block.getFieldValue('RULE')} ${block.getFieldValue('PREMISE')}\n`;
+};
+
 // Unit 2 rules. Each one generates the specific introduction or elimination
 // rule, so that a rule used on the wrong connective fails instead of Lean
 // quietly doing something else (e.g. `constructor` proves an "or" by its left side).

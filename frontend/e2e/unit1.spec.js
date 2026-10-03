@@ -112,7 +112,7 @@ test('an empty proof is not accepted', async ({ page }) => {
 });
 
 test('a move that does not fit is explained on its block and in the panel', async ({ page }) => {
-    await page.getByRole('combobox').selectOption('3');
+    await page.getByRole('combobox').selectOption('4');
     const [, , , rule] = await buildProof(page, [
         ['tactic_intro', { HYPOTHESIS: 'h1' }],
         ['tactic_intro', { HYPOTHESIS: 'h2' }],
@@ -131,4 +131,26 @@ test('the proof state panel fits on the screen', async ({ page }) => {
     const [, exact] = await buildProof(page, SOLUTION);
     const box = await (await selectMove(page, exact)).boundingBox();
     expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize().height);
+});
+
+test('level 3 is solved forward, adding conclusions as assumptions', async ({ page }) => {
+    await page.getByRole('combobox').selectOption('2');
+    const [first] = await buildProof(page, [
+        ['logic_modus_ponens', { RULE: 'h1', PREMISE: 'hp', NAME: 'hq' }],
+        ['logic_modus_ponens', { RULE: 'h2', PREMISE: 'hq', NAME: 'hr' }],
+        ['tactic_exact', { TERM: 'hr' }],
+    ]);
+    const panel = await selectMove(page, first);
+    await page.getByLabel('אחרי המהלך').check();
+    await expect(panel).toContainText('hq : Q');
+    await expect(panel).toContainText('h1 : P → Q');
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    await expect(page.getByRole('button', { name: 'לשלב הבא' })).toBeVisible();
+});
+
+test('a forward step from an assumption that is not the condition is explained', async ({ page }) => {
+    await page.getByRole('combobox').selectOption('2');
+    await buildProof(page, [['logic_modus_ponens', { RULE: 'h2', PREMISE: 'hp', NAME: 'hq' }]]);
+    await expect(proofStatePanel(page).getByRole('alert'))
+        .toContainText('hp אומרת P, אבל התנאי של h2 הוא Q, ולכן אי אפשר להסיק ממנה את המסקנה של h2.');
 });

@@ -26,5 +26,5 @@ test('level 2 starts with an explained mistake, and fixing it solves the level',
 
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await page.getByRole('button', { name: 'ליחידה 1' }).click();
-    await expect(page.getByRole('heading', { name: /יחידה 1 - מהנחה למסקנה — שלב 1\/4/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /יחידה 1 - מהנחה למסקנה — שלב 1\/5/ })).toBeVisible();
 });

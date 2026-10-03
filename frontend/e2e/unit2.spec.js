@@ -86,7 +86,7 @@ test('level 6 starts with a side chosen too early, which gets stuck', async ({ p
 
 test('unit 1 leads to unit 2', async ({ page }) => {
     await openWorld(page, 'יחידה 1 - מהנחה למסקנה');
-    await page.getByRole('combobox').selectOption('3');
+    await page.getByRole('combobox').selectOption('4');
     await buildProof(page, [assume('h1'), assume('h2'), assume('h3'), applyRule('h2'), applyRule('h1'), exact('h3')]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await page.getByRole('button', { name: 'ליחידה 2' }).click();

@@ -217,3 +217,34 @@ describe('explainLeanMessage for negation', () => {
         expect(explain(notIntroOnAtom)).toBe('המטרה היא P, והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת.');
     });
 });
+
+// Real Lean 4.26 output for a forward step (modus ponens) that does not fit.
+const notTheCondition = `Proof.lean:5:16: error: Application type mismatch: The argument
+  hr
+has type
+  R
+but is expected to have type
+  P
+in the application
+  h1 hr
+`;
+const notAnImplication = `Proof.lean:5:13: error: Function expected at
+  h1
+but this term has type
+  P ∧ Q
+
+Note: Expected a function because this term is being applied to the argument
+  hp
+`;
+
+describe('explainLeanMessage for a forward step', () => {
+    const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
+
+    it('explains an assumption that is not the condition of the implication', () => {
+        expect(explain(notTheCondition)).toBe('hr אומרת R, אבל התנאי של h1 הוא P, ולכן אי אפשר להסיק ממנה את המסקנה של h1.');
+    });
+
+    it('explains using an assumption that is not an implication', () => {
+        expect(explain(notAnImplication)).toBe('h1 אומרת (P ∧ Q), וזו לא גרירה, ולכן אין לה תנאי ומסקנה.');
+    });
+});

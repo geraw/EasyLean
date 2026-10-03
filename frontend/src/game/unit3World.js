@@ -148,7 +148,7 @@ export const unit3Levels = [
             { name: 'h', prop: 'P → Q' },
             { name: 'hnq', prop: '¬Q' },
         ],
-        toolboxBlocks: ['logic_not_intro', 'logic_not_elim', 'tactic_apply_rule', 'tactic_exact'],
+        toolboxBlocks: ['logic_not_intro', 'logic_not_elim', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# משתמשים בשלילה
 
 אם P גוררת את Q, ו־Q לא נכונה, אז גם P לא נכונה. נוכיח את זה.
@@ -163,7 +163,8 @@ export const unit3Levels = [
             'השתמשו בבלוק "נגיע לסתירה בעזרת השלילה hnq". המטרה תהיה Q.',
             'המסקנה של h היא Q: עברו להוכיח את התנאי שלה, P, וסגרו בעזרת hp.',
         ],
-        conclusion: `מ־P → Q ומ־¬Q הסקתם ¬P. כדי להגיע לסתירה השתמשתם בשלילה ¬Q: הוכחתם את מה שהיא שוללת.`,
+        conclusion: `מ־P → Q ומ־¬Q הסקתם ¬P. כדי להגיע לסתירה השתמשתם בשלילה ¬Q: הוכחתם את מה שהיא שוללת.
+אפשר גם להסיק קדימה: מ־h ומ־hp נובע Q, וההנחה hnq היא השלילה שלה.`,
         startXml: goalXml('¬P', 'h : (P → Q),  hnq : ¬Q'),
     },
     {

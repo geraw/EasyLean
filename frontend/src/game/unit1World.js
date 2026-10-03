@@ -12,11 +12,16 @@ const applyRuleInfo = {
     doc: 'אם יש בידינו גרירה שהמסקנה שלה (צד ימין) היא בדיוק המטרה, מספיק להוכיח את התנאי שלה (צד שמאל).',
 };
 
+const modusPonensInfo = {
+    name: 'הסקה קדימה מגרירה',
+    doc: 'אם יש בידינו גרירה וגם את התנאי שלה, אפשר להסיק את המסקנה שלה ולהוסיף אותה להנחות. ההנחות האחרות והמטרה לא משתנות.',
+};
+
 export const unit1Levels = [
     {
         id: 'unit1-1',
         levelNumber: 1,
-        totalLevels: 4,
+        totalLevels: 5,
         title: 'אותה טענה משני הצדדים',
         name: 'unit1_l1_identity',
         variableLine: 'variable {P : Prop}',
@@ -50,7 +55,7 @@ export const unit1Levels = [
     {
         id: 'unit1-2',
         levelNumber: 2,
-        totalLevels: 4,
+        totalLevels: 5,
         title: 'שימוש בגרירה: מחליפים את המטרה',
         name: 'unit1_l2_apply',
         variableLine: 'variable {P Q : Prop}',
@@ -86,7 +91,45 @@ export const unit1Levels = [
     {
         id: 'unit1-3',
         levelNumber: 3,
-        totalLevels: 4,
+        totalLevels: 5,
+        title: 'מסיקים קדימה',
+        name: 'unit1_l3_forward',
+        variableLine: 'variable {P Q R : Prop}',
+        params: '(h1 : (P → Q)) (h2 : (Q → R)) (hp : P)',
+        proposition: 'R',
+        goalLabel: 'R',
+        objects: [],
+        assumptions: [
+            { name: 'h1', prop: 'P → Q' },
+            { name: 'h2', prop: 'Q → R' },
+            { name: 'hp', prop: 'P' },
+        ],
+        toolboxBlocks: ['logic_modus_ponens', 'tactic_exact'],
+        introduction: `# מסיקים קדימה
+
+בשלב הקודם השתמשתם בגרירה *אחורה*: המסקנה שלה הייתה המטרה, ולכן עברתם להוכיח את התנאי שלה.
+
+אפשר להשתמש בגרירה גם *קדימה*: אם יש בידינו את הגרירה \`P → Q\` וגם את התנאי שלה P, אז המסקנה Q נכונה,
+ואפשר להוסיף אותה להנחות. ההנחות הקודמות נשארות, והמטרה לא משתנה.
+
+כאן נתונות שתי גרירות, \`h1 : P → Q\` ו־\`h2 : Q → R\`, וגם \`hp : P\`. המטרה היא R.
+התחילו ממה שיש בידכם: מ־h1 ו־hp אפשר להסיק את Q, וממנה ומ־h2 את R.`,
+        newTacticsBlocks: ['logic_modus_ponens'],
+        newTacticsInfo: [modusPonensInfo],
+        newDefinitions: [],
+        hints: [
+            'גררו את הבלוק "מהגרירה h1 ומההנחה hp שהיא התנאי שלה, נסיק את המסקנה שלה ונקרא לה hq". יש בידינו hq : Q.',
+            'הוסיפו עוד בלוק כזה: מהגרירה h2 ומההנחה hq נסיק את R, וקראו לה hr.',
+            'עכשיו hr אומרת בדיוק את המטרה.',
+        ],
+        conclusion: `מ־P הסקתם את Q, ומ־Q את R: הלכתם קדימה מההנחות עד שהגעתם למטרה.
+את אותה הוכחה אפשר לבנות גם אחורה, מהמטרה, כמו בשלב הקודם. שתי הדרכים נכונות, ובהוכחה אחת אפשר לשלב ביניהן.`,
+        startXml: goalXml('R', 'h1 : (P → Q),  h2 : (Q → R),  hp : P'),
+    },
+    {
+        id: 'unit1-4',
+        levelNumber: 4,
+        totalLevels: 5,
         title: 'קוראים את המטרה לפי הסדר',
         name: 'unit1_l3_reordered',
         variableLine: 'variable {P Q : Prop}',
@@ -116,9 +159,9 @@ export const unit1Levels = [
         startXml: goalXml('(P → ((P → Q) → Q))'),
     },
     {
-        id: 'unit1-4',
-        levelNumber: 4,
-        totalLevels: 4,
+        id: 'unit1-5',
+        levelNumber: 5,
+        totalLevels: 5,
         title: 'שרשרת של שלוש הנחות',
         name: 'unit1_l4_chain',
         variableLine: 'variable {P Q R : Prop}',
@@ -143,7 +186,8 @@ export const unit1Levels = [
             'סגרו בעזרת h3.',
         ],
         conclusion: `סיימתם את יחידה 1. אתם יודעים להוכיח גרירה בעזרת הנחת התנאי שלה,
-להשתמש בגרירה שבידינו כדי לעבור מהמסקנה שלה לתנאי שלה, ולסגור מטרה בעזרת הנחה מתאימה.`,
+להשתמש בגרירה שבידינו אחורה (מהמסקנה שלה כמטרה לתנאי שלה) וקדימה (מהתנאי שלה למסקנה שלה),
+ולסגור מטרה בעזרת הנחה מתאימה.`,
         startXml: goalXml('((P → Q) → ((Q → R) → (P → R)))'),
     },
 ];

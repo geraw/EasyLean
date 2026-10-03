@@ -23,6 +23,28 @@ export const defineGameBlocks = () => {
         }
     };
 
+    // Unit 1: the forward use of an implication (modus ponens): from P → Q and
+    // P, the conclusion Q becomes a new assumption. (tactic_apply_rule, in
+    // logic.js, is the backward use: it turns the goal Q into P.)
+    Blockly.Blocks['logic_modus_ponens'] = {
+        init: function () {
+            // Two rows, so nested proofs stay narrow enough for the workspace.
+            this.appendDummyInput()
+                .appendField("מהגרירה")
+                .appendField(new Blockly.FieldTextInput("h1"), "RULE")
+                .appendField("ומההנחה")
+                .appendField(new Blockly.FieldTextInput("hp"), "PREMISE")
+                .appendField("שהיא התנאי שלה");
+            this.appendDummyInput()
+                .appendField("נסיק את המסקנה שלה ונקרא לה")
+                .appendField(new Blockly.FieldTextInput("hq"), "NAME");
+            this.setPreviousStatement(true, "tactic");
+            this.setNextStatement(true, "tactic");
+            this.setColour(160);
+            this.setTooltip('אם בידינו P → Q וגם P, אפשר להסיק את Q ולהוסיף אותה להנחות.');
+        }
+    };
+
     // Unit 2: one block per rule for "and", "or" and "iff". A rule that splits
     // the proof has a slot per part, so each sub-proof sits inside its own slot.
     const move = (block, colour, tooltip) => {

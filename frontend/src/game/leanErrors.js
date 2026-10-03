@@ -64,6 +64,16 @@ const EXPLANATIONS = [
             : `${name} אומרת ${formula(type)}, וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.`),
     },
     {
+        // Modus ponens with an assumption that is not the condition of the implication.
+        pattern: /^Application type mismatch: The argument\s*\n\s*(\S+)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*\nin the application\s*\n\s*(\S+) \S+\s*$/,
+        explain: ([, premise, type, condition, rule]) => `${premise} אומרת ${formula(type)}, אבל התנאי של ${rule} הוא ${formula(condition)}, ולכן אי אפשר להסיק ממנה את המסקנה של ${rule}.`,
+    },
+    {
+        // Modus ponens with an assumption that is not an implication.
+        pattern: /^Function expected at\s*\n\s*(\S+)\s*\nbut this term has type\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, rule, type]) => `${rule} אומרת ${formula(type)}, וזו לא גרירה, ולכן אין לה תנאי ומסקנה.`,
+    },
+    {
         // Splitting into cases by an assumption that is not an "or".
         pattern: /^Invalid alternative name `inl`|^Tactic `cases` failed: major premise type is not an inductive type/,
         explain: () => 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.',
