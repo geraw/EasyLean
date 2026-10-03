@@ -172,7 +172,7 @@ export const unit1Levels = [
         goalLabel: '((P → Q) → ((Q → R) → (P → R)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'tactic_apply_rule', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# תרגיל מסכם
 
 כאן נחבר שתי גרירות: הראשונה מובילה מ־P ל־Q, והשנייה מובילה מ־Q ל־R.

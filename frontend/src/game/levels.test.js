@@ -28,3 +28,12 @@ describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
         expect(levels.map(l => l.levelNumber)).toEqual(levels.map((_, i) => i + 1));
     });
 });
+
+// The forward use of an implication (modus ponens), introduced in unit 1
+// level 3, stays available in every later level.
+describe('the forward step', () => {
+    const later = [...unit1Levels.slice(2), ...unit2Levels, ...unit3Levels];
+    it.each(later.map((level) => [level.id, level]))('%s offers it', (_, level) => {
+        expect(level.toolboxBlocks).toContain('logic_modus_ponens');
+    });
+});

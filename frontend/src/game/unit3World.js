@@ -52,7 +52,7 @@ export const unit3Levels = [
             { name: 'hp', prop: 'P' },
             { name: 'hn', prop: '¬P' },
         ],
-        toolboxBlocks: ['logic_contradiction'],
+        toolboxBlocks: ['logic_contradiction', 'logic_modus_ponens'],
         introduction: `# שלילה וסתירה
 
 הטענה \`¬P\` נקראת "לא P", והיא אומרת ש־P לא נכונה.
@@ -84,7 +84,7 @@ export const unit3Levels = [
             { name: 'hp', prop: 'P' },
             { name: 'hn', prop: '¬P' },
         ],
-        toolboxBlocks: ['logic_false_implies', 'tactic_apply_rule', 'logic_contradiction'],
+        toolboxBlocks: ['logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction'],
         introduction: `# מסתירה נובע הכול
 
 הפעם המטרה היא Q, ואין לנו שום הנחה על Q. אבל ההנחות שלנו סותרות זו את זו.
@@ -115,7 +115,7 @@ export const unit3Levels = [
         goalLabel: '¬¬P',
         objects: [],
         assumptions: [{ name: 'hp', prop: 'P' }],
-        toolboxBlocks: ['logic_not_intro', 'logic_contradiction'],
+        toolboxBlocks: ['logic_not_intro', 'logic_contradiction', 'logic_modus_ponens'],
         introduction: `# מוכיחים שלילה
 
 כדי להוכיח ש־P לא נכונה (\`¬P\`), מניחים ש־P כן נכונה ומגיעים לסתירה. אם ההנחה מובילה לסתירה, היא לא נכונה.
@@ -179,7 +179,7 @@ export const unit3Levels = [
         goalLabel: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_intro', 'logic_not_intro', 'logic_not_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_intro', 'logic_not_intro', 'logic_not_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# שלילה של "או"
 
 אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מחוקי דה מורגן.
@@ -209,7 +209,7 @@ export const unit3Levels = [
         goalLabel: '(¬¬P → P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction'],
+        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction', 'logic_modus_ponens'],
         introduction: `# הוכחה בשלילה
 
 בשלב 3 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
@@ -247,7 +247,7 @@ ${CLASSICAL_NOTE}
             { name: 'hpq', prop: 'P → Q' },
             { name: 'hnpq', prop: '¬P → Q' },
         ],
-        toolboxBlocks: ['logic_by_cases', 'tactic_apply_rule', 'tactic_exact'],
+        toolboxBlocks: ['logic_by_cases', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# שתי אפשרויות
 
 Q נובעת מ־P, וגם מ־¬P. אבל לא ידוע אם P נכונה או לא.
@@ -279,7 +279,7 @@ ${CLASSICAL_NOTE}`,
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_cases', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_and_intro', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_by_cases', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_and_intro', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# תרגיל מסכם: שלילה של "וגם"
 
 אם לא נכון ש"P וגם Q", אז P לא נכונה או Q לא נכונה. זה חוק דה מורגן השני.
@@ -312,7 +312,7 @@ ${CLASSICAL_NOTE}`,
         goalLabel: '(¬(P → Q) → ¬¬P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_not_elim', 'logic_false_implies', 'tactic_apply_rule', 'logic_contradiction'],
+        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_not_elim', 'logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction'],
         introduction: `# בונוס: שלילה של גרירה
 
 אם הגרירה \`P → Q\` לא נכונה, אז לא נכון ש־P לא נכונה.
