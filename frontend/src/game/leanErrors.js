@@ -6,6 +6,9 @@ import { isolateFormulas } from './bidi';
 
 export const GENERIC_PROBLEM = 'המהלך הזה לא מתאים למצב ההוכחה כרגע.';
 
+// A move whose field still holds the placeholder ? (see PLACEHOLDER).
+export const INCOMPLETE_MOVE = 'בבלוק הזה יש שדה מסומן ?. כתבו בו את ההנחה (או הטענה) שהמהלך משתמש בה, או שם להנחה החדשה שהוא מוסיף. במצב ההוכחה רואים מה יש לנו ביד.';
+
 const MESSAGE_HEADER = /^.*?:(\d+):(\d+): (error|warning|info)(?:\([^)]*\))?: ?(.*)$/;
 
 // Splits Lean's output into messages; continuation lines belong to the message above.

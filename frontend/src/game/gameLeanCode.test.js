@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateGameLeanCode, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
+import { findIncompleteMove, generateGameLeanCode, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { unit1Levels } from './unit1World';
 import { buildInto, buildProof, loadWorkspace } from '../test/blocklyWorkspace';
 import { goalXml } from './levelXml';
@@ -147,5 +147,19 @@ describe('generateGameLeanSource with rules that split the proof', () => {
         const cut = generateGameLeanSource(workspace, orLevel, '', { untilBlockId: side.id });
         expect(cut.code.split(':= by\n')[1]).toBe('  cases h with\n  | inl hp =>\n    skip\n  | inr hq =>\n    sorry\n');
         expect(cut).toMatchObject({ stateLine: 7, inPart: true });
+    });
+});
+
+describe('findIncompleteMove', () => {
+    it('finds the first move, in proof order, whose field still holds the placeholder', () => {
+        const workspace = loadWorkspace(goalXml('P ∧ Q'));
+        const [split, last] = buildProof(workspace, [['logic_and_intro'], ['tactic_exact']]);
+        const [filled, empty] = buildInto(split, 'LEFT', [['tactic_exact', { TERM: 'h1' }], ['tactic_exact']]);
+        expect(findIncompleteMove(workspace)?.id).toBe(empty.id);
+        empty.setFieldValue('h2', 'TERM');
+        expect(findIncompleteMove(workspace)?.id).toBe(last.id);
+        last.setFieldValue('h', 'TERM');
+        expect(findIncompleteMove(workspace)).toBeNull();
+        expect(filled).toBeTruthy();
     });
 });

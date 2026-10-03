@@ -1,4 +1,5 @@
 import { leanBranches, leanGenerator } from '../generator/lean';
+import { PLACEHOLDER } from '../blocks/gameBlocks';
 
 const findGoalBlock = (workspace) => workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
 
@@ -90,4 +91,23 @@ export const getLastProofBlockId = (workspace) => {
         proofBlock = proofBlock.getNextBlock();
     }
     return lastBlockId;
+};
+
+// The moves of the proof in the order they are read: each move, then the
+// moves inside its parts, then the next move.
+const movesInOrder = (block) => {
+    const moves = [];
+    for (; block; block = block.getNextBlock()) {
+        moves.push(block);
+        (leanBranches[block.type]?.(block) || []).forEach(({ input }) => moves.push(...movesInOrder(block.getInputTargetBlock(input))));
+    }
+    return moves;
+};
+
+const hasPlaceholder = (block) => block.inputList.some((input) => input.fieldRow.some((field) => field.EDITABLE && String(field.getValue()).trim() === PLACEHOLDER));
+
+// The first move with a field the student has not filled in yet, or null.
+export const findIncompleteMove = (workspace) => {
+    const proof = findGoalBlock(workspace)?.getInputTargetBlock('PROOF');
+    return movesInOrder(proof).find(hasPlaceholder) || null;
 };

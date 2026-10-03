@@ -5,8 +5,8 @@ import axios from 'axios';
 import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
 import { formatProofGoal } from './formatProofGoal';
-import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
-import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
+import { findIncompleteMove, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
+import { findLeanProblem, GENERIC_PROBLEM, INCOMPLETE_MOVE } from './leanErrors';
 import { goalLabel, openGoals } from './proofState';
 import { isolateFormulas } from './bidi';
 import { BACKEND_URL } from '../backendUrl';
@@ -85,17 +85,18 @@ const GameWorkspace = ({
     }, []);
 
     // Colours the block red and attaches the explanation as a warning icon,
-    // which opens a bubble with the text when clicked.
-    const markBlockError = useCallback((targetWorkspace, blockId, message) => {
+    // which opens a bubble with the text when clicked. A gentle mark (a field
+    // still to fill in, not a mistake) keeps the block's colour.
+    const markBlockError = useCallback((targetWorkspace, blockId, message, { gentle = false } = {}) => {
         const block = blockId && targetWorkspace.getBlockById(blockId);
-        if (errorBlockRef.current?.block === block) {
+        if (errorBlockRef.current?.block === block && errorBlockRef.current.gentle === gentle) {
             block.setWarningText(message);
             return;
         }
         clearBlockError();
         if (!block) return;
-        errorBlockRef.current = { block, colour: block.getColour() };
-        block.setColour('#d93025');
+        errorBlockRef.current = { block, colour: block.getColour(), gentle };
+        if (!gentle) block.setColour('#d93025');
         block.setWarningText(message);
     }, [clearBlockError]);
     const workspaceListenerRef = useRef(null);
@@ -216,8 +217,13 @@ const GameWorkspace = ({
 
         const timeout = setTimeout(async () => {
             try {
-                const sources = [generateLeanSource(evaluatedBlockId)];
-                if (evaluatedBlockId) sources.push(generateLeanSource(evaluatedBlockId, true));
+                // While a move still has a field to fill in, show the state right
+                // before it: what there is to choose from.
+                const incomplete = findIncompleteMove(workspace);
+                const sources = incomplete
+                    ? [generateLeanSource(incomplete.id)]
+                    : [generateLeanSource(evaluatedBlockId)];
+                if (evaluatedBlockId && !incomplete) sources.push(generateLeanSource(evaluatedBlockId, true));
                 const responses = [];
                 for (const source of sources) {
                     responses.push(await axios.post(proofStateEndpoint, { leanCode: source.code }));
@@ -233,9 +239,12 @@ const GameWorkspace = ({
                     const firstProblem = states.find((state) => state.problem)?.problem;
                     if (firstProblem) {
                         markBlockError(workspace, firstProblem.blockId, firstProblem.message);
+                    } else if (incomplete) {
+                        markBlockError(workspace, incomplete.id, INCOMPLETE_MOVE, { gentle: true });
                     } else {
                         clearBlockError();
                     }
+                    if (incomplete) states[0] = { ...states[0], prompt: INCOMPLETE_MOVE };
                     setProofStates({ before: states[0], after: states[1] || null });
                 }
             } catch {
@@ -253,6 +262,13 @@ const GameWorkspace = ({
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
     const runProof = async () => {
+        const incomplete = findIncompleteMove(workspace);
+        if (incomplete) {
+            markBlockError(workspace, incomplete.id, INCOMPLETE_MOVE, { gentle: true });
+            setStatus('error');
+            setOutput(INCOMPLETE_MOVE);
+            return;
+        }
         // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
         const source = generateLeanSource();
         setStatus('running');
@@ -355,6 +371,11 @@ const GameWorkspace = ({
                 )}
             </div>
             {displayedProofState?.loading && <div style={{ marginBottom: '10px', color: '#555' }}>Lean בודק את המהלך האחרון...</div>}
+            {displayedProofState?.prompt && (
+                <div role="status" style={{ marginBottom: '10px', padding: '6px 8px', background: '#fff6d6', border: '1px solid #e6c65c', borderRadius: '4px' }}>
+                    ✎ {displayedProofState.prompt}
+                </div>
+            )}
             {displayedProofState?.complete ? (
                 // Nothing is left to prove, so there are no assumptions to list either.
                 <div style={{ color: '#1e7e34', fontWeight: 'bold' }}>

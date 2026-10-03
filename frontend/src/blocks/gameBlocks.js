@@ -1,6 +1,11 @@
 import * as Blockly from 'blockly/core';
 
 // Blocks used only by the game-mode levels (as opposed to the free sandbox).
+// Every field starts as this placeholder: choosing the assumption (or formula)
+// a move uses, and naming the assumptions it adds, is left to the student.
+// (Generic default names also collided with the names a level gives.)
+export const PLACEHOLDER = '?';
+
 export const defineGameBlocks = () => {
 
     // The level's goal. Fixed/immutable (players cannot edit or delete it) -
@@ -31,13 +36,13 @@ export const defineGameBlocks = () => {
             // Two rows, so nested proofs stay narrow enough for the workspace.
             this.appendDummyInput()
                 .appendField("מהגרירה")
-                .appendField(new Blockly.FieldTextInput("h1"), "RULE")
+                .appendField(new Blockly.FieldTextInput("?"), "RULE")
                 .appendField("ומההנחה")
-                .appendField(new Blockly.FieldTextInput("hp"), "PREMISE")
+                .appendField(new Blockly.FieldTextInput("?"), "PREMISE")
                 .appendField("שהיא התנאי שלה");
             this.appendDummyInput()
                 .appendField("נסיק את המסקנה שלה ונקרא לה")
-                .appendField(new Blockly.FieldTextInput("hq"), "NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);
@@ -68,13 +73,13 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("מההנחה")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("מסוג \"וגם\" נסיק את שני הצדדים שלה:");
             this.appendDummyInput()
                 .appendField("צד שמאל, ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h1"), "LEFT_NAME")
+                .appendField(new Blockly.FieldTextInput("?"), "LEFT_NAME")
                 .appendField("וצד ימין, ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h2"), "RIGHT_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "RIGHT_NAME");
             move(this, RULE_COLOUR, 'מההנחה "P וגם Q" נובע P, ונובע גם Q.');
         }
     };
@@ -97,14 +102,14 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("נחלק למקרים לפי ההנחה")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("מסוג \"או\":");
             this.appendStatementInput("LEFT").setCheck("tactic")
                 .appendField("מקרה ראשון: צד שמאל נכון, ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h1"), "LEFT_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "LEFT_NAME");
             this.appendStatementInput("RIGHT").setCheck("tactic")
                 .appendField("מקרה שני: צד ימין נכון, ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h2"), "RIGHT_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "RIGHT_NAME");
             move(this, RULE_COLOUR, 'אם ידוע "P או Q", מוכיחים את המטרה פעם אחת בהנחה P ופעם אחת בהנחה Q.');
         }
     };
@@ -122,13 +127,13 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("מההנחה")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("מסוג \"אם ורק אם\" נסיק את שני הכיוונים שלה:");
             this.appendDummyInput()
                 .appendField("משמאל לימין (→), ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h1"), "FORWARD_NAME")
+                .appendField(new Blockly.FieldTextInput("?"), "FORWARD_NAME")
                 .appendField("ומימין לשמאל (←), ונקרא לו")
-                .appendField(new Blockly.FieldTextInput("h2"), "BACKWARD_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "BACKWARD_NAME");
             move(this, RULE_COLOUR, 'מההנחה "P אם ורק אם Q" נובעות הגרירות P → Q ו־Q → P.');
         }
     };
@@ -142,9 +147,9 @@ export const defineGameBlocks = () => {
             // Two rows, so nested proofs stay narrow enough for the workspace.
             this.appendDummyInput()
                 .appendField("ההנחה")
-                .appendField(new Blockly.FieldTextInput("hn"), "NEGATION")
+                .appendField(new Blockly.FieldTextInput("?"), "NEGATION")
                 .appendField("היא השלילה של ההנחה")
-                .appendField(new Blockly.FieldTextInput("hp"), "HYPOTHESIS");
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS");
             this.appendDummyInput().appendField("ולכן הגענו לסתירה");
             move(this, NEGATION_COLOUR, 'טענה ושלילתה יחד הן סתירה.');
         }
@@ -156,10 +161,10 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("נשתמש בגרירה: סתירה גוררת")
-                .appendField(new Blockly.FieldTextInput("Q"), "FORMULA");
+                .appendField(new Blockly.FieldTextInput("?"), "FORMULA");
             this.appendDummyInput()
                 .appendField("ונקרא לה")
-                .appendField(new Blockly.FieldTextInput("hf"), "HYPOTHESIS");
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS");
             move(this, NEGATION_COLOUR, 'מסתירה נובעת כל טענה: הגרירה ⊥ → Q נכונה תמיד.');
         }
     };
@@ -169,7 +174,7 @@ export const defineGameBlocks = () => {
             this.appendDummyInput().appendField("נוכיח את השלילה: נניח את הטענה שהיא שוללת");
             this.appendDummyInput()
                 .appendField("ונקרא לה")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("ונגיע לסתירה");
             move(this, NEGATION_COLOUR, 'כדי להוכיח ¬P מניחים P ומגיעים לסתירה.');
         }
@@ -179,7 +184,7 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("נגיע לסתירה בעזרת השלילה")
-                .appendField(new Blockly.FieldTextInput("hn"), "NEGATION");
+                .appendField(new Blockly.FieldTextInput("?"), "NEGATION");
             this.appendDummyInput().appendField("ולכן נוכיח את הטענה שהיא שוללת");
             move(this, NEGATION_COLOUR, 'אם בידינו ¬P, כדי להגיע לסתירה מספיק להוכיח את P.');
         }
@@ -190,7 +195,7 @@ export const defineGameBlocks = () => {
             this.appendDummyInput().appendField("נוכיח בשלילה: נניח שהמטרה לא נכונה");
             this.appendDummyInput()
                 .appendField("ונקרא לזה")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("ונגיע לסתירה");
             move(this, NEGATION_COLOUR, 'כדי להוכיח P מניחים ¬P ומגיעים לסתירה (עיקרון של הלוגיקה הקלאסית).');
         }
@@ -200,14 +205,14 @@ export const defineGameBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("נבדוק את שתי האפשרויות: הטענה")
-                .appendField(new Blockly.FieldTextInput("P"), "FORMULA")
+                .appendField(new Blockly.FieldTextInput("?"), "FORMULA")
                 .appendField("נכונה או לא נכונה");
             this.appendStatementInput("LEFT").setCheck("tactic")
                 .appendField("אם היא נכונה, נקרא לזה")
-                .appendField(new Blockly.FieldTextInput("h1"), "LEFT_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "LEFT_NAME");
             this.appendStatementInput("RIGHT").setCheck("tactic")
                 .appendField("אם היא לא נכונה, נקרא לזה")
-                .appendField(new Blockly.FieldTextInput("h2"), "RIGHT_NAME");
+                .appendField(new Blockly.FieldTextInput("?"), "RIGHT_NAME");
             move(this, NEGATION_COLOUR, 'כל טענה נכונה או לא נכונה; מוכיחים את המטרה בשני המקרים (עיקרון של הלוגיקה הקלאסית).');
         }
     };

@@ -51,7 +51,7 @@ export const defineBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("נניח את התנאי (צד שמאל) של הגרירה שאנחנו רוצים להוכיח ונקרא להנחה זאת")
-                .appendField(new Blockly.FieldTextInput("h"), "HYPOTHESIS");
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);
@@ -65,7 +65,7 @@ export const defineBlocks = () => {
         init: function () {
             this.appendDummyInput()
                 .appendField("מה שאנחנו רוצים להוכיח זה בדיוק")
-                .appendField(new Blockly.FieldTextInput("h"), "TERM");
+                .appendField(new Blockly.FieldTextInput("?"), "TERM");
             this.setPreviousStatement(true, "tactic");
             this.setNextStatement(true, "tactic");
             this.setColour(160);
@@ -94,7 +94,7 @@ export const defineBlocks = () => {
             // Two rows: on one row the block is wider than the workspace.
             this.appendDummyInput()
                 .appendField("מה שצריך להוכיח הוא בדיוק המסקנה (צד ימין) של")
-                .appendField(new Blockly.FieldTextInput("h"), "RULE");
+                .appendField(new Blockly.FieldTextInput("?"), "RULE");
             this.appendDummyInput()
                 .appendField("ולכן נעבור להוכיח את התנאי שלה (צד שמאל)");
             this.setPreviousStatement(true, "tactic");
