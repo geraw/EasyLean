@@ -23,7 +23,7 @@
 | 1 | `P → P` | `intro h; exact h` |
 | 2 | `(P → Q) → P → Q` | `intro h1; intro h2; apply h1; exact h2` |
 | 3 | `h1 : P → Q, h2 : Q → R, hp : P ⊢ R` | `have hq := h1 hp; have hr := h2 hq; exact hr` (קדימה) |
-| 4 | `P → (P → Q) → Q` | `intro h1; intro h2; apply h2; exact h1` |
+| 4 | `P → (P → Q) → Q` | `intro h1; intro h2; apply h2; exact h1`, או קדימה: `have hq := h2 h1; exact hq` |
 | 5 | `(P → Q) → (Q → R) → P → R` | `intro h1; intro h2; intro h3; apply h2; apply h1; exact h3` |
 | סיום | הסבר מילולי של פתרון שלב 3 | – |
 

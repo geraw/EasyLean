@@ -154,3 +154,19 @@ test('a forward step from an assumption that is not the condition is explained',
     await expect(proofStatePanel(page).getByRole('alert'))
         .toContainText('hp אומרת P, אבל התנאי של h2 הוא Q, ולכן אי אפשר להסיק ממנה את המסקנה של h2.');
 });
+
+test('level 4 can be solved backward or forward', async ({ page }) => {
+    const assumptions = [['tactic_intro', { HYPOTHESIS: 'h1' }], ['tactic_intro', { HYPOTHESIS: 'h2' }]];
+    const solutions = [
+        [...assumptions, ['tactic_apply_rule', { RULE: 'h2' }], ['tactic_exact', { TERM: 'h1' }]],
+        [...assumptions, ['logic_modus_ponens', { RULE: 'h2', PREMISE: 'h1', NAME: 'hq' }], ['tactic_exact', { TERM: 'hq' }]],
+    ];
+    for (const solution of solutions) {
+        await page.getByRole('combobox').selectOption('3');
+        await page.evaluate(() => window.__easyleanWorkspace.getTopBlocks(true)
+            .find((b) => b.type === 'game_goal').getInputTargetBlock('PROOF')?.dispose(false));
+        await buildProof(page, solution);
+        await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+        await expect(page.getByRole('button', { name: 'לשלב הבא' })).toBeVisible();
+    }
+});
