@@ -12,14 +12,14 @@ const LEVELS = [
             LEFT: [mp('hpr', 'h1', 'hr'), exact('hr')], RIGHT: [mp('hqr', 'h2', 'hr'), exact('hr')] }]] },
     { unit: 'יחידה 2 - וגם, או, אם ורק אם', index: 6, proof: [
         ['logic_iff_elim', { HYPOTHESIS: 'h', FORWARD_NAME: 'h1', BACKWARD_NAME: 'h2' }], mp('h2', 'hq', 'hp'), exact('hp')] },
-    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 6, proof: [
+    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 7, proof: [
         ['logic_by_cases', { FORMULA: 'P', LEFT_NAME: 'h1', RIGHT_NAME: 'h2' }, {
             LEFT: [mp('hpq', 'h1', 'hq'), exact('hq')], RIGHT: [mp('hnpq', 'h2', 'hq'), exact('hq')] }]] },
     // ¬P is P → ⊥: forward from hn and hp to ⊥, and from ⊥ → Q and ⊥ to Q.
-    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 1, proof: [
+    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 2, proof: [
         mp('hn', 'hp', 'hb'), ['logic_false_implies', { FORMULA: 'Q', HYPOTHESIS: 'hf' }], mp('hf', 'hb', 'hq'), exact('hq')] },
     // ¬P is P → ⊥: the forward step from a negation and the statement it negates gives ⊥.
-    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 2, proof: [
+    { unit: 'יחידה 3 - שלילה והוכחה בשלילה', index: 3, proof: [
         ['logic_not_intro', { HYPOTHESIS: 'hn' }], mp('hn', 'hp', 'hb'), exact('hb')] },
 ];
 

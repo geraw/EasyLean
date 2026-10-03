@@ -196,6 +196,15 @@ leanGenerator.forBlock['logic_false_implies'] = function (block) {
     return `  have ${block.getFieldValue('HYPOTHESIS')} : False → (${block.getFieldValue('FORMULA')}) := False.elim\n`;
 };
 
+leanGenerator.forBlock['logic_non_contradiction'] = function (block) {
+    const p = block.getFieldValue('FORMULA');
+    return `  have ${block.getFieldValue('HYPOTHESIS')} : ((${p}) ∧ ¬(${p})) → False := fun h => absurd h.1 h.2\n`;
+};
+
+leanGenerator.forBlock['logic_and_combine'] = function (block) {
+    return `  have ${block.getFieldValue('NAME')} := And.intro ${block.getFieldValue('LEFT')} ${block.getFieldValue('RIGHT')}\n`;
+};
+
 leanGenerator.forBlock['logic_not_intro'] = function (block) {
     return `  apply Not.intro\n  intro ${block.getFieldValue('HYPOTHESIS')}\n`;
 };

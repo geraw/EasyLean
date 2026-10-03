@@ -169,6 +169,36 @@ export const defineGameBlocks = () => {
         }
     };
 
+    // The principle of non-contradiction as a fact: (P ∧ ¬P) → ⊥, used like
+    // any implication (backward to its condition, or forward).
+    Blockly.Blocks['logic_non_contradiction'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נשתמש בעיקרון הסתירה: הטענה")
+                .appendField(new Blockly.FieldTextInput("?"), "FORMULA")
+                .appendField("ושלילתה גוררות סתירה");
+            this.appendDummyInput()
+                .appendField("ונקרא לגרירה הזאת")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS");
+            move(this, NEGATION_COLOUR, 'עיקרון הסתירה: (P ∧ ¬P) → ⊥ נכונה לכל טענה P.');
+        }
+    };
+
+    // Two assumptions combined into one "and" (∧-introduction, forward).
+    Blockly.Blocks['logic_and_combine'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("מההנחה")
+                .appendField(new Blockly.FieldTextInput("?"), "LEFT")
+                .appendField("ומההנחה")
+                .appendField(new Blockly.FieldTextInput("?"), "RIGHT");
+            this.appendDummyInput()
+                .appendField("נסיק את שתיהן יחד (\"וגם\") ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
+            move(this, RULE_COLOUR, 'מ־P ומ־Q נובע "P וגם Q".');
+        }
+    };
+
     Blockly.Blocks['logic_not_intro'] = {
         init: function () {
             this.appendDummyInput().appendField("נוכיח את השלילה: נניח את הטענה שהיא שוללת");

@@ -12,6 +12,16 @@ const falseImpliesInfo = {
     doc: 'הגרירה ⊥ → Q נכונה לכל טענה Q: מסתירה נובע הכול. כמו בכל גרירה שהמסקנה שלה היא המטרה, אפשר לעבור להוכיח את התנאי שלה, כלומר להגיע לסתירה.',
 };
 
+const nonContradictionInfo = {
+    name: 'עיקרון הסתירה',
+    doc: 'לכל טענה P, הגרירה (P ∧ ¬P) → ⊥ נכונה: טענה ושלילתה יחד הן סתירה. משתמשים בה כמו בכל גרירה, אחורה או קדימה.',
+};
+
+const andCombineInfo = {
+    name: 'צירוף שתי הנחות ל"וגם"',
+    doc: 'אם בידינו P וגם Q, אפשר להסיק את "P וגם Q" כהנחה אחת.',
+};
+
 const notIntroInfo = {
     name: 'הוכחת שלילה',
     doc: 'כדי להוכיח ¬P מניחים את P ומגיעים לסתירה: אם P מובילה לסתירה, P לא נכונה.',
@@ -40,7 +50,7 @@ export const unit3Levels = [
     {
         id: 'unit3-1',
         levelNumber: 1,
-        totalLevels: 9,
+        totalLevels: 10,
         title: 'טענה ושלילתה',
         name: 'unit3_l1_contradiction',
         variableLine: 'variable {P : Prop}',
@@ -72,7 +82,43 @@ export const unit3Levels = [
     {
         id: 'unit3-2',
         levelNumber: 2,
-        totalLevels: 9,
+        totalLevels: 10,
+        title: 'עיקרון הסתירה',
+        name: 'unit3_l2_non_contradiction',
+        variableLine: 'variable {P : Prop}',
+        params: '(hp : P) (hn : ¬P)',
+        proposition: 'False',
+        goalLabel: 'סתירה (⊥)',
+        objects: [],
+        assumptions: [
+            { name: 'hp', prop: 'P' },
+            { name: 'hn', prop: '¬P' },
+        ],
+        toolboxBlocks: ['logic_non_contradiction', 'logic_and_combine', 'logic_and_intro', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
+        introduction: `# עיקרון הסתירה
+
+בשלב 1 הגעתם לסתירה בבלוק אחד. כאן נגיע לאותה מסקנה מעיקרון כללי, שנכתוב כגרירה:
+*עיקרון הסתירה* אומר שטענה ושלילתה לא נכונות יחד, כלומר \`(P ∧ ¬P) → ⊥\`.
+
+נוסיף את העיקרון להנחות, ונשתמש בו כמו בכל גרירה, באחת משתי הדרכים:
+אחורה: המסקנה שלו היא המטרה ⊥, ולכן נעבור להוכיח את התנאי שלו, \`P ∧ ¬P\`, בשני חלקים.
+או קדימה: נצרף את hp ואת hn להנחה אחת, \`P ∧ ¬P\`, ומהעיקרון ומהתנאי שלו נסיק סתירה.`,
+        newTacticsBlocks: ['logic_non_contradiction', 'logic_and_combine'],
+        newTacticsInfo: [nonContradictionInfo, andCombineInfo],
+        newDefinitions: [],
+        hints: [
+            'גררו את הבלוק "נשתמש בעיקרון הסתירה: הטענה ? ושלילתה גוררות סתירה", וכתבו בו P ושם לגרירה, למשל hc. יש בידינו hc : (P ∧ ¬P) → ⊥.',
+            'אחורה: המסקנה של hc היא ⊥, ולכן עברו להוכיח את התנאי שלה, P ∧ ¬P, והוכיחו אותו בשני חלקים בעזרת hp ו־hn.',
+            'או קדימה: צרפו את hp ואת hn להנחה אחת (למשל hpn : P ∧ ¬P), הסיקו מ־hc ומ־hpn סתירה, וסגרו בעזרתה.',
+        ],
+        conclusion: `הגעתם לסתירה מעיקרון הסתירה, כמו מכל גרירה אחרת.
+הבלוק "הגענו לסתירה" משלב 1 הוא קיצור של אותו עיקרון: מטענה ושלילתה נובעת סתירה בצעד אחד.`,
+        startXml: goalXml('סתירה (⊥)', 'hp : P,  hn : ¬P'),
+    },
+    {
+        id: 'unit3-3',
+        levelNumber: 3,
+        totalLevels: 10,
         title: 'מסתירה נובע הכול',
         name: 'unit3_l2_exfalso',
         variableLine: 'variable {P Q : Prop}',
@@ -108,9 +154,9 @@ export const unit3Levels = [
         startXml: goalXml('Q', 'hp : P,  hn : ¬P'),
     },
     {
-        id: 'unit3-3',
-        levelNumber: 3,
-        totalLevels: 9,
+        id: 'unit3-4',
+        levelNumber: 4,
+        totalLevels: 10,
         title: 'מוכיחים שלילה',
         name: 'unit3_l3_not_intro',
         variableLine: 'variable {P : Prop}',
@@ -136,14 +182,14 @@ export const unit3Levels = [
         conclusion: `הנחתם את ¬P, והגעתם לסתירה עם hp, ולכן ¬P לא נכונה: הוכחתם את ¬¬P.
 זו הדרך הישירה להוכיח שלילה: מניחים את הטענה שהיא שוללת ומגיעים לסתירה.
 
-כמו בשלב 2, שלילה היא גם גרירה: ¬P היא P → ⊥.
+כמו בשלב 3, שלילה היא גם גרירה: ¬P היא P → ⊥.
 לכן גם כאן אפשר להסיק קדימה: מהגרירה hn ומהתנאי שלה hp נובעת סתירה. הבלוק "הגענו לסתירה" עושה את אותו הדבר בצעד אחד.`,
         startXml: goalXml('¬¬P', 'hp : P'),
     },
     {
-        id: 'unit3-4',
-        levelNumber: 4,
-        totalLevels: 9,
+        id: 'unit3-5',
+        levelNumber: 5,
+        totalLevels: 10,
         title: 'משתמשים בשלילה',
         name: 'unit3_l4_modus_tollens',
         variableLine: 'variable {P Q : Prop}',
@@ -175,9 +221,9 @@ export const unit3Levels = [
         startXml: goalXml('¬P', 'h : (P → Q),  hnq : ¬Q'),
     },
     {
-        id: 'unit3-5',
-        levelNumber: 5,
-        totalLevels: 9,
+        id: 'unit3-6',
+        levelNumber: 6,
+        totalLevels: 10,
         title: 'שלילה של "או"',
         name: 'unit3_l5_de_morgan_or',
         variableLine: 'variable {P Q : Prop}',
@@ -205,9 +251,9 @@ export const unit3Levels = [
         startXml: goalXml('(¬(P ∨ Q) → (¬P ∧ ¬Q))'),
     },
     {
-        id: 'unit3-6',
-        levelNumber: 6,
-        totalLevels: 9,
+        id: 'unit3-7',
+        levelNumber: 7,
+        totalLevels: 10,
         title: 'הוכחה בשלילה',
         name: 'unit3_l6_by_contradiction',
         variableLine: 'variable {P : Prop}',
@@ -219,14 +265,14 @@ export const unit3Levels = [
         toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction'],
         introduction: `# הוכחה בשלילה
 
-בשלב 3 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
+בשלב 4 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
 
 המטרה אחרי הנחת התנאי היא P, ולא שלילה, ולכן הבלוק של הוכחת שלילה לא מתאים.
 *הוכחה בשלילה* עובדת לכל מטרה: מניחים שהמטרה לא נכונה ומגיעים לסתירה.
 
 ${CLASSICAL_NOTE}
 
-שימו לב להבדל: כדי להוכיח ¬P מניחים P (שלב 3). בהוכחה בשלילה של P מניחים ¬P. כשהמטרה היא שלילה, אין צורך בהוכחה בשלילה.`,
+שימו לב להבדל: כדי להוכיח ¬P מניחים P (שלב 4). בהוכחה בשלילה של P מניחים ¬P. כשהמטרה היא שלילה, אין צורך בהוכחה בשלילה.`,
         newTacticsBlocks: ['logic_by_contradiction'],
         newTacticsInfo: [byContradictionInfo],
         newDefinitions: [],
@@ -236,13 +282,13 @@ ${CLASSICAL_NOTE}
             'h היא השלילה של hn: הגיעו לסתירה.',
         ],
         conclusion: `הנחתם ש־P לא נכונה, הגעתם לסתירה, והסקתם את P.
-יחד עם שלב 3, ¬¬P ו־P שקולות. הכיוון הזה דורש את עיקרון ההוכחה בשלילה.`,
+יחד עם שלב 4, ¬¬P ו־P שקולות. הכיוון הזה דורש את עיקרון ההוכחה בשלילה.`,
         startXml: goalXml('(¬¬P → P)'),
     },
     {
-        id: 'unit3-7',
-        levelNumber: 7,
-        totalLevels: 9,
+        id: 'unit3-8',
+        levelNumber: 8,
+        totalLevels: 10,
         title: 'שתי אפשרויות',
         name: 'unit3_l7_by_cases',
         variableLine: 'variable {P Q : Prop}',
@@ -276,9 +322,9 @@ ${CLASSICAL_NOTE}`,
         startXml: goalXml('Q', 'hpq : (P → Q),  hnpq : (¬P → Q)'),
     },
     {
-        id: 'unit3-8',
-        levelNumber: 8,
-        totalLevels: 9,
+        id: 'unit3-9',
+        levelNumber: 9,
+        totalLevels: 10,
         title: 'תרגיל מסכם: שלילה של "וגם"',
         name: 'unit3_l8_de_morgan_and',
         variableLine: 'variable {P Q : Prop}',
@@ -305,13 +351,13 @@ ${CLASSICAL_NOTE}`,
             'במקרה ש־P נכונה (h1 : P), בחרו בצד ימין, ¬Q: הניחו את Q (hq), והגיעו לסתירה בעזרת השלילה h. נשאר להוכיח P ∧ Q.',
         ],
         conclusion: `מ"לא (P וגם Q)" הסקתם "לא P או לא Q", בבדיקת שתי האפשרויות לגבי P.
-יחד עם שלב 5 אלה חוקי דה מורגן: שלילה הופכת "וגם" ל"או", ו"או" ל"וגם".`,
+יחד עם שלב 6 אלה חוקי דה מורגן: שלילה הופכת "וגם" ל"או", ו"או" ל"וגם".`,
         startXml: goalXml('(¬(P ∧ Q) → (¬P ∨ ¬Q))'),
     },
     {
-        id: 'unit3-9',
-        levelNumber: 9,
-        totalLevels: 9,
+        id: 'unit3-10',
+        levelNumber: 10,
+        totalLevels: 10,
         title: 'שלב בונוס: שלילה של גרירה',
         name: 'unit3_l9_not_imp',
         variableLine: 'variable {P Q : Prop}',
@@ -326,7 +372,7 @@ ${CLASSICAL_NOTE}`,
 אם הגרירה \`P → Q\` לא נכונה, אז לא נכון ש־P לא נכונה.
 (למה? אם P לא הייתה נכונה, הגרירה הייתה נכונה: מטענה לא נכונה נובע הכול.)
 
-השלב הזה לא דורש עיקרון קלאסי: מספיקים הכללים של שלבים 1 עד 4. בכל צעד בדקו במצב ההוכחה מה בידכם ומה המטרה.`,
+השלב הזה לא דורש עיקרון קלאסי: מספיקים הכללים של שלבים 1 עד 5. בכל צעד בדקו במצב ההוכחה מה בידכם ומה המטרה.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],

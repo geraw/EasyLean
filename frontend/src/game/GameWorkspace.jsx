@@ -305,7 +305,8 @@ const GameWorkspace = ({
             {assumptions.length > 0 ? (
                 assumptions.map((assumption) => (
                     <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
-                        {assumption.name} : {assumption.prop.replace(/\bFalse\b/g, '⊥')}
+                        {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
+                        {assumption.name} : {formatProofGoal(assumption.prop)}
                     </div>
                 ))
             ) : (

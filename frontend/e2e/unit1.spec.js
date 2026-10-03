@@ -145,7 +145,7 @@ test('level 3 is solved forward, adding conclusions as assumptions', async ({ pa
     const panel = await selectMove(page, first);
     await page.getByLabel('אחרי המהלך').check();
     await expect(panel).toContainText('hq : Q');
-    await expect(panel).toContainText('h1 : P → Q');
+    await expect(panel).toContainText('h1 : (P → Q)');
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toBeVisible();
 });

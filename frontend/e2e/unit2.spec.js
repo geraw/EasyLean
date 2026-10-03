@@ -80,7 +80,7 @@ test('level 6 starts with a side chosen too early, which gets stuck', async ({ p
         .find((b) => b.type === 'logic_or_intro_left').id);
     const panel = await selectMove(page, sideId);
     await page.getByLabel('אחרי המהלך').check();
-    await expect(panel).toContainText('h : P ∨ Q');
+    await expect(panel).toContainText('h : (P ∨ Q)');
     await expect(panel.getByRole('alert')).toHaveCount(0);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toHaveCount(0);
