@@ -118,7 +118,8 @@ The end-to-end tests start the backend and the Vite dev server themselves, or re
 ## Deployment (pilot)
 
 - **Frontend:** GitHub Pages, at https://geraw.github.io/EasyLean/, built on every push to `main` (`.github/workflows/deploy.yml`). The repository variable `BACKEND_URL` tells it where the backend is; without it the site expects a backend on `localhost:3001`.
-- **Backend:** a Hugging Face Space (Docker), built from `backend/Dockerfile`; `backend/README.md` holds the Space's configuration. On every push that changes `backend/`, `.github/workflows/backend.yml` builds the image, checks it with a real proof, and pushes `backend/` to the Space. That needs the secret `HF_TOKEN` (a Hugging Face token with write access) and the variable `HF_SPACE` (e.g. `someone/easylean-backend`).
+- **Backend:** Google Cloud Run, project `easylean-pilot-1003`, region `europe-west1`, built from `backend/Dockerfile`. Deploy with `ops/deploy-backend.sh` (needs `gcloud`, signed in to the owning account). `.github/workflows/backend.yml` builds the image and checks it with a real proof on every change to `backend/`.
+- **Cost:** at most one instance, scaling to zero when idle, keeps the pilot within the free tier (expected: cents a month, for storing the image). The project has a hard cap: an 18 ILS (about $5) budget, with email alerts at 50%, 90% and 100%, whose notifications trigger the function in `ops/billing-cap/`; when the budget is reached it unlinks the project from billing, which stops everything in it. Budget reports lag by a few hours. To restart after that: `gcloud billing projects link easylean-pilot-1003 --billing-account=<account>`.
 - **Security:** the backend runs the Lean code it receives. For the pilot it only rejects `#eval`, which could run commands on the server; a public, long-term deployment needs a stricter check (accept only the lines the blocks generate).
 
 ## How It Works

@@ -1,8 +1,5 @@
-# Builds the backend's Docker image, checks it with a real proof, and deploys
-# backend/ to the Hugging Face Space (creating it on the first deploy) once it
-# is configured:
-#   - secret HF_TOKEN: a Hugging Face access token with write permission
-#   - variable HF_SPACE: the Space, e.g. "someone/easylean-backend"
+# Builds the backend's Docker image and checks it with a real proof. The
+# image is deployed to Google Cloud Run with ops/deploy-backend.sh.
 name: Backend
 
 on:
@@ -22,9 +19,9 @@ jobs:
 
       - name: Start it
         run: |
-          docker run -d --name backend -p 7860:7860 easylean-backend
+          docker run -d --name backend -p 8080:8080 easylean-backend
           for i in $(seq 1 30); do
-            curl -s -o /dev/null -X POST localhost:7860/verify && exit 0
+            curl -s -o /dev/null -X POST localhost:8080/verify && exit 0
             sleep 2
           done
           docker logs backend
@@ -33,42 +30,9 @@ jobs:
       - name: Check a proof and the #eval guard
         run: |
           proof='variable {P : Prop}\n\ntheorem t (h : P) : P := by\n  exact h\n'
-          ok=$(curl -s -X POST localhost:7860/verify -H 'Content-Type: application/json' -d "{\"leanCode\": \"$proof\"}")
+          ok=$(curl -s -X POST localhost:8080/verify -H 'Content-Type: application/json' -d "{\"leanCode\": \"$proof\"}")
           echo "$ok"
           echo "$ok" | grep -q '"exitCode":0'
-          evil=$(curl -s -X POST localhost:7860/verify -H 'Content-Type: application/json' -d '{"leanCode": "#eval 1"}')
+          evil=$(curl -s -X POST localhost:8080/verify -H 'Content-Type: application/json' -d '{"leanCode": "#eval 1"}')
           echo "$evil"
           echo "$evil" | grep -q 'Forbidden command'
-
-  deploy:
-    needs: image
-    runs-on: ubuntu-latest
-    env:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_SPACE: ${{ vars.HF_SPACE }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Push backend/ to the Space
-        run: |
-          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
-            echo "HF_TOKEN or HF_SPACE is not set; skipping the deploy."
-            exit 0
-          fi
-          # Create the Space on the first deploy (409 means it already exists).
-          # A Space under the token's own account is created without "organization".
-          owner="${HF_SPACE%%/*}"
-          me=$(curl -s https://huggingface.co/api/whoami-v2 -H "Authorization: Bearer $HF_TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("name", ""))')
-          echo "Token belongs to: $me"
-          org=""
-          if [ "$owner" != "$me" ]; then org="\"organization\": \"$owner\", "; fi
-          status=$(curl -s -o /tmp/create.json -w '%{http_code}' -X POST https://huggingface.co/api/repos/create \
-            -H "Authorization: Bearer $HF_TOKEN" -H 'Content-Type: application/json' \
-            -d "{\"type\": \"space\", \"name\": \"${HF_SPACE#*/}\", ${org}\"sdk\": \"docker\", \"private\": false}")
-          echo "Create Space: HTTP $status"
-          if [ "$status" != 200 ] && [ "$status" != 409 ]; then cat /tmp/create.json; exit 1; fi
-          cd backend
-          git init -q -b main
-          git -c user.name="github-actions" -c user.email="actions@github.com" add -A
-          git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "Deploy ${GITHUB_SHA::7} from GitHub"
-          git push -q --force "https://${me}:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main
