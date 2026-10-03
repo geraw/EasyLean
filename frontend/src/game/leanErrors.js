@@ -61,13 +61,42 @@ const explainApplication = ({ argument, type, expected, application, argumentSor
             ? `${argument} אומרת ${formula(type)}, וזו לא טענת "לכל", ולכן אי אפשר להציב בה עצם.`
             : `${argument} היא הנחה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.`;
     }
+    if (head === 'easylean_subset_elim') {
+        return /⊆/.test(type) || args.length > 1
+            ? `${argument} אומרת ${formula(type)}, אבל ההכלה היא על קבוצה אחרת: צריך שייכות לקבוצה הקטנה שבה.`
+            : `${argument} אומרת ${formula(type)}, וזו לא הכלה.`;
+    }
     if (head === 'Exists.elim') {
         return `${argument} אומרת ${formula(type)}, וזו לא טענת "קיים", ולכן אין ממנה עצם לקבל.`;
     }
     return null;
 };
 
+// Set operations by the pattern of their definition (see SET_PRELUDE).
+const SET_OPERATIONS = [
+    [/∈ \S+ ∩ /, 'חיתוך'], [/∈ \S+ ∪ /, 'איחוד'], [/∈ \S+ \\ /, 'הפרש'], [/∈ \S+ᶜ/, 'משלים'],
+    [/∈ ∅/, 'הקבוצה הריקה'], [/∈ 𝒫/, 'קבוצת חזקה'], [/∈ ⋃₀/, 'איחוד משפחה'], [/∈ ⋂₀/, 'חיתוך משפחה'],
+];
+
 const EXPLANATIONS = [
+    {
+        // Unfolding the definition of a set operation that is not there.
+        pattern: /^Tactic `rewrite` failed: Did not find an occurrence of the pattern\s*\n\s*(.+?)\s*\nin the target expression\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, pattern, target]) => {
+            const operation = SET_OPERATIONS.find(([regex]) => regex.test(pattern))?.[1] || 'הפעולה הזאת';
+            return `ב־${formula(target)} אין שייכות ל${operation}, ולכן אין כאן הגדרה של ${operation} לפתוח.`;
+        },
+    },
+    {
+        // Proving an inclusion, when the goal is not one.
+        pattern: /^type mismatch\s*\n\s*easylean_subset_intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, והיא לא הכלה, ולכן אין איבר לקחת.`,
+    },
+    {
+        // Proving set equality, when the goal is not one.
+        pattern: /could not unify the conclusion of `@?easylean_set_eq`[\s\S]*?\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, והיא לא שוויון קבוצות.`,
+    },
     {
         // Proving a negation, when the goal is not one (logic_not_intro).
         pattern: /^type mismatch\s*\n\s*Not\.intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
@@ -97,7 +126,7 @@ const EXPLANATIONS = [
     {
         // The forward step, substituting into a "for all", or using a "there exists",
         // with an argument of the wrong kind.
-        pattern: /^Application type mismatch: [\s\S]*in the application\s*\n\s*(easylean_mp|easylean_forall_elim|Exists\.elim)\b/,
+        pattern: /^Application type mismatch: [\s\S]*in the application\s*\n\s*(easylean_mp|easylean_forall_elim|easylean_subset_elim|Exists\.elim)\b/,
         explain: (_, text) => explainApplication(parseApplicationMismatch(text)) || GENERIC_PROBLEM,
     },
     {

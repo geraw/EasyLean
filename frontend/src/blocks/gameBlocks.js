@@ -298,4 +298,71 @@ export const defineGameBlocks = () => {
             move(this, QUANTIFIER_COLOUR, 'מ"קיים x כך ש־P(x)" מקבלים עצם x, שעליו ידוע רק ש־P(x).');
         }
     };
+
+    // Unit 5: sets.
+    const SET_COLOUR = 60;
+
+    Blockly.Blocks['logic_subset_intro'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("כדי להוכיח הכלה: יהי")
+                .appendField(new Blockly.FieldTextInput("?"), "VARIABLE")
+                .appendField("איבר של הקבוצה הקטנה");
+            this.appendDummyInput()
+                .appendField("ונקרא לשייכות שלו")
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
+            move(this, SET_COLOUR, 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי של A ומוכיחים שהוא שייך ל־B.');
+        }
+    };
+
+    Blockly.Blocks['logic_subset_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("מההכלה")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
+                .appendField("ומהשייכות")
+                .appendField(new Blockly.FieldTextInput("?"), "MEMBER");
+            this.appendDummyInput()
+                .appendField("נסיק שייכות לקבוצה הגדולה, ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
+            move(this, SET_COLOUR, 'אם A ⊆ B ו־x ∈ A, אז x ∈ B.');
+        }
+    };
+
+    Blockly.Blocks['logic_set_eq'] = {
+        init: function () {
+            this.appendDummyInput().appendField("נוכיח שוויון קבוצות בשתי הכלות");
+            this.appendStatementInput("FIRST").setCheck("tactic").appendField("הכלה ראשונה (⊆):");
+            this.appendStatementInput("SECOND").setCheck("tactic").appendField("הכלה שנייה (⊇):");
+            move(this, SET_COLOUR, 'שתי קבוצות שוות אם כל אחת מוכלת בשנייה.');
+        }
+    };
+
+    // Unfolding the definition of a set operation, in the goal or in an
+    // assumption (whose name field shows only then).
+    const unfoldBlock = (type, operation, tooltip) => {
+        Blockly.Blocks[type] = {
+            init: function () {
+                const name = new Blockly.FieldTextInput("?");
+                const target = new Blockly.FieldDropdown([["המטרה", "GOAL"], ["ההנחה", "HYPOTHESIS"]], function (value) {
+                    name.setVisible(value === "HYPOTHESIS");
+                    return value;
+                });
+                this.appendDummyInput()
+                    .appendField(`לפי הגדרת ${operation}, נפתח את`)
+                    .appendField(target, "TARGET")
+                    .appendField(name, "HYPOTHESIS");
+                name.setVisible(false);
+                move(this, SET_COLOUR, tooltip);
+            }
+        };
+    };
+    unfoldBlock('logic_unfold_inter', 'החיתוך', 'x ∈ A ∩ B פירושו x ∈ A ∧ x ∈ B.');
+    unfoldBlock('logic_unfold_union', 'האיחוד', 'x ∈ A ∪ B פירושו x ∈ A ∨ x ∈ B.');
+    unfoldBlock('logic_unfold_compl', 'המשלים', 'x ∈ Aᶜ פירושו x ∉ A.');
+    unfoldBlock('logic_unfold_diff', 'ההפרש', 'x ∈ A \\ B פירושו x ∈ A ∧ x ∉ B.');
+    unfoldBlock('logic_unfold_empty', 'הקבוצה הריקה', 'x ∈ ∅ פירושו ⊥: אין איבר בקבוצה הריקה.');
+    unfoldBlock('logic_unfold_powerset', 'קבוצת החזקה', 'B ∈ 𝒫(A) פירושו B ⊆ A.');
+    unfoldBlock('logic_unfold_sunion', 'איחוד המשפחה', 'x ∈ ⋃₀ F פירושו: קיימת A ∈ F כך ש־x ∈ A.');
+    unfoldBlock('logic_unfold_sinter', 'חיתוך המשפחה', 'x ∈ ⋂₀ F פירושו: לכל A ∈ F מתקיים x ∈ A.');
 };

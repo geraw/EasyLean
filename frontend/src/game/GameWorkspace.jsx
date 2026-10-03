@@ -312,10 +312,24 @@ const GameWorkspace = ({
         const domains = new Set(all.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
         const isObject = ({ prop }) => domains.has(prop.trim());
         const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
-        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption));
+        // Sets of objects (A : Set obj), and families of sets, are listed by name too.
+        const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
+        const sets = all.filter(isSet).flatMap(({ name }) => name.split(/\s+/));
+        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption) && !isSet(assumption));
         return (
         <>
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
+            {sets.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                    קבוצות:{' '}
+                    {sets.map((set, index) => (
+                        <React.Fragment key={set}>
+                            {index > 0 && ', '}
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{set}</span>
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
             {objects.length > 0 && (
                 // Each name on its own, so the list reads right to left in the
                 // order the objects were introduced.

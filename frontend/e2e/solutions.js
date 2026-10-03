@@ -30,6 +30,11 @@ const forallIntro = (name) => ['logic_forall_intro', { VARIABLE: name }];
 const forallElim = (term, h, name) => ['logic_forall_elim', { TERM: term, HYPOTHESIS: h, NAME: name }];
 const existsIntro = (term) => ['logic_exists_intro', { TERM: term }];
 const existsElim = (h, variable, name) => ['logic_exists_elim', { HYPOTHESIS: h, VARIABLE: variable, NAME: name }];
+const subsetIntro = (variable, name) => ['logic_subset_intro', { VARIABLE: variable, NAME: name }];
+const subsetElim = (h, member, name) => ['logic_subset_elim', { HYPOTHESIS: h, MEMBER: member, NAME: name }];
+const setEq = (first, second) => ['logic_set_eq', {}, { FIRST: first, SECOND: second }];
+// Unfolding a definition: in the goal, or in the assumption named h.
+const unfold = (operation, h) => [`logic_unfold_${operation}`, h ? { TARGET: 'HYPOTHESIS', HYPOTHESIS: h } : { TARGET: 'GOAL' }];
 const byContradiction = (name) => ['logic_by_contradiction', { HYPOTHESIS: name }];
 
 const swapAnd = [assume('h'), andElim('h', 'h1', 'h2'), andIntro([exact('h2')], [exact('h1')])];
@@ -192,6 +197,96 @@ export const UNITS = [
                 label: 'פתרון',
                 note: 'הוכחה בשלילה, ובתוכה עוד הוכחה בשלילה של P(x).',
                 steps: [assume('h'), byContradiction('hn'), notElim('h'), forallIntro('x0'), byContradiction('hnp'), notElim('hn'), existsIntro('x0'), exact('hnp')],
+            }],
+        ],
+    },
+    {
+        unit: 5,
+        world: 'יחידה 5 - קבוצות',
+        doc: '05-sets.md',
+        levels: [
+            [{ label: 'פתרון', note: 'מההכלה ומהשייכות ל־A נובעת השייכות ל־B.', steps: [subsetElim('h', 'hx', 'hb'), exact('hb')] }],
+            [{ label: 'פתרון', note: 'שתי הכלות ברצף.', steps: [subsetElim('h1', 'hx', 'hb'), subsetElim('h2', 'hb', 'hc'), exact('hc')] }],
+            [{ label: 'פתרון', note: 'קודם איבר x0 של A, ורק אז ההכלות.', steps: [assume('h1'), assume('h2'), subsetIntro('x0', 'hx'), subsetElim('h1', 'hx', 'hb'), subsetElim('h2', 'hb', 'hc'), exact('hc')] }],
+            [{ label: 'פתרון', note: 'פותחים את הגדרת החיתוך בהנחה, ומשתמשים ב"וגם".', steps: [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'ha', 'hb'), exact('ha')] }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את הגדרת החיתוך במטרה, ומוכיחים כל צד בעזרת ההכלה המתאימה.',
+                steps: [subsetIntro('x0', 'hx'), unfold('inter'), andIntro([subsetElim('h1', 'hx', 'hb'), exact('hb')], [subsetElim('h2', 'hx', 'hc'), exact('hc')])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את הגדרת האיחוד, ומחלקים למקרים.',
+                steps: [subsetIntro('x0', 'hx'), unfold('union', 'hx'), orCases('hx', 'ha', [subsetElim('h1', 'ha', 'hc'), exact('hc')], 'hb', [subsetElim('h2', 'hb', 'hc'), exact('hc')])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'שתי הכלות; בכל אחת מחליפים את סדר הצדדים.',
+                steps: [setEq(
+                    [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'ha', 'hb'), unfold('inter'), andIntro([exact('hb')], [exact('ha')])],
+                    [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'hb', 'ha'), unfold('inter'), andIntro([exact('ha')], [exact('hb')])])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'אחרי פתיחת ההגדרות, הוכחת הפילוג משלב 2.9.',
+                steps: [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'ha', 'hbc'), unfold('union', 'hbc'), orCases('hbc',
+                    'hb', [unfold('union'), orLeft, unfold('inter'), andIntro([exact('ha')], [exact('hb')])],
+                    'hc', [unfold('union'), orRight, unfold('inter'), andIntro([exact('ha')], [exact('hc')])])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את הגדרת המשלים, ומוכיחים שלילה: x0 ∈ A היה נותן x0 ∈ B.',
+                steps: [assume('h'), subsetIntro('x0', 'hx'), unfold('compl', 'hx'), unfold('compl'), notIntro('ha'), subsetElim('h', 'ha', 'hb'), contradiction('hx', 'hb')],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את ההפרש בהנחה, ואת החיתוך והמשלים במטרה.',
+                steps: [subsetIntro('x0', 'hx'), unfold('diff', 'hx'), andElim('hx', 'ha', 'hnb'), unfold('inter'), andIntro([exact('ha')], [unfold('compl'), exact('hnb')])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'שתי הכלות; בכל אחת פותחים הגדרות ומשתמשים בשלילה, כמו בשלב 3.6.',
+                steps: [setEq(
+                    [subsetIntro('x0', 'hx'), unfold('compl', 'hx'), unfold('inter'), andIntro(
+                        [unfold('compl'), notIntro('ha'), notElim('hx'), unfold('union'), orLeft, exact('ha')],
+                        [unfold('compl'), notIntro('hb'), notElim('hx'), unfold('union'), orRight, exact('hb')])],
+                    [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'hna', 'hnb'), unfold('compl', 'hna'), unfold('compl', 'hnb'), unfold('compl'), notIntro('hab'), unfold('union', 'hab'),
+                        orCases('hab', 'ha', [contradiction('hna', 'ha')], 'hb', [contradiction('hnb', 'hb')])])],
+            }],
+            [
+                { label: 'אחורה', note: 'האיבר של ∅ הוא סתירה; סתירה גוררת x0 ∈ A.', steps: [subsetIntro('x0', 'hx'), unfold('empty', 'hx'), falseImplies('x0 ∈ A', 'hf'), applyRule('hf'), exact('hx')] },
+                { label: 'קדימה', note: 'מהסתירה ומ"סתירה גוררת x0 ∈ A" נובע x0 ∈ A.', steps: [subsetIntro('x0', 'hx'), unfold('empty', 'hx'), falseImplies('x0 ∈ A', 'hf'), forward('hf', 'hx', 'ha'), exact('ha')] },
+            ],
+            [{
+                label: 'פתרון',
+                note: 'הכלה ראשונה מגיעה לסתירה; בשנייה, מסתירה נובע כל צד.',
+                steps: [setEq(
+                    [subsetIntro('x0', 'hx'), unfold('inter', 'hx'), andElim('hx', 'ha', 'hna'), unfold('compl', 'hna'), unfold('empty'), contradiction('hna', 'ha')],
+                    [subsetIntro('x0', 'hx'), unfold('empty', 'hx'), unfold('inter'), andIntro(
+                        [falseImplies('x0 ∈ A', 'hf'), applyRule('hf'), exact('hx')],
+                        [unfold('compl'), notIntro('ha'), exact('hx')])])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'האיבר הוא קבוצה X; אחרי פתיחת ההגדרה, שרשרת הכלות.',
+                steps: [assume('h'), subsetIntro('X', 'hX'), unfold('powerset', 'hX'), unfold('powerset'), subsetIntro('x0', 'hx'), subsetElim('hX', 'hx', 'ha'), subsetElim('h', 'ha', 'hb'), exact('hb')],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'שייכות לאיחוד המשפחה היא "קיים": העד הוא A.',
+                steps: [subsetIntro('x0', 'hx'), unfold('sunion'), existsIntro('A'), andIntro([exact('hA')], [exact('hx')])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'שייכות לחיתוך המשפחה היא "לכל": מציבים את A.',
+                steps: [subsetIntro('x0', 'hx'), unfold('sinter', 'hx'), forallElim('A', 'hx', 'hxa'), forward('hxa', 'hA', 'ha'), exact('ha')],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'הכלה ראשונה בהוכחה בשלילה (עיקרון קלאסי); השנייה בהוכחת שלילה.',
+                steps: [setEq(
+                    [subsetIntro('x0', 'hx'), unfold('compl', 'hx'), byContradiction('hn'), notElim('hx'), unfold('compl'), exact('hn')],
+                    [subsetIntro('x0', 'hx'), unfold('compl'), notIntro('hc'), unfold('compl', 'hc'), contradiction('hc', 'hx')])],
             }],
         ],
     },

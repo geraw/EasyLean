@@ -190,6 +190,70 @@ leanGenerator.forBlock['logic_exists_elim'] = function (block) {
     return `  refine Exists.elim ${block.getFieldValue('HYPOTHESIS')} (fun ${block.getFieldValue('VARIABLE')} ${block.getFieldValue('NAME')} => ?_)\n`;
 };
 
+// Unit 5: a small set theory, placed before the proofs of the levels that
+// use sets (level.usesSets). A set is a property of objects, and each
+// operation is defined through membership, so that unfolding its definition
+// (the easylean_mem_* lemmas) leaves a formula of units 1-4. Core Lean has no
+// sets, and Mathlib would make every check slower and the server image larger.
+export const SET_PRELUDE = `def Set (α : Type u) := α → Prop
+instance : Membership α (Set α) := ⟨fun A x => A x⟩
+instance : HasSubset (Set α) := ⟨fun A B => ∀ x, x ∈ A → x ∈ B⟩
+instance : Inter (Set α) := ⟨fun A B => fun x => x ∈ A ∧ x ∈ B⟩
+instance : Union (Set α) := ⟨fun A B => fun x => x ∈ A ∨ x ∈ B⟩
+instance : SDiff (Set α) := ⟨fun A B => fun x => x ∈ A ∧ ¬ x ∈ B⟩
+instance : EmptyCollection (Set α) := ⟨fun _ => False⟩
+def Set.compl (A : Set α) : Set α := fun x => ¬ x ∈ A
+postfix:max "ᶜ" => Set.compl
+def Set.powerset (A : Set α) : Set (Set α) := fun B => B ⊆ A
+prefix:100 "𝒫 " => Set.powerset
+def Set.sUnion (F : Set (Set α)) : Set α := fun x => ∃ S, S ∈ F ∧ x ∈ S
+prefix:110 "⋃₀ " => Set.sUnion
+def Set.sInter (F : Set (Set α)) : Set α := fun x => ∀ S, S ∈ F → x ∈ S
+prefix:110 "⋂₀ " => Set.sInter
+theorem easylean_mem_inter {α : Type u} {A B : Set α} {x : α} : x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B := Iff.rfl
+theorem easylean_mem_union {α : Type u} {A B : Set α} {x : α} : x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B := Iff.rfl
+theorem easylean_mem_diff {α : Type u} {A B : Set α} {x : α} : x ∈ A \\ B ↔ x ∈ A ∧ ¬ x ∈ B := Iff.rfl
+theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ ¬ x ∈ A := Iff.rfl
+theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
+theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl
+theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃₀ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
+theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂₀ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
+theorem easylean_subset_intro {α : Type u} {A B : Set α} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h
+theorem easylean_subset_elim {α : Type u} {A B : Set α} {x : α} (h : A ⊆ B) (hx : x ∈ A) : x ∈ B := h x hx
+theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B ⊆ A) : A = B :=
+  funext (fun x => propext ⟨hab x, hba x⟩)
+`;
+
+leanGenerator.forBlock['logic_subset_intro'] = function (block) {
+    return `  refine easylean_subset_intro (fun ${block.getFieldValue('VARIABLE')} ${block.getFieldValue('NAME')} => ?_)\n`;
+};
+
+leanGenerator.forBlock['logic_subset_elim'] = function (block) {
+    return `  have ${block.getFieldValue('NAME')} := easylean_subset_elim ${block.getFieldValue('HYPOTHESIS')} ${block.getFieldValue('MEMBER')}\n`;
+};
+
+leanGenerator.forBlock['logic_set_eq'] = () => '  apply easylean_set_eq\n';
+
+// One block per set operation, unfolding its definition in the goal or in
+// an assumption. `rewrite`, not `rw`, which would also try to close the goal.
+export const SET_DEFINITIONS = {
+    logic_unfold_inter: 'easylean_mem_inter',
+    logic_unfold_union: 'easylean_mem_union',
+    logic_unfold_compl: 'easylean_mem_compl',
+    logic_unfold_diff: 'easylean_mem_diff',
+    logic_unfold_empty: 'easylean_mem_empty',
+    logic_unfold_powerset: 'easylean_mem_powerset',
+    logic_unfold_sunion: 'easylean_mem_sUnion',
+    logic_unfold_sinter: 'easylean_mem_sInter',
+};
+Object.entries(SET_DEFINITIONS).forEach(([type, lemma]) => {
+    leanGenerator.forBlock[type] = function (block) {
+        return block.getFieldValue('TARGET') === 'GOAL'
+            ? `  rewrite [${lemma}]\n`
+            : `  rewrite [${lemma}] at ${block.getFieldValue('HYPOTHESIS')}\n`;
+    };
+});
+
 // Unit 2 rules. Each one generates the specific introduction or elimination
 // rule, so that a rule used on the wrong connective fails instead of Lean
 // quietly doing something else (e.g. `constructor` proves an "or" by its left side).
@@ -256,6 +320,7 @@ leanGenerator.forBlock['logic_by_cases'] = function (block) {
 // Moves that split the proof: for each part, the statement input holding its
 // sub-proof and the line that opens that part in Lean (at the move's indentation).
 export const leanBranches = {
+    logic_set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
     logic_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     logic_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
     logic_by_cases: (block) => [

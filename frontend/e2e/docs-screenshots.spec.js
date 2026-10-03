@@ -9,7 +9,7 @@ import { UNITS } from './solutions';
 const OUT = path.resolve(import.meta.dirname, '../../docs/curriculum/images');
 
 test.skip(!process.env.DOCS_SCREENSHOTS, 'run with: npm run docs:screenshots');
-test.use({ viewport: { width: 1900, height: 1300 }, deviceScaleFactor: 1.5 });
+test.use({ viewport: { width: 2400, height: 2600 }, deviceScaleFactor: 1.5 });
 
 for (const { unit, world, levels } of UNITS) {
     levels.forEach((solutions, index) => {

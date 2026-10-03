@@ -1,4 +1,4 @@
-import { LEAN_PRELUDE, leanBranches, leanGenerator } from '../generator/lean';
+import { LEAN_PRELUDE, SET_PRELUDE, leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
 
 const findGoalBlock = (workspace) => workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
@@ -24,7 +24,7 @@ export const generateGameLeanSource = (workspace, level, preamble, { includeFall
 
     // Levels often give assumptions the proof does not need, so Lean's
     // unused-variable warnings are just noise here.
-    const header = `${preamble}\n${LEAN_PRELUDE}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
+    const header = `${preamble}\n${LEAN_PRELUDE}${level.usesSets ? SET_PRELUDE : ''}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
     const lines = [];
     const lineBlockIds = new Map();
     const partLastBlockIds = new Map();
@@ -104,7 +104,7 @@ const movesInOrder = (block) => {
     return moves;
 };
 
-const hasPlaceholder = (block) => block.inputList.some((input) => input.fieldRow.some((field) => field.EDITABLE && String(field.getValue()).trim() === PLACEHOLDER));
+const hasPlaceholder = (block) => block.inputList.some((input) => input.fieldRow.some((field) => field.EDITABLE && field.isVisible() && String(field.getValue()).trim() === PLACEHOLDER));
 
 // The first move with a field the student has not filled in yet, or null.
 export const findIncompleteMove = (workspace) => {
