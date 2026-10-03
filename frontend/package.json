@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "docs:screenshots": "DOCS_SCREENSHOTS=1 playwright test e2e/docs-screenshots.spec.js"
   },
   "dependencies": {
     "axios": "^1.13.2",
