@@ -115,6 +115,12 @@ The end-to-end tests start the backend and the Vite dev server themselves, or re
 
 ---
 
+## Deployment (pilot)
+
+- **Frontend:** GitHub Pages, at https://geraw.github.io/EasyLean/, built on every push to `main` (`.github/workflows/deploy.yml`). The repository variable `BACKEND_URL` tells it where the backend is; without it the site expects a backend on `localhost:3001`.
+- **Backend:** a Hugging Face Space (Docker), built from `backend/Dockerfile`; `backend/README.md` holds the Space's configuration. On every push that changes `backend/`, `.github/workflows/backend.yml` builds the image, checks it with a real proof, and pushes `backend/` to the Space. That needs the secret `HF_TOKEN` (a Hugging Face token with write access) and the variable `HF_SPACE` (e.g. `someone/easylean-backend`).
+- **Security:** the backend runs the Lean code it receives. For the pilot it only rejects `#eval`, which could run commands on the server; a public, long-term deployment needs a stricter check (accept only the lines the blocks generate).
+
 ## How It Works
 
 1. **Visual Editing**: The user constructs a proof visually by dragging, connecting, and nesting puzzle blocks (representing assumptions, theorems, and logical rules) in the workspace.

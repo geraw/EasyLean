@@ -41,6 +41,10 @@ jobs:
           cd frontend
           npm install
       - name: Build
+        # The public backend (the Hugging Face Space), set as a repository
+        # variable; without it the site expects a backend on localhost.
+        env:
+          VITE_BACKEND_URL: ${{ vars.BACKEND_URL }}
         run: |
           cd frontend
           npm run build

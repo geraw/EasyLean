@@ -5,6 +5,7 @@ import { unit0Levels, unit0WorldName } from './game/unit0World';
 import { unit1Levels, unit1WorldName } from './game/unit1World';
 import { unit2Levels, unit2WorldName } from './game/unit2World';
 import { unit3Levels, unit3WorldName } from './game/unit3World';
+import { BACKEND_URL } from './backendUrl';
 import './App.css';
 
 const modeButtonStyle = (active) => ({
@@ -18,7 +19,7 @@ const modeButtonStyle = (active) => ({
   fontWeight: active ? 'bold' : 'normal',
 });
 
-const PROOF_STATE_ENDPOINT = 'http://localhost:3001/proof-state';
+const PROOF_STATE_ENDPOINT = `${BACKEND_URL}/proof-state`;
 
 // Free mode is hidden for now; its code stays so it can come back later.
 const SHOW_SANDBOX = false;

@@ -1,0 +1,5 @@
+node_modules
+test
+lean_project/.lake
+Dockerfile
+.dockerignore

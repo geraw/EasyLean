@@ -9,6 +9,7 @@ import { generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { findLeanProblem, GENERIC_PROBLEM } from './leanErrors';
 import { goalLabel, openGoals } from './proofState';
 import { isolateFormulas } from './bidi';
+import { BACKEND_URL } from '../backendUrl';
 
 // Same compatibility patch as the sandbox workspace (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -257,7 +258,7 @@ const GameWorkspace = ({
         setStatus('running');
         setOutput('מריץ בדיקה...');
         try {
-            const response = await axios.post('http://localhost:3001/verify', { leanCode: source.code });
+            const response = await axios.post(`${BACKEND_URL}/verify`, { leanCode: source.code });
             const usesSorry = /declaration uses 'sorry'/.test(response.data.output || '');
             if (response.data.exitCode === 0 && !usesSorry) {
                 clearBlockError();

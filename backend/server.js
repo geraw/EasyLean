@@ -41,6 +41,19 @@ const parseLeanProofState = (output) => {
     };
 };
 
+const LEAN_TIMEOUT_MS = 20000;
+
+// The pilot server is public, and `#eval` runs arbitrary code (including shell
+// commands) on it. Proofs built from blocks never contain it.
+const FORBIDDEN = /#eval/;
+
+// Shared checks for both endpoints; returns an error response, or null.
+const rejectRequest = (leanCode) => {
+    if (!leanCode) return { status: 400, error: 'No Lean code provided' };
+    if (FORBIDDEN.test(leanCode)) return { status: 400, error: 'Forbidden command in Lean code' };
+    return null;
+};
+
 const runLean = (leanCode, callback) => {
     const projectDir = path.join(__dirname, 'lean_project');
     const tempFile = path.join(projectDir, `Proof_${Date.now()}_${Math.random().toString(16).slice(2)}.lean`);
@@ -48,7 +61,8 @@ const runLean = (leanCode, callback) => {
     fs.writeFile(tempFile, leanCode, (writeError) => {
         if (writeError) return callback(writeError);
 
-        exec(`lean "${tempFile}"`, { cwd: projectDir }, (error, stdout, stderr) => {
+        // A time limit, so that one stuck check cannot hold the server.
+        exec(`lean "${tempFile}"`, { cwd: projectDir, timeout: LEAN_TIMEOUT_MS }, (error, stdout, stderr) => {
             fs.unlink(tempFile, (unlinkError) => {
                 if (unlinkError) console.error('Error deleting temp file:', unlinkError);
             });
@@ -59,7 +73,8 @@ const runLean = (leanCode, callback) => {
 
 app.post('/proof-state', (req, res) => {
     const { leanCode } = req.body;
-    if (!leanCode) return res.status(400).json({ error: 'No Lean code provided' });
+    const rejection = rejectRequest(leanCode);
+    if (rejection) return res.status(rejection.status).json({ error: rejection.error });
 
     runLean(leanCode, (writeError, result) => {
         if (writeError) return res.status(500).json({ error: 'Failed to write temporary file' });
@@ -78,7 +93,8 @@ app.post('/proof-state', (req, res) => {
 
 app.post('/verify', (req, res) => {
     const { leanCode } = req.body;
-    if (!leanCode) return res.status(400).json({ error: 'No Lean code provided' });
+    const rejection = rejectRequest(leanCode);
+    if (rejection) return res.status(rejection.status).json({ error: rejection.error });
 
     // runLean gives each request its own file; a shared name let concurrent
     // checks overwrite each other's proofs.

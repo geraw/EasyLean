@@ -1,0 +1,61 @@
+# Builds the backend's Docker image, checks it with a real proof, and deploys
+# backend/ to the Hugging Face Space once it is configured:
+#   - secret HF_TOKEN: a Hugging Face access token with write permission
+#   - variable HF_SPACE: the Space, e.g. "someone/easylean-backend"
+name: Backend
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  workflow_dispatch:
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t easylean-backend backend
+
+      - name: Start it
+        run: |
+          docker run -d --name backend -p 7860:7860 easylean-backend
+          for i in $(seq 1 30); do
+            curl -s -o /dev/null -X POST localhost:7860/verify && exit 0
+            sleep 2
+          done
+          docker logs backend
+          exit 1
+
+      - name: Check a proof and the #eval guard
+        run: |
+          proof='variable {P : Prop}\n\ntheorem t (h : P) : P := by\n  exact h\n'
+          ok=$(curl -s -X POST localhost:7860/verify -H 'Content-Type: application/json' -d "{\"leanCode\": \"$proof\"}")
+          echo "$ok"
+          echo "$ok" | grep -q '"exitCode":0'
+          evil=$(curl -s -X POST localhost:7860/verify -H 'Content-Type: application/json' -d '{"leanCode": "#eval 1"}')
+          echo "$evil"
+          echo "$evil" | grep -q 'Forbidden command'
+
+  deploy:
+    needs: image
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ vars.HF_SPACE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push backend/ to the Space
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "HF_TOKEN or HF_SPACE is not set; skipping the deploy."
+            exit 0
+          fi
+          cd backend
+          git init -q -b main
+          git -c user.name="github-actions" -c user.email="actions@github.com" add -A
+          git -c user.name="github-actions" -c user.email="actions@github.com" commit -q -m "Deploy ${GITHUB_SHA::7} from GitHub"
+          git push -q --force "https://${HF_SPACE%%/*}:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main

@@ -49,6 +49,14 @@ test('both endpoints reject a request without Lean code', async () => {
     }
 });
 
+test('both endpoints reject code with #eval, which could run commands on the server', async () => {
+    for (const path of ['/verify', '/proof-state']) {
+        const { status, body } = await post(path, { leanCode: theorem('  intro h\n  exact h1 h\n#eval IO.println "hi"\n') });
+        assert.equal(status, 400, path);
+        assert.equal(body.error, 'Forbidden command in Lean code', path);
+    }
+});
+
 test('/verify accepts a correct proof', { skip: !hasLean && 'lean not installed' }, async () => {
     const { body } = await post('/verify', { leanCode: theorem('  intro h\n  exact h1 h\n') });
     assert.equal(body.exitCode, 0, body.output);

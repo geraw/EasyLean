@@ -12,6 +12,7 @@ import deMorganXml from '../examples/de_morgan.xml?raw';
 
 import quantifiersXml from '../examples/quantifiers.xml?raw';
 import notExistsIffForallNotXml from '../examples/not_exists_iff_forall_not.xml?raw';
+import { BACKEND_URL } from '../backendUrl';
 
 // Monkey-patch to fix react-blockly compatibility with newer Blockly versions
 // react-blockly uses getAllVariables() which is deprecated/removed in newer Blockly
@@ -190,8 +191,7 @@ infix:70 " ∩ " => MySet.inter
         setOutput('Running Lean...');
         try {
             // Check if we are checking against a local backend or remote?
-            // For now assuming localhost:3001
-            const response = await axios.post('http://localhost:3001/verify', { leanCode });
+            const response = await axios.post(`${BACKEND_URL}/verify`, { leanCode });
 
             if (response.data.exitCode === 0) {
                 setStatus('success');
