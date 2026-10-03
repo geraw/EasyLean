@@ -1,4 +1,6 @@
 import { test, expect, openWorld, buildProof, clearProof, selectMove, proofStatePanel } from './helpers';
+// Explanations isolate their formulas for right-to-left display.
+import { isolateFormulas } from '../src/game/bidi';
 
 const UNIT3 = 'יחידה 3 - שלילה והוכחה בשלילה';
 
@@ -107,4 +109,14 @@ test('the principle of non-contradiction, used forward', async ({ page }) => {
     await expect(panel).toContainText('hc : ((P ∧ ¬P) → ⊥)');
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toBeVisible();
+});
+
+// Regression: proving a negation again when the goal is already ⊥ used to
+// "succeed" with three goals about an unknown statement.
+test('proving a negation when the goal is already a contradiction is explained', async ({ page }) => {
+    await goToLevel(page, 9);
+    await buildProof(page, [assume('h'), notIntro('hnp'), notIntro('h2')]);
+    const panel = proofStatePanel(page);
+    await expect(panel.getByRole('alert')).toContainText(isolateFormulas('המטרה היא כבר סתירה (⊥), ולא שלילה'));
+    await expect(panel).not.toContainText('ההוכחה מתפצלת');
 });

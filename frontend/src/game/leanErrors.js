@@ -69,6 +69,13 @@ const explainApplication = ({ argument, type, expected, application, argumentSor
 
 const EXPLANATIONS = [
     {
+        // Proving a negation, when the goal is not one (logic_not_intro).
+        pattern: /^type mismatch\s*\n\s*Not\.intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
+        explain: ([, goal]) => (goal.trim() === 'False'
+            ? 'המטרה היא כבר סתירה (⊥), ולא שלילה, ולכן אין טענה להניח. כדי להגיע לסתירה, השתמשו בהנחות שבידיכם, למשל בשלילה ובטענה שהיא שוללת.'
+            : `המטרה היא ${formula(goal)}, והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת.`),
+    },
+    {
         // Assuming the condition of an implication, when the goal is not one.
         pattern: /^type mismatch\s*\n\s*easylean_imp_intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
         explain: ([, goal]) => (goal.trim().startsWith('∀')

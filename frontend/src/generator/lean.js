@@ -235,8 +235,10 @@ leanGenerator.forBlock['logic_and_combine'] = function (block) {
     return `  have ${block.getFieldValue('NAME')} := And.intro ${block.getFieldValue('LEFT')} ${block.getFieldValue('RIGHT')}\n`;
 };
 
+// `refine`, not `apply`: since ¬a is a → ⊥, `apply Not.intro` also "fits" a
+// goal ⊥ by inventing an unknown statement a and leaving it as goals to prove.
 leanGenerator.forBlock['logic_not_intro'] = function (block) {
-    return `  apply Not.intro\n  intro ${block.getFieldValue('HYPOTHESIS')}\n`;
+    return `  refine Not.intro (fun ${block.getFieldValue('HYPOTHESIS')} => ?_)\n`;
 };
 
 leanGenerator.forBlock['logic_not_elim'] = function (block) {

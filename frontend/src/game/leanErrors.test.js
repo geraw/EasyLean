@@ -344,3 +344,25 @@ describe('explainLeanMessage for quantifiers', () => {
         expect(explain(obtainFromAnd)).toBe('h אומרת (P(a) ∧ R), וזו לא טענת "קיים", ולכן אין ממנה עצם לקבל.');
     });
 });
+
+// Real Lean 4.26 output for proving a negation when the goal is not one.
+const notIntroOnContradiction = `Proof.lean:5:2: error: Type mismatch
+  Not.intro fun h => ?m.4
+has type
+  ¬?m.2
+but is expected to have type
+  False
+`;
+const notIntroOnAtomStrict = notIntroOnContradiction.replace('  False\n', '  P\n');
+
+describe('explainLeanMessage for proving a negation', () => {
+    const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
+
+    it('explains that a contradiction goal is not a negation', () => {
+        expect(explain(notIntroOnContradiction)).toBe('המטרה היא כבר סתירה (⊥), ולא שלילה, ולכן אין טענה להניח. כדי להגיע לסתירה, השתמשו בהנחות שבידיכם, למשל בשלילה ובטענה שהיא שוללת.');
+    });
+
+    it('explains a goal that is not a negation', () => {
+        expect(explain(notIntroOnAtomStrict)).toBe('המטרה היא P, והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת.');
+    });
+});
