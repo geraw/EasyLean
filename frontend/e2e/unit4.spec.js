@@ -18,7 +18,8 @@ test('formulas are shown in the course notation, without the declarations', asyn
     const panel = await settledProofState(page);
     await expect(panel).toContainText('h : ∀x (P(x) → Q(x))');
     await expect(panel).toContainText('hp : P(a)');
-    await expect(panel).toContainText('a : α');
+    await expect(panel).toContainText('עצמים: a');
+    await expect(panel).not.toContainText('α');
     await expect(panel).not.toContainText('Prop');
     await expect(panel).not.toContainText('Type');
 });
@@ -28,7 +29,8 @@ test('an arbitrary object becomes an object of the proof state', async ({ page }
     const [, arbitrary] = await buildProof(page, [['tactic_intro', { HYPOTHESIS: 'h' }], ['logic_forall_intro', { VARIABLE: 'x' }]]);
     const panel = await selectMove(page, arbitrary);
     await page.getByLabel('אחרי המהלך').check();
-    await expect(panel).toContainText('x : α');
+    await expect(panel).toContainText('עצמים: x');
+    await expect(panel).not.toContainText('x : α');
     await expect(panel).toContainText('P(x)');
 });
 

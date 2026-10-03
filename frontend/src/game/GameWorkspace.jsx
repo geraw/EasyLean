@@ -306,19 +306,36 @@ const GameWorkspace = ({
     // the level's vocabulary (P Q : Prop, α : Type, P : α → Prop) are not
     // assumptions, so they are left out; objects of the domain (x : α) stay.
     const isDeclaration = ({ prop }) => /^(Prop|Type|Sort)\b|→ Prop$/.test(prop.trim());
+    // Objects of the domain (a : α, where α : Type is declared) are listed by
+    // name apart from the assumptions: they are things we have, not claims.
     const renderGoal = ({ assumptions: all, goal }, spacing) => {
-        const assumptions = all.filter((assumption) => !isDeclaration(assumption));
+        const domains = new Set(all.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
+        const isObject = ({ prop }) => domains.has(prop.trim());
+        const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
+        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption));
         return (
         <>
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
-            {assumptions.length > 0 ? (
-                assumptions.map((assumption) => (
-                    <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
-                        {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
-                        {assumption.name} : {formatProofGoal(assumption.prop)}
-                    </div>
-                ))
-            ) : (
+            {objects.length > 0 && (
+                // Each name on its own, so the list reads right to left in the
+                // order the objects were introduced.
+                <div style={{ marginBottom: '6px' }}>
+                    עצמים:{' '}
+                    {objects.map((object, index) => (
+                        <React.Fragment key={object}>
+                            {index > 0 && ', '}
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{object}</span>
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
+            {assumptions.map((assumption) => (
+                <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+                    {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
+                    {assumption.name} : {formatProofGoal(assumption.prop)}
+                </div>
+            ))}
+            {objects.length === 0 && assumptions.length === 0 && (
                 <div style={{ color: '#555', marginBottom: spacing }}>עדיין לא הוספנו הנחות.</div>
             )}
             <h4 style={{ margin: `${spacing} 0 6px 0` }}>מה נשאר להוכיח</h4>
@@ -469,7 +486,7 @@ const GameWorkspace = ({
                     <div style={{ padding: '10px', background: '#eef4ff', borderRadius: '5px' }}>
                         <h4 style={{ margin: '0 0 6px 0' }}>עצמים</h4>
                         {level.objects.map(o => (
-                            <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{o.name} : {o.type}</div>
+                            <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{o.name}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
                         {level.assumptions.map(a => (
