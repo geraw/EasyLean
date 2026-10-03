@@ -65,6 +65,14 @@ Follow the on-screen instructions to complete the installation.
 
 ## Installation & Running
 
+After installing the dependencies (`npm install` in `backend/` and in `frontend/`, as below), one command runs both sides locally:
+
+```bash
+./dev.sh
+```
+
+It starts the backend on port 3001 and the frontend at http://localhost:5173/EasyLean/; Ctrl+C stops both. The frontend reloads on its own, and the backend restarts when `server.js` changes. Locally the site always uses this backend, never the public one. The steps below run each side separately.
+
 ### 1. Backend Setup
 
 1. Navigate to the `backend/` directory:
