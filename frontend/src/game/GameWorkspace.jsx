@@ -232,7 +232,11 @@ const GameWorkspace = ({
                     // Replace the backend's generic error with an explanation of the problem,
                     // and read the open goals at the point the proof was cut.
                     const states = responses.map(({ data }, index) => {
-                        if (data.error) return { ...data, problem: locateProblem(data.output, sources[index]) };
+                        // Not only data.error: the backend misses errors labelled like
+                        // `error(lean.unknownIdentifier):`, where Lean goes on with `sorry`.
+                        if (data.error || findLeanProblem(data.output || '')) {
+                            return { ...data, error: data.error || GENERIC_PROBLEM, problem: locateProblem(data.output, sources[index]) };
+                        }
                         const goals = openGoals(data.output || '', sources[index].stateLine);
                         return { goals, complete: goals.length === 0, inPart: sources[index].inPart };
                     });

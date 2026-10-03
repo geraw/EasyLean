@@ -26,6 +26,12 @@ const combine = (left, right, name) => ['logic_and_combine', { LEFT: left, RIGHT
 const byCases = (formula, left, leftSteps, right, rightSteps) =>
     ['logic_by_cases', { FORMULA: formula, LEFT_NAME: left, RIGHT_NAME: right }, { LEFT: leftSteps, RIGHT: rightSteps }];
 
+const forallIntro = (name) => ['logic_forall_intro', { VARIABLE: name }];
+const forallElim = (term, h, name) => ['logic_forall_elim', { TERM: term, HYPOTHESIS: h, NAME: name }];
+const existsIntro = (term) => ['logic_exists_intro', { TERM: term }];
+const existsElim = (h, variable, name) => ['logic_exists_elim', { HYPOTHESIS: h, VARIABLE: variable, NAME: name }];
+const byContradiction = (name) => ['logic_by_contradiction', { HYPOTHESIS: name }];
+
 const swapAnd = [assume('h'), andElim('h', 'h1', 'h2'), andIntro([exact('h2')], [exact('h1')])];
 const swapAndForward = [assume('h'), andElim('h', 'h1', 'h2'), combine('h2', 'h1', 'hqp'), exact('hqp')];
 
@@ -156,6 +162,36 @@ export const UNITS = [
                 label: 'פתרון',
                 note: 'מוכיחים ¬¬P; הסתירה מגיעה מ־h, ו־Q נובעת מהסתירה בין hp ל־hnp.',
                 steps: [assume('h'), notIntro('hnp'), notElim('h'), assume('hp'), falseImplies('Q', 'hf'), applyRule('hf'), contradiction('hnp', 'hp')],
+            }],
+        ],
+    },
+    {
+        unit: 4,
+        world: 'יחידה 4 - כמתים',
+        doc: '04-quantifiers.md',
+        levels: [
+            [{ label: 'פתרון', note: 'מציבים את a בהנחה h.', steps: [forallElim('a', 'h', 'ha'), exact('ha')] }],
+            [
+                { label: 'קדימה', note: 'מציבים את a, ומהגרירה ומ־hp מסיקים את Q(a).', steps: [forallElim('a', 'h', 'ha'), forward('ha', 'hp', 'hq'), exact('hq')] },
+                { label: 'אחורה', note: 'מציבים את a; המסקנה של הגרירה היא המטרה.', steps: [forallElim('a', 'h', 'ha'), applyRule('ha'), exact('hp')] },
+            ],
+            [{ label: 'פתרון', note: 'עצם שרירותי x, הצבה בהנחה, ושימוש ב"וגם".', steps: [assume('h'), forallIntro('x'), forallElim('x', 'h', 'hx'), andElim('hx', 'hp', 'hq'), exact('hp')] }],
+            [
+                { label: 'קדימה', note: 'אותו עצם שרירותי מוצב בשתי ההנחות.', steps: [assume('h1'), assume('h2'), forallIntro('x'), forallElim('x', 'h1', 'hpq'), forallElim('x', 'h2', 'hp'), forward('hpq', 'hp', 'hq'), exact('hq')] },
+                { label: 'אחורה', note: 'המסקנה של הגרירה על x היא המטרה.', steps: [assume('h1'), assume('h2'), forallIntro('x'), forallElim('x', 'h1', 'hpq'), applyRule('hpq'), forallElim('x', 'h2', 'hp'), exact('hp')] },
+            ],
+            [{ label: 'פתרון', note: 'a הוא עד, ובוחרים את הצד שאפשר להוכיח.', steps: [existsIntro('a'), orLeft, exact('hp')] }],
+            [{ label: 'פתרון', note: 'קודם מקבלים עצם מ"קיים", ורק אז בוחרים אותו כעד.', steps: [assume('h'), existsElim('h', 'x', 'hx'), existsIntro('x'), andElim('hx', 'hp', 'hq'), exact('hq')] }],
+            [
+                { label: 'קדימה', note: 'העצם מ"קיים" מוצב ב"לכל", ומשמש כעד.', steps: [assume('h1'), assume('h2'), existsElim('h2', 'x', 'hx'), forallElim('x', 'h1', 'hpq'), forward('hpq', 'hx', 'hq'), existsIntro('x'), exact('hq')] },
+                { label: 'אחורה', note: 'בוחרים את x כעד, ועוברים לתנאי של הגרירה.', steps: [assume('h1'), assume('h2'), existsElim('h2', 'x', 'hx'), forallElim('x', 'h1', 'hpq'), existsIntro('x'), applyRule('hpq'), exact('hx')] },
+            ],
+            [{ label: 'פתרון', note: 'עצם שרירותי, הוכחת שלילה, והסתירה דרך עד ל"קיים".', steps: [assume('h'), forallIntro('x'), notIntro('hp'), notElim('h'), existsIntro('x'), exact('hp')] }],
+            [{ label: 'פתרון', note: 'y שרירותי, עצם x מ"קיים", ו־x הוא העד לכל y.', steps: [assume('h'), forallIntro('y'), existsElim('h', 'x', 'hx'), existsIntro('x'), forallElim('y', 'hx', 'hxy'), exact('hxy')] }],
+            [{
+                label: 'פתרון',
+                note: 'הוכחה בשלילה, ובתוכה עוד הוכחה בשלילה של P(x).',
+                steps: [assume('h'), byContradiction('hn'), notElim('h'), forallIntro('x'), byContradiction('hnp'), notElim('hn'), existsIntro('x'), exact('hnp')],
             }],
         ],
     },

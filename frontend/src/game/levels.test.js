@@ -5,9 +5,10 @@ import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
 import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
+import { unit4Levels } from './unit4World';
 import { loadWorkspace } from '../test/blocklyWorkspace';
 
-const worlds = { unit0: unit0Levels, unit1: unit1Levels, unit2: unit2Levels, unit3: unit3Levels };
+const worlds = { unit0: unit0Levels, unit1: unit1Levels, unit2: unit2Levels, unit3: unit3Levels, unit4: unit4Levels };
 
 describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
     it.each(levels.map(level => [level.id, level]))('%s loads a single fixed goal block', (_, level) => {
@@ -33,7 +34,7 @@ describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
 // level 3, stays available in every later level that can use it: an
 // assumption it derives is used through "זה בדיוק", so each comes with the other.
 describe('the forward step', () => {
-    const later = [...unit1Levels.slice(2), ...unit2Levels, ...unit3Levels];
+    const later = [...unit1Levels.slice(2), ...unit2Levels, ...unit3Levels, ...unit4Levels];
     it.each(later.map((level) => [level.id, level]))('%s offers it together with "זה בדיוק"', (_, level) => {
         expect(level.toolboxBlocks.includes('logic_modus_ponens')).toBe(level.toolboxBlocks.includes('tactic_exact'));
     });
