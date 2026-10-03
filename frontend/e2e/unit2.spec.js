@@ -68,10 +68,10 @@ test('inside a part of the proof, the proof state shows only that part', async (
 });
 
 test('a rule used on the wrong connective is explained', async ({ page }) => {
-    await goToLevel(page, 3);
-    await buildProof(page, [andIntro([exact('h')], [exact('h')])]);
+    await goToLevel(page, 7);
+    await buildProof(page, [andIntro([], [])]);
     await expect(proofStatePanel(page).getByRole('alert'))
-        .toContainText(isolateFormulas('המטרה היא (Q ∨ P), והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.'));
+        .toContainText(isolateFormulas('המטרה היא ((P ∧ Q) ↔ (Q ∧ P)), והיא לא טענת "וגם", ולכן אין לה שני צדדים להוכיח לחוד.'));
 });
 
 test('level 6 starts with a side chosen too early, which gets stuck', async ({ page }) => {

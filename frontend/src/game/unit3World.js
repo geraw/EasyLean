@@ -52,7 +52,7 @@ export const unit3Levels = [
             { name: 'hp', prop: 'P' },
             { name: 'hn', prop: '¬P' },
         ],
-        toolboxBlocks: ['logic_contradiction', 'logic_modus_ponens'],
+        toolboxBlocks: ['logic_contradiction'],
         introduction: `# שלילה וסתירה
 
 הטענה \`¬P\` נקראת "לא P", והיא אומרת ש־P לא נכונה.
@@ -84,7 +84,7 @@ export const unit3Levels = [
             { name: 'hp', prop: 'P' },
             { name: 'hn', prop: '¬P' },
         ],
-        toolboxBlocks: ['logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction'],
+        toolboxBlocks: ['logic_false_implies', 'tactic_apply_rule', 'logic_contradiction'],
         introduction: `# מסתירה נובע הכול
 
 הפעם המטרה היא Q, ואין לנו שום הנחה על Q. אבל ההנחות שלנו סותרות זו את זו.
@@ -115,7 +115,7 @@ export const unit3Levels = [
         goalLabel: '¬¬P',
         objects: [],
         assumptions: [{ name: 'hp', prop: 'P' }],
-        toolboxBlocks: ['logic_not_intro', 'logic_contradiction', 'logic_modus_ponens'],
+        toolboxBlocks: ['logic_not_intro', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# מוכיחים שלילה
 
 כדי להוכיח ש־P לא נכונה (\`¬P\`), מניחים ש־P כן נכונה ומגיעים לסתירה. אם ההנחה מובילה לסתירה, היא לא נכונה.
@@ -212,7 +212,7 @@ export const unit3Levels = [
         goalLabel: '(¬¬P → P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction', 'logic_modus_ponens'],
+        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction'],
         introduction: `# הוכחה בשלילה
 
 בשלב 3 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
@@ -316,7 +316,7 @@ ${CLASSICAL_NOTE}`,
         goalLabel: '(¬(P → Q) → ¬¬P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_not_elim', 'logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction'],
+        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_not_elim', 'logic_false_implies', 'tactic_apply_rule', 'logic_contradiction'],
         introduction: `# בונוס: שלילה של גרירה
 
 אם הגרירה \`P → Q\` לא נכונה, אז לא נכון ש־P לא נכונה.

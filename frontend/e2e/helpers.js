@@ -23,9 +23,15 @@ export const openWorld = async (page, worldName) => {
 // Appends moves to the goal's proof through the dev-only workspace hook.
 // Each step is [blockType, { FIELD: value }, { INPUT: [steps] }]: the optional
 // third element fills the parts of a rule that splits the proof. Resolves to
-// the new block ids, each move before the moves inside it.
+// the new block ids, each move before the moves inside it. Every block must be
+// in the level's toolbox, as it is for a student.
 export const buildProof = (page, steps) => page.evaluate((steps) => {
     const workspace = window.__easyleanWorkspace;
+    const offered = new Set(workspace.getToolbox().getToolboxItems()
+        .flatMap((item) => item.getContents?.() || []).map((entry) => entry.type));
+    const used = (list) => list.flatMap(([type, , parts = {}]) => [type, ...Object.values(parts).flatMap(used)]);
+    const missing = used(steps).filter((type) => !offered.has(type));
+    if (missing.length) throw new Error(`Not in this level's toolbox: ${[...new Set(missing)].join(', ')}`);
     const goal = workspace.getTopBlocks(true).find((b) => b.type === 'game_goal');
     const ids = [];
     const build = (connection, steps) => steps.forEach(([type, fields = {}, parts = {}]) => {

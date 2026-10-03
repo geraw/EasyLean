@@ -30,10 +30,11 @@ describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
 });
 
 // The forward use of an implication (modus ponens), introduced in unit 1
-// level 3, stays available in every later level.
+// level 3, stays available in every later level that can use it: an
+// assumption it derives is used through "זה בדיוק", so each comes with the other.
 describe('the forward step', () => {
     const later = [...unit1Levels.slice(2), ...unit2Levels, ...unit3Levels];
-    it.each(later.map((level) => [level.id, level]))('%s offers it', (_, level) => {
-        expect(level.toolboxBlocks).toContain('logic_modus_ponens');
+    it.each(later.map((level) => [level.id, level]))('%s offers it together with "זה בדיוק"', (_, level) => {
+        expect(level.toolboxBlocks.includes('logic_modus_ponens')).toBe(level.toolboxBlocks.includes('tactic_exact'));
     });
 });
