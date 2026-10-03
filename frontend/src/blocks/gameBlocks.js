@@ -246,4 +246,56 @@ export const defineGameBlocks = () => {
             move(this, NEGATION_COLOUR, 'כל טענה נכונה או לא נכונה; מוכיחים את המטרה בשני המקרים (עיקרון של הלוגיקה הקלאסית).');
         }
     };
+
+    // Unit 4: quantifiers over a domain of objects.
+    const QUANTIFIER_COLOUR = 30;
+
+    Blockly.Blocks['logic_forall_intro'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("כדי להוכיח \"לכל\": יהי")
+                .appendField(new Blockly.FieldTextInput("?"), "VARIABLE")
+                .appendField("עצם שרירותי");
+            move(this, QUANTIFIER_COLOUR, 'כדי להוכיח "לכל x, P(x)" לוקחים עצם שרירותי x ומוכיחים את P(x).');
+        }
+    };
+
+    Blockly.Blocks['logic_forall_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נציב את העצם")
+                .appendField(new Blockly.FieldTextInput("?"), "TERM")
+                .appendField("בהנחה")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
+                .appendField("מסוג \"לכל\"");
+            this.appendDummyInput()
+                .appendField("ונקרא לתוצאה")
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
+            move(this, QUANTIFIER_COLOUR, 'מ"לכל x, P(x)" נובע P(a) לכל עצם a.');
+        }
+    };
+
+    Blockly.Blocks['logic_exists_intro'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("כדי להוכיח \"קיים\": נבחר את העצם")
+                .appendField(new Blockly.FieldTextInput("?"), "TERM");
+            this.appendDummyInput().appendField("ונוכיח שהוא מתאים");
+            move(this, QUANTIFIER_COLOUR, 'כדי להוכיח "קיים x כך ש־P(x)" בוחרים עצם a ומוכיחים את P(a).');
+        }
+    };
+
+    Blockly.Blocks['logic_exists_elim'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("מההנחה")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
+                .appendField("מסוג \"קיים\" נקבל עצם")
+                .appendField(new Blockly.FieldTextInput("?"), "VARIABLE");
+            this.appendDummyInput()
+                .appendField("שמקיים אותה, ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("?"), "NAME");
+            move(this, QUANTIFIER_COLOUR, 'מ"קיים x כך ש־P(x)" מקבלים עצם x, שעליו ידוע רק ש־P(x).');
+        }
+    };
 };

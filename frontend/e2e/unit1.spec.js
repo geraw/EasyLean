@@ -18,7 +18,7 @@ test('solving level 1 lets the student continue', async ({ page }) => {
 test('a wrong proof is rejected', async ({ page }) => {
     await buildProof(page, [['tactic_intro', { HYPOTHESIS: 'h' }], ['tactic_exact', { TERM: 'nope' }]]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-    await expect(page.getByText('אין הנחה בשם nope. בדקו את השם מול ההנחות שבמצב ההוכחה.').first()).toBeVisible();
+    await expect(page.getByText('אין הנחה או עצם בשם nope. בדקו את השם מול מצב ההוכחה.').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'לשלב הבא' })).toHaveCount(0);
 });
 
@@ -36,7 +36,9 @@ test('selecting a move shows the proof state before and after it', async ({ page
 
     panel = await selectMove(page, intro);
     await page.getByLabel('לפני המהלך').check();
-    await expect(panel).toContainText('P : Prop');
+    // Before any assumption, only the declaration P : Prop exists, which is not shown.
+    await expect(panel).toContainText('עדיין לא הוספנו הנחות');
+    await expect(panel).not.toContainText('P : Prop');
     await expect(panel).not.toContainText('h : P');
     await expect(panel).toContainText('(P → P)');
     await page.getByLabel('אחרי המהלך').check();

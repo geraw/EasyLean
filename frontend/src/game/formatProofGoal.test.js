@@ -56,3 +56,28 @@ describe('formatProofGoal with contradiction', () => {
         expect(formatProofGoal('P → False')).toBe('(P → ⊥)');
     });
 });
+
+describe('formatProofGoal with quantifiers', () => {
+    it('writes predicates with their arguments in parentheses', () => {
+        expect(formatProofGoal('P x')).toBe('P(x)');
+        expect(formatProofGoal('R x y')).toBe('R(x,y)');
+    });
+
+    it('writes quantifiers in the course notation, extending to the end', () => {
+        expect(formatProofGoal('∀ (x : α), P x')).toBe('∀x P(x)');
+        expect(formatProofGoal('∀ (x : α), P x → Q x')).toBe('∀x (P(x) → Q(x))');
+        expect(formatProofGoal('∃ x, ∀ (y : α), R x y')).toBe('∃x ∀y R(x,y)');
+        expect(formatProofGoal('∀ (x y : α), R x y')).toBe('∀x ∀y R(x,y)');
+    });
+
+    it('puts a quantified formula inside a connective in parentheses', () => {
+        expect(formatProofGoal('(∀ (x : α), P x) → ∀ (x : α), Q x')).toBe('((∀x P(x)) → (∀x Q(x)))');
+        expect(formatProofGoal('(¬∃ x, P x ∧ Q x) → ∀ (y : α), ¬P y')).toBe('((¬∃x (P(x) ∧ Q(x))) → (∀y ¬P(y)))');
+        // Without the parentheses, Lean reads the arrow as part of the ∃'s body.
+        expect(formatProofGoal('¬∃ x, P x ∧ Q x → ∀ (y : α), ¬P y')).toBe('¬∃x ((P(x) ∧ Q(x)) → (∀y ¬P(y)))');
+    });
+
+    it('keeps negation of a quantified formula tight', () => {
+        expect(formatProofGoal('¬∀ (x : α), P x')).toBe('¬∀x P(x)');
+    });
+});

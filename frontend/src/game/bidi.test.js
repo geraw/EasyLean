@@ -29,3 +29,11 @@ describe('isolateFormulas', () => {
         expect(withoutIsolates(isolateFormulas('ו־¬Q'))).toBe('ו־¬Q');
     });
 });
+
+describe('isolateFormulas with quantifiers', () => {
+    const iso = (formula) => `⁦${formula}⁩`;
+    it('wraps quantified formulas, with arguments in parentheses', () => {
+        expect(isolateFormulas('המטרה היא ∀x (P(x) → Q(x)), ולכן')).toBe(`המטרה היא ${iso('∀x (P(x) → Q(x))')}, ולכן`);
+        expect(isolateFormulas('מ־∃x ∀y R(x,y) נובע')).toBe(`מ־${iso('∃x ∀y R(x,y)')} נובע`);
+    });
+});

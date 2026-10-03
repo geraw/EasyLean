@@ -21,13 +21,18 @@ const stripOuterParentheses = (text) => {
 // all of them group to the right, so splitting at the first one is correct.
 const CONNECTIVES = [['↔', ['↔', '<->']], ['→', ['→', '->']], ['∨', ['∨', '\\/']], ['∧', ['∧', '/\\']]];
 
-// The first top-level (not parenthesized) occurrence of the connective.
+const QUANTIFIERS = ['∀', '∃'];
+
+// The first top-level (not parenthesized) occurrence of the connective. A
+// quantifier extends to the end of the formula, so the search stops there:
+// in `∀ x, P x → Q x` the arrow belongs to the quantifier's body.
 const findTopLevel = (text, spellings) => {
     let depth = 0;
     for (let index = 0; index < text.length; index += 1) {
         if (text[index] === '(') depth += 1;
         if (text[index] === ')') depth -= 1;
         if (depth !== 0) continue;
+        if (QUANTIFIERS.includes(text[index])) return null;
         const spelling = spellings.find((candidate) => text.startsWith(candidate, index));
         // `<->` also contains `->`, which must not be read as an implication.
         if (spelling && !(spelling === '->' && text[index - 1] === '<')) return { index, length: spelling.length };
@@ -35,8 +40,30 @@ const findTopLevel = (text, spellings) => {
     return null;
 };
 
+// Lean's `∀ (x y : α), body` or `∃ x, body` as { symbol, names, body }.
+const parseQuantifier = (text) => {
+    if (!QUANTIFIERS.includes(text[0])) return null;
+    let depth = 0;
+    for (let index = 1; index < text.length; index += 1) {
+        if (text[index] === '(') depth += 1;
+        if (text[index] === ')') depth -= 1;
+        if (depth === 0 && text[index] === ',') {
+            const names = text.slice(1, index).replace(/[()]/g, '').split(':')[0].trim().split(/\s+/);
+            return { symbol: text[0], names, body: text.slice(index + 1) };
+        }
+    }
+    return null;
+};
+
+// A quantified formula (possibly negated) inside a connective is written in
+// parentheses, so it is clear where its body ends: `(∀x P(x)) → Q`.
+const isQuantified = (formula) => QUANTIFIERS.includes(formula.replace(/^¬+/, '')[0]);
+const operand = (formula) => (isQuantified(formula) ? `(${formula})` : formula);
+
 // Writes every compound formula in parentheses, so students never need to
 // know which connective binds tighter: `P ∧ Q → R` is `((P ∧ Q) → R)`.
+// Quantifiers and predicates use the course's notation: Lean's
+// `∀ (x : α), R x y` is `∀x R(x,y)`.
 export const formatProofGoal = (text) => {
     const normalized = stripOuterParentheses(text || '');
     for (const [symbol, spellings] of CONNECTIVES) {
@@ -44,10 +71,20 @@ export const formatProofGoal = (text) => {
         if (!found) continue;
         const left = formatProofGoal(normalized.slice(0, found.index));
         const right = formatProofGoal(normalized.slice(found.index + found.length));
-        return `(${left} ${symbol} ${right})`;
+        return `(${operand(left)} ${symbol} ${operand(right)})`;
     }
     if (normalized.startsWith('¬')) return `¬${formatProofGoal(normalized.slice(1))}`;
+    const quantifier = parseQuantifier(normalized);
+    if (quantifier) {
+        const prefix = quantifier.names.map((name) => `${quantifier.symbol}${name}`).join(' ');
+        return `${prefix} ${formatProofGoal(quantifier.body)}`;
+    }
     // Lean's False is the contradiction, written ⊥ in the course.
     if (normalized === 'False') return '⊥';
+    // A predicate applied to objects: `R x y` is `R(x,y)`.
+    const tokens = normalized.split(/\s+/);
+    if (tokens.length > 1 && tokens.every((token) => /^[\p{L}_][\p{L}\p{N}_']*$/u.test(token))) {
+        return `${tokens[0]}(${tokens.slice(1).join(',')})`;
+    }
     return normalized;
 };

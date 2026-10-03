@@ -2,6 +2,17 @@ import * as Blockly from 'blockly/core';
 
 export const leanGenerator = new Blockly.Generator('LEAN');
 
+// Lemmas placed before every proof. In Lean, ∀ and → are the same construct
+// (an implication is a ∀ over proofs), so "intro" or applying a hypothesis
+// would accept either. These lemmas tell them apart, so that each block works
+// only on its own kind of formula: a ∀ ranges over the objects of a domain (a
+// Type), an implication over statements (a Prop).
+export const LEAN_PRELUDE = `theorem easylean_imp_intro {p q : Prop} (h : p → q) : p → q := h
+theorem easylean_mp {p q : Prop} (h : p → q) (hp : p) : q := h hp
+theorem easylean_forall_intro {α : Type u} {p : α → Prop} (h : ∀ x, p x) : ∀ x, p x := h
+theorem easylean_forall_elim {α : Type u} {p : α → Prop} (h : ∀ x, p x) (a : α) : p a := h a
+`;
+
 leanGenerator.ORDER_ATOMIC = 0;
 
 leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
@@ -18,7 +29,7 @@ leanGenerator.forBlock['theorem'] = function (block) {
     const proof = leanGenerator.statementToCode(block, 'PROOF');
 
     // Basic Lean 4 theorem structure
-    const PREAMBLE = ``;
+    const PREAMBLE = LEAN_PRELUDE;
     return `${PREAMBLE}\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
 };
 
@@ -30,10 +41,11 @@ leanGenerator.forBlock['lemma'] = function (block) {
     return `\ntheorem ${name} ${params} : ${proposition} := by\n${proof}\n`;
 };
 
-// Generator for 'tactic_intro'
+// Generator for 'tactic_intro': assuming the condition of an implication
+// (only of an implication, not of a ∀: see LEAN_PRELUDE).
 leanGenerator.forBlock['tactic_intro'] = function (block) {
     const hypothesis = block.getFieldValue('HYPOTHESIS');
-    return `  intro ${hypothesis}\n`;
+    return `  refine easylean_imp_intro (fun ${hypothesis} => ?_)\n`;
 };
 
 // Generator for 'tactic_by_negation'
@@ -157,7 +169,25 @@ leanGenerator.forBlock['tactic_auto_contradiction'] = function (block) {
 
 // Unit 1, forward: from h : P → Q and hp : P, the new assumption hq : Q.
 leanGenerator.forBlock['logic_modus_ponens'] = function (block) {
-    return `  have ${block.getFieldValue('NAME')} := ${block.getFieldValue('RULE')} ${block.getFieldValue('PREMISE')}\n`;
+    return `  have ${block.getFieldValue('NAME')} := easylean_mp ${block.getFieldValue('RULE')} ${block.getFieldValue('PREMISE')}\n`;
+};
+
+// Unit 4: quantifiers. ∀ through the lemmas of LEAN_PRELUDE, ∃ through its
+// own rules, which already fail on any other kind of formula.
+leanGenerator.forBlock['logic_forall_intro'] = function (block) {
+    return `  refine easylean_forall_intro (fun ${block.getFieldValue('VARIABLE')} => ?_)\n`;
+};
+
+leanGenerator.forBlock['logic_forall_elim'] = function (block) {
+    return `  have ${block.getFieldValue('NAME')} := easylean_forall_elim ${block.getFieldValue('HYPOTHESIS')} ${block.getFieldValue('TERM')}\n`;
+};
+
+leanGenerator.forBlock['logic_exists_intro'] = function (block) {
+    return `  apply Exists.intro ${block.getFieldValue('TERM')}\n`;
+};
+
+leanGenerator.forBlock['logic_exists_elim'] = function (block) {
+    return `  refine Exists.elim ${block.getFieldValue('HYPOTHESIS')} (fun ${block.getFieldValue('VARIABLE')} ${block.getFieldValue('NAME')} => ?_)\n`;
 };
 
 // Unit 2 rules. Each one generates the specific introduction or elimination

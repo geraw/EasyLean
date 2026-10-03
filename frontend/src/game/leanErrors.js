@@ -29,7 +29,70 @@ const goalsOf = (text) => [...text.matchAll(/^⊢ (.+)$/gm)].map((match) => form
 
 const formula = (text) => formatProofGoal(text.trim());
 
+// Lean's "Application type mismatch" as { argument, type, expected, application,
+// argumentSort }, or null. The sort lines appear when an object is given
+// where a statement is expected, or the other way around.
+const parseApplicationMismatch = (text) => {
+    const match = text.match(/^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort `([^`]*)` )?but is expected to have type\s*\n\s*(.+?)\s*\n(?:of sort `[^`]*` )?in the application\s*\n\s*(.+?)\s*(?:\n|$)/);
+    if (!match) return null;
+    const [, argument, type, argumentSort, expected, application] = match;
+    return { argument, type, expected, application, argumentSort };
+};
+
+// The rule a block generated, by the head of the failed application.
+const explainApplication = ({ argument, type, expected, application, argumentSort }) => {
+    const [head, ...args] = application.split(/\s+/);
+    const isObject = argumentSort?.startsWith('Type');
+    const isForall = type.trim().startsWith('∀');
+    if (head === 'easylean_mp') {
+        if (args.length === 1) {
+            return isForall
+                ? `${argument} אומרת ${formula(type)}, טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.`
+                : `${argument} אומרת ${formula(type)}, וזו לא גרירה, ולכן אין לה תנאי ומסקנה.`;
+        }
+        const rule = args[0].startsWith('?') ? 'הגרירה' : args[0];
+        const fromRule = args[0].startsWith('?') ? 'מהגרירה' : `מ־${rule}`;
+        return isObject
+            ? `${argument} הוא עצם, לא הנחה. כדי להסיק ${fromRule} צריך הנחה שאומרת את התנאי שלה.`
+            : `${argument} אומרת ${formula(type)}, אבל התנאי של ${rule} הוא ${formula(expected)}, ולכן אי אפשר להסיק ממנה את המסקנה של ${rule}.`;
+    }
+    if (head === 'easylean_forall_elim') {
+        return args.length === 1
+            ? `${argument} אומרת ${formula(type)}, וזו לא טענת "לכל", ולכן אי אפשר להציב בה עצם.`
+            : `${argument} היא הנחה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.`;
+    }
+    if (head === 'Exists.elim') {
+        return `${argument} אומרת ${formula(type)}, וזו לא טענת "קיים", ולכן אין ממנה עצם לקבל.`;
+    }
+    return null;
+};
+
 const EXPLANATIONS = [
+    {
+        // Assuming the condition of an implication, when the goal is not one.
+        pattern: /^type mismatch\s*\n\s*easylean_imp_intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
+        explain: ([, goal]) => (goal.trim().startsWith('∀')
+            ? `המטרה היא ${formula(goal)}, טענת "לכל" ולא גרירה, ולכן אין תנאי להניח. כדי להוכיח "לכל" לוקחים עצם שרירותי.`
+            : `המטרה היא ${formula(goal)}, והיא לא גרירה, ולכן אין תנאי להניח.`),
+    },
+    {
+        // Taking an arbitrary object, when the goal is not a "for all".
+        pattern: /^type mismatch\s*\n\s*easylean_forall_intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
+        explain: ([, goal]) => (/→/.test(formula(goal)) && !formula(goal).startsWith('∀')
+            ? `המטרה היא ${formula(goal)}, וזו גרירה ולא טענת "לכל". כדי להוכיח גרירה מניחים את התנאי שלה.`
+            : `המטרה היא ${formula(goal)}, והיא לא טענת "לכל", ולכן אין עצם שרירותי לקחת.`),
+    },
+    {
+        // Choosing a witness, when the goal is not a "there exists".
+        pattern: /could not unify the conclusion of `Exists\.intro[^`]*`[\s\S]*?\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, והיא לא טענת "קיים", ולכן אין עד לבחור.`,
+    },
+    {
+        // The forward step, substituting into a "for all", or using a "there exists",
+        // with an argument of the wrong kind.
+        pattern: /^Application type mismatch: [\s\S]*in the application\s*\n\s*(easylean_mp|easylean_forall_elim|Exists\.elim)\b/,
+        explain: (_, text) => explainApplication(parseApplicationMismatch(text)) || GENERIC_PROBLEM,
+    },
     {
         // A contradiction used on a goal that is not ⊥ (see logic_contradiction / logic_not_elim).
         pattern: /^type mismatch\s*\n\s*absurd .+?\s*\nhas type\s*\n\s*False\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
@@ -67,16 +130,6 @@ const EXPLANATIONS = [
             : `${name} אומרת ${formula(type)}, וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.`),
     },
     {
-        // Modus ponens with an assumption that is not the condition of the implication.
-        pattern: /^Application type mismatch: The argument\s*\n\s*(\S+)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*\nin the application\s*\n\s*(\S+) \S+\s*$/,
-        explain: ([, premise, type, condition, rule]) => `${premise} אומרת ${formula(type)}, אבל התנאי של ${rule} הוא ${formula(condition)}, ולכן אי אפשר להסיק ממנה את המסקנה של ${rule}.`,
-    },
-    {
-        // Modus ponens with an assumption that is not an implication.
-        pattern: /^Function expected at\s*\n\s*(\S+)\s*\nbut this term has type\s*\n\s*(.+?)\s*(?:\n|$)/,
-        explain: ([, rule, type]) => `${rule} אומרת ${formula(type)}, וזו לא גרירה, ולכן אין לה תנאי ומסקנה.`,
-    },
-    {
         // Splitting into cases by an assumption that is not an "or".
         pattern: /^Invalid alternative name `inl`|^Tactic `cases` failed: major premise type is not an inductive type/,
         explain: () => 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.',
@@ -93,7 +146,7 @@ const EXPLANATIONS = [
     },
     {
         pattern: /unknown identifier [`'‘]?([^`'’\s]+)[`'’]?/i,
-        explain: ([, name]) => `אין הנחה בשם ${name}. בדקו את השם מול ההנחות שבמצב ההוכחה.`,
+        explain: ([, name]) => `אין הנחה או עצם בשם ${name}. בדקו את השם מול מצב ההוכחה.`,
     },
     {
         // intro, when the goal is not an implication

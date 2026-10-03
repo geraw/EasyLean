@@ -298,8 +298,13 @@ const GameWorkspace = ({
     const displayedProofState = proofView === 'after'
         ? (proofStates.after || proofStates.before)
         : proofStates.before;
-    // What we have and what is left to prove, for one goal.
-    const renderGoal = ({ assumptions, goal }, spacing) => (
+    // What we have and what is left to prove, for one goal. Declarations of
+    // the level's vocabulary (P Q : Prop, α : Type, P : α → Prop) are not
+    // assumptions, so they are left out; objects of the domain (x : α) stay.
+    const isDeclaration = ({ prop }) => /^(Prop|Type|Sort)\b|→ Prop$/.test(prop.trim());
+    const renderGoal = ({ assumptions: all, goal }, spacing) => {
+        const assumptions = all.filter((assumption) => !isDeclaration(assumption));
+        return (
         <>
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
             {assumptions.length > 0 ? (
@@ -322,7 +327,8 @@ const GameWorkspace = ({
                 </div>
             )}
         </>
-    );
+        );
+    };
     const proofStatePanel = proofStateEndpoint && (
         // Capped so the workspace above it keeps most of the height, even when a
         // rule split the proof into several parts.
