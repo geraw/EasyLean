@@ -17,11 +17,6 @@ const nonContradictionInfo = {
     doc: 'לכל טענה P, הגרירה (P ∧ ¬P) → ⊥ נכונה: טענה ושלילתה יחד הן סתירה. משתמשים בה כמו בכל גרירה, אחורה או קדימה.',
 };
 
-const andCombineInfo = {
-    name: 'צירוף שתי הנחות ל"וגם"',
-    doc: 'אם בידינו P וגם Q, אפשר להסיק את "P וגם Q" כהנחה אחת.',
-};
-
 const notIntroInfo = {
     name: 'הוכחת שלילה',
     doc: 'כדי להוכיח ¬P מניחים את P ומגיעים לסתירה: אם P מובילה לסתירה, P לא נכונה.',
@@ -102,9 +97,10 @@ export const unit3Levels = [
 
 נוסיף את העיקרון להנחות, ונשתמש בו כמו בכל גרירה, באחת משתי הדרכים:
 אחורה: המסקנה שלו היא המטרה ⊥, ולכן נעבור להוכיח את התנאי שלו, \`P ∧ ¬P\`, בשני חלקים.
-או קדימה: נצרף את hp ואת hn להנחה אחת, \`P ∧ ¬P\`, ומהעיקרון ומהתנאי שלו נסיק סתירה.`,
-        newTacticsBlocks: ['logic_non_contradiction', 'logic_and_combine'],
-        newTacticsInfo: [nonContradictionInfo, andCombineInfo],
+או קדימה: נצרף את hp ואת hn להנחה אחת, \`P ∧ ¬P\` (כמו ביחידה 2, שלב 3), ומהעיקרון ומהתנאי שלו נסיק סתירה.`,
+        // "צירוף ל'וגם'" (logic_and_combine) is introduced in unit 2, level 3.
+        newTacticsBlocks: ['logic_non_contradiction'],
+        newTacticsInfo: [nonContradictionInfo],
         newDefinitions: [],
         hints: [
             'גררו את הבלוק "נשתמש בעיקרון הסתירה: הטענה ? ושלילתה גוררות סתירה", וכתבו בו P ושם לגרירה, למשל hc. יש בידינו hc : (P ∧ ¬P) → ⊥.',
@@ -333,7 +329,7 @@ ${CLASSICAL_NOTE}`,
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_cases', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_and_intro', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_by_cases', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# תרגיל מסכם: שלילה של "וגם"
 
 אם לא נכון ש"P וגם Q", אז P לא נכונה או Q לא נכונה. זה חוק דה מורגן השני.

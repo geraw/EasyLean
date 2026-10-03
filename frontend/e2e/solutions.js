@@ -27,6 +27,7 @@ const byCases = (formula, left, leftSteps, right, rightSteps) =>
     ['logic_by_cases', { FORMULA: formula, LEFT_NAME: left, RIGHT_NAME: right }, { LEFT: leftSteps, RIGHT: rightSteps }];
 
 const swapAnd = [assume('h'), andElim('h', 'h1', 'h2'), andIntro([exact('h2')], [exact('h1')])];
+const swapAndForward = [assume('h'), andElim('h', 'h1', 'h2'), combine('h2', 'h1', 'hqp'), exact('hqp')];
 
 // One entry per unit: its tab name, its design document, and per level the
 // solutions, each with a short label and a one-line description (Hebrew).
@@ -65,7 +66,10 @@ export const UNITS = [
         levels: [
             [{ label: 'פתרון', note: 'מסיקים מ־h את שני הצדדים, וסוגרים בצד ימין.', steps: [andElim('h', 'h1', 'h2'), exact('h2')] }],
             [{ label: 'פתרון', note: 'כל צד בחלק משלו.', steps: [andIntro([exact('h1')], [exact('h2')])] }],
-            [{ label: 'פתרון', note: 'משתמשים ב"וגם" שבהנחה, ומוכיחים "וגם" בשני חלקים.', steps: swapAnd }],
+            [
+                { label: 'אחורה', note: 'משתמשים ב"וגם" שבהנחה, ומוכיחים "וגם" בשני חלקים.', steps: swapAnd },
+                { label: 'קדימה', note: 'מסיקים את שני הצדדים, ומצרפים אותם בסדר ההפוך.', steps: swapAndForward },
+            ],
             [{ label: 'פתרון', note: 'בוחרים את הצד שאפשר להוכיח, P.', steps: [orRight, exact('h')] }],
             [
                 { label: 'אחורה', note: 'בכל מקרה, המסקנה של הגרירה המתאימה היא R.', steps: [orCases('h', 'h1', [applyRule('hpr'), exact('h1')], 'h2', [applyRule('hqr'), exact('h2')])] },
@@ -76,14 +80,26 @@ export const UNITS = [
                 { label: 'אחורה', note: 'משתמשים בכיוון מימין לשמאל, Q → P, אחורה.', steps: [iffElim('h', 'h1', 'h2'), applyRule('h2'), exact('hq')] },
                 { label: 'קדימה', note: 'התנאי Q בידינו, ולכן מסיקים את P.', steps: [iffElim('h', 'h1', 'h2'), forward('h2', 'hq', 'hp'), exact('hp')] },
             ],
-            [{ label: 'פתרון', note: 'שני הכיוונים, כל אחד כמו שלב 3.', steps: [['logic_iff_intro', {}, { FORWARD: swapAnd, BACKWARD: swapAnd }]] }],
-            [{
-                label: 'פתרון',
-                note: 'מקרים לפי h2, ובכל מקרה בוחרים צד ומוכיחים "וגם".',
-                steps: [assume('h'), andElim('h', 'h1', 'h2'), orCases('h2',
-                    'hq', [orLeft, andIntro([exact('h1')], [exact('hq')])],
-                    'hr', [orRight, andIntro([exact('h1')], [exact('hr')])])],
-            }],
+            [
+                { label: 'אחורה', note: 'שני הכיוונים, כל אחד כמו שלב 3.', steps: [['logic_iff_intro', {}, { FORWARD: swapAnd, BACKWARD: swapAnd }]] },
+                { label: 'קדימה', note: 'בכל כיוון מצרפים את שני הצדדים בסדר ההפוך.', steps: [['logic_iff_intro', {}, { FORWARD: swapAndForward, BACKWARD: swapAndForward }]] },
+            ],
+            [
+                {
+                    label: 'אחורה',
+                    note: 'מקרים לפי h2, ובכל מקרה בוחרים צד ומוכיחים "וגם" בשני חלקים.',
+                    steps: [assume('h'), andElim('h', 'h1', 'h2'), orCases('h2',
+                        'hq', [orLeft, andIntro([exact('h1')], [exact('hq')])],
+                        'hr', [orRight, andIntro([exact('h1')], [exact('hr')])])],
+                },
+                {
+                    label: 'קדימה',
+                    note: 'בכל מקרה בוחרים צד, ומצרפים את h1 להנחה של המקרה.',
+                    steps: [assume('h'), andElim('h', 'h1', 'h2'), orCases('h2',
+                        'hq', [orLeft, combine('h1', 'hq', 'hpq'), exact('hpq')],
+                        'hr', [orRight, combine('h1', 'hr', 'hpr'), exact('hpr')])],
+                },
+            ],
         ],
     },
     {
@@ -120,13 +136,22 @@ export const UNITS = [
                 { label: 'אחורה', note: 'בכל אפשרות, המסקנה של הגרירה המתאימה היא Q.', steps: [byCases('P', 'h1', [applyRule('hpq'), exact('h1')], 'h2', [applyRule('hnpq'), exact('h2')])] },
                 { label: 'קדימה', note: 'בכל אפשרות, ההנחה החדשה היא התנאי של אחת הגרירות.', steps: [byCases('P', 'h1', [forward('hpq', 'h1', 'hq'), exact('hq')], 'h2', [forward('hnpq', 'h2', 'hq'), exact('hq')])] },
             ],
-            [{
-                label: 'פתרון',
-                note: 'שתי אפשרויות לגבי P, ובכל אחת בוחרים צד.',
-                steps: [assume('h'), byCases('P',
-                    'h1', [orRight, notIntro('hq'), notElim('h'), andIntro([exact('h1')], [exact('hq')])],
-                    'h2', [orLeft, exact('h2')])],
-            }],
+            [
+                {
+                    label: 'אחורה',
+                    note: 'שתי אפשרויות לגבי P, ובכל אחת בוחרים צד; הסתירה בעזרת h, דרך הוכחת P ∧ Q.',
+                    steps: [assume('h'), byCases('P',
+                        'h1', [orRight, notIntro('hq'), notElim('h'), andIntro([exact('h1')], [exact('hq')])],
+                        'h2', [orLeft, exact('h2')])],
+                },
+                {
+                    label: 'קדימה',
+                    note: 'במקרה ש־P נכונה, מצרפים את h1 ו־hq ל־P ∧ Q, ומ־h ומהצירוף נובעת סתירה.',
+                    steps: [assume('h'), byCases('P',
+                        'h1', [orRight, notIntro('hq'), combine('h1', 'hq', 'hpq'), forward('h', 'hpq', 'hb'), exact('hb')],
+                        'h2', [orLeft, exact('h2')])],
+                },
+            ],
             [{
                 label: 'פתרון',
                 note: 'מוכיחים ¬¬P; הסתירה מגיעה מ־h, ו־Q נובעת מהסתירה בין hp ל־hnp.',

@@ -12,6 +12,11 @@ const andIntroInfo = {
     doc: 'כדי להוכיח "P וגם Q" מוכיחים את שני הצדדים לחוד: הוכחה של P בחלק "צד שמאל", והוכחה של Q בחלק "צד ימין".',
 };
 
+const andCombineInfo = {
+    name: 'צירוף שתי הנחות ל"וגם"',
+    doc: 'אם בידינו P וגם Q, אפשר להסיק את "P וגם Q" כהנחה אחת. זה הוכחת "וגם" קדימה, מההנחות.',
+};
+
 const orIntroInfo = {
     name: 'הוכחת "או"',
     doc: 'כדי להוכיח "P או Q" מספיק להוכיח אחד מהצדדים. בוחרים את הצד שאפשר להוכיח, ונשאר להוכיח רק אותו.',
@@ -122,20 +127,22 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ Q) → (Q ∧ P))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# מחליפים את הצדדים
 
 המטרה היא גרירה: אם "P וגם Q", אז "Q וגם P". כמו ביחידה 1, מתחילים בהנחת התנאי שלה.
 
 אחרי ההנחה יש בידינו "P וגם Q", והמטרה היא "Q וגם P". כאן משתמשים בשני המהלכים של "וגם":
-מסיקים מההנחה את שני הצדדים שלה, ומוכיחים את המטרה בשני חלקים.`,
-        newTacticsBlocks: [],
-        newTacticsInfo: [],
+מסיקים מההנחה את שני הצדדים שלה, ומוכיחים את המטרה בשני חלקים.
+
+אפשר גם ללכת קדימה: אחרי שהסקתם את שני הצדדים, צרפו אותם בסדר ההפוך ל"וגם" אחד, וזו בדיוק המטרה.`,
+        newTacticsBlocks: ['logic_and_combine'],
+        newTacticsInfo: [andCombineInfo],
         newDefinitions: [],
         hints: [
             'הניחו את התנאי של הגרירה וקראו לו h.',
             'הסיקו מ־h את שני הצדדים שלה: h1 : P ו־h2 : Q.',
-            'הוכיחו את "Q וגם P" בשני חלקים: בצד שמאל צריך להוכיח Q, ובצד ימין צריך להוכיח P.',
+            'הוכיחו את "Q וגם P" בשני חלקים: בצד שמאל צריך להוכיח Q, ובצד ימין צריך להוכיח P. או קדימה: צרפו את h2 ואת h1 ל"וגם" אחד, וסגרו בעזרתו.',
         ],
         conclusion: `"וגם" לא תלוי בסדר: מ"P וגם Q" נובע "Q וגם P".
 בהוכחה השתמשתם ב"וגם" שבהנחה (פירקתם אותו) וגם הוכחתם "וגם" (בשני חלקים).`,
@@ -291,7 +298,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ Q) ↔ (Q ∧ P))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['logic_iff_intro', 'tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_iff_intro', 'tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# תרגיל מסכם: שני כיוונים
 
 כדי להוכיח "P אם ורק אם Q" מוכיחים את שני הכיוונים: את הגרירה \`P → Q\` ואת הגרירה \`Q → P\`.
@@ -324,7 +331,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# בונוס: פילוג
 
 הטענה הזאת אומרת ש"וגם" מתפלג על "או": אם P נכונה, וגם Q או R נכונה,
