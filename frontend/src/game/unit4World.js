@@ -34,7 +34,8 @@ const prematureWitnessXml = `
         </next>
       </block>`;
 
-const DOMAIN = 'variable {α : Type} {P Q : α → Prop}';
+// The domain's type is called obj, so that a : obj reads "a is an object".
+const DOMAIN = 'variable {obj : Type} {P Q : obj → Prop}';
 
 export const unit4Levels = [
     {
@@ -44,10 +45,10 @@ export const unit4Levels = [
         title: 'משתמשים בהנחה מסוג "לכל"',
         name: 'unit4_l1_forall_elim',
         variableLine: DOMAIN,
-        params: '(a : α) (h : ∀ x, P x)',
+        params: '(a : obj) (h : ∀ x, P x)',
         proposition: 'P a',
         goalLabel: 'P(a)',
-        objects: [{ name: 'a', type: 'α' }],
+        objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'h', prop: '∀x P(x)' }],
         toolboxBlocks: ['logic_forall_elim', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# "לכל"
@@ -66,7 +67,7 @@ export const unit4Levels = [
             'עכשיו ha אומרת בדיוק את המטרה.',
         ],
         conclusion: `הצבתם את a בטענה "לכל x מתקיים P(x)" וקיבלתם P(a). מטענת "לכל" אפשר להסיק את התכונה לכל עצם שתרצו.`,
-        startXml: goalXml('P(a)', 'a : α,  h : ∀x P(x)'),
+        startXml: goalXml('P(a)', 'a : obj,  h : ∀x P(x)'),
     },
     {
         id: 'unit4-2',
@@ -75,10 +76,10 @@ export const unit4Levels = [
         title: '"לכל" וגרירה',
         name: 'unit4_l2_forall_mp',
         variableLine: DOMAIN,
-        params: '(a : α) (h : ∀ x, (P x → Q x)) (hp : P a)',
+        params: '(a : obj) (h : ∀ x, (P x → Q x)) (hp : P a)',
         proposition: 'Q a',
         goalLabel: 'Q(a)',
-        objects: [{ name: 'a', type: 'α' }],
+        objects: [{ name: 'a', type: 'obj' }],
         assumptions: [
             { name: 'h', prop: '∀x (P(x) → Q(x))' },
             { name: 'hp', prop: 'P(a)' },
@@ -98,7 +99,7 @@ export const unit4Levels = [
             'קדימה: מ־ha ומ־hp הסיקו את Q(a), וסגרו בעזרתה. או אחורה: המסקנה של ha היא המטרה; עברו לתנאי שלה וסגרו בעזרת hp.',
         ],
         conclusion: `הצבה בטענת "לכל" נתנה גרירה על העצם a, ומכאן הכלים של יחידה 1. כך נראות רוב ההוכחות עם "לכל": מציבים, ואז משתמשים בתוצאה.`,
-        startXml: goalXml('Q(a)', 'a : α,  h : ∀x (P(x) → Q(x)),  hp : P(a)'),
+        startXml: goalXml('Q(a)', 'a : obj,  h : ∀x (P(x) → Q(x)),  hp : P(a)'),
     },
     {
         id: 'unit4-3',
@@ -169,10 +170,10 @@ export const unit4Levels = [
         title: 'מוכיחים טענה מסוג "קיים"',
         name: 'unit4_l5_exists_intro',
         variableLine: DOMAIN,
-        params: '(a : α) (hp : P a)',
+        params: '(a : obj) (hp : P a)',
         proposition: '∃ x, (P x ∨ Q x)',
         goalLabel: '∃x (P(x) ∨ Q(x))',
-        objects: [{ name: 'a', type: 'α' }],
+        objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'hp', prop: 'P(a)' }],
         toolboxBlocks: ['logic_exists_intro', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# "קיים"
@@ -189,7 +190,7 @@ export const unit4Levels = [
             'בחרו בצד שמאל, וסגרו בעזרת hp.',
         ],
         conclusion: `בחרתם את a כעד והוכחתם שהוא מתאים. כדי להוכיח "קיים" מספיק עד אחד.`,
-        startXml: goalXml('∃x (P(x) ∨ Q(x))', 'a : α,  hp : P(a)'),
+        startXml: goalXml('∃x (P(x) ∨ Q(x))', 'a : obj,  hp : P(a)'),
     },
     {
         id: 'unit4-6',
@@ -289,7 +290,7 @@ h אומרת רק שקיים עצם כזה; כדי לקבל אותו, *משתמ�
         totalLevels: 10,
         title: 'תרגיל מסכם: סדר הכמתים',
         name: 'unit4_l9_swap',
-        variableLine: 'variable {α : Type} {R : α → α → Prop}',
+        variableLine: 'variable {obj : Type} {R : obj → obj → Prop}',
         params: '',
         proposition: '(∃ x, ∀ y, R x y) → (∀ y, ∃ x, R x y)',
         goalLabel: '((∃x ∀y R(x,y)) → (∀y ∃x R(x,y)))',
