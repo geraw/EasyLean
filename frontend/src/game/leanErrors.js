@@ -80,11 +80,41 @@ const SET_OPERATIONS = [
 
 const EXPLANATIONS = [
     {
+        // "Both sides are equal by definition" (rfl), when they are not.
+        pattern: /^Tactic `rfl` failed: The left-hand side\s*\n\s*(.+?)\s*\nis not definitionally equal to the right-hand side\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, left, right]) => `${formula(left)} ו־${formula(right)} לא שווים לפי ההגדרות בלבד. אולי צריך קודם להחליף לפי שוויון, לפתוח הגדרה, או להוכיח באינדוקציה?`,
+    },
+    {
+        // Substituting by something that is not an equality.
+        pattern: /^Invalid rewrite argument: Expected an equality[\s\S]*?but `(.+?)` is a proof of\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, name, type]) => `${name} אומרת ${formula(type)}, וזה לא שוויון, ולכן אי אפשר להחליף לפיה.`,
+    },
+    {
+        // Unfolding a function definition where it cannot be unfolded.
+        pattern: /^Failed to rewrite using equation theorems for `(.+?)`/,
+        explain: ([, name]) => `אין כאן מקום שאפשר לפתוח בו את ההגדרה של ${name}: היא נפתחת רק על 0 או על משהו מהצורה k + 1.`,
+    },
+    {
+        pattern: /^omega could not prove the goal/,
+        explain: () => 'החשבון לבדו לא מספיק כדי להוכיח את המטרה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה?',
+    },
+    {
+        pattern: /^`grind` failed/,
+        explain: () => 'האלגברה לבדה לא מספיקה כדי להוכיח את המטרה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה?',
+    },
+    {
+        pattern: /^Tactic `induction` failed/,
+        explain: () => 'אינדוקציה אפשרית רק על מספר טבעי. כתבו בבלוק את שם המספר שעליו הטענה מדברת.',
+    },
+    {
         // Unfolding the definition of a set operation that is not there.
         pattern: /^Tactic `rewrite` failed: Did not find an occurrence of the pattern\s*\n\s*(.+?)\s*\nin the target expression\s*\n\s*(.+?)\s*(?:\n|$)/,
         explain: ([, pattern, target]) => {
-            const operation = SET_OPERATIONS.find(([regex]) => regex.test(pattern))?.[1] || 'הפעולה הזאת';
-            return `ב־${formula(target)} אין שייכות ל${operation}, ולכן אין כאן הגדרה של ${operation} לפתוח.`;
+            const operation = SET_OPERATIONS.find(([regex]) => regex.test(pattern))?.[1];
+            if (operation) return `ב־${formula(target)} אין שייכות ל${operation}, ולכן אין כאן הגדרה של ${operation} לפתוח.`;
+            if (/\?/.test(pattern)) return `ב־${formula(target)} אין מקום שאפשר לפתוח בו את ההגדרה הזאת.`;
+            // Substitution by an equality (logic_rewrite): its side was not found.
+            return `ב־${formula(target)} לא מופיע ${formula(pattern)}, ולכן אין מה להחליף. אולי צריך להחליף בכיוון השני, או במקום אחר?`;
         },
     },
     {

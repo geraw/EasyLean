@@ -86,5 +86,8 @@ export const formatProofGoal = (text) => {
     if (tokens.length > 1 && tokens.every((token) => /^[\p{L}_][\p{L}\p{N}_']*$/u.test(token))) {
         return `${tokens[0]}(${tokens.slice(1).join(',')})`;
     }
-    return normalized;
+    // The functions of unit 6 inside an equation: `double (k + 1)` is
+    // `double(k + 1)`; multiplication is written with a dot.
+    return normalized.replace(/ \* /g, ' · ').replace(/\b(double|sumTo|oddSum) (\([^()]*\)|[\p{L}\p{N}_]+)/gu,
+        (_, name, argument) => `${name}(${argument.replace(/^\((.*)\)$/, '$1')})`);
 };

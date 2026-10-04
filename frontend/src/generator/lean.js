@@ -179,11 +179,12 @@ leanGenerator.forBlock['logic_forall_intro'] = function (block) {
 };
 
 leanGenerator.forBlock['logic_forall_elim'] = function (block) {
-    return `  have ${block.getFieldValue('NAME')} := easylean_forall_elim ${block.getFieldValue('HYPOTHESIS')} ${block.getFieldValue('TERM')}\n`;
+    return `  have ${block.getFieldValue('NAME')} := easylean_forall_elim ${block.getFieldValue('HYPOTHESIS')} (${block.getFieldValue('TERM')})\n`;
 };
 
 leanGenerator.forBlock['logic_exists_intro'] = function (block) {
-    return `  apply Exists.intro ${block.getFieldValue('TERM')}\n`;
+    // In parentheses, so that a witness like `m + 1` stays one term.
+    return `  apply Exists.intro (${block.getFieldValue('TERM')})\n`;
 };
 
 leanGenerator.forBlock['logic_exists_elim'] = function (block) {
@@ -254,6 +255,58 @@ Object.entries(SET_DEFINITIONS).forEach(([type, lemma]) => {
     };
 });
 
+// Unit 6: functions on the natural numbers defined by recursion, placed
+// before the proofs of the levels that use them (level.usesNat), and the
+// definition of addition on its second argument. Unfolding them is a block
+// of its own: the calculation blocks (omega, grind) do not look inside them.
+export const NAT_PRELUDE = `def double : Nat → Nat
+  | 0 => 0
+  | n + 1 => double n + 2
+def sumTo : Nat → Nat
+  | 0 => 0
+  | n + 1 => sumTo n + (n + 1)
+def oddSum : Nat → Nat
+  | 0 => 0
+  | n + 1 => oddSum n + (2 * n + 1)
+theorem easylean_add_succ (n m : Nat) : n + (m + 1) = (n + m) + 1 := rfl
+`;
+
+leanGenerator.forBlock['logic_rfl'] = () => '  rfl\n';
+
+// Substitution by an equality: left to right replaces its left side by its
+// right side; in the goal or in an assumption. `rewrite`, not `rw`.
+leanGenerator.forBlock['logic_rewrite'] = function (block) {
+    const arrow = block.getFieldValue('DIRECTION') === 'BACKWARD' ? '← ' : '';
+    const where = block.getFieldValue('TARGET') === 'GOAL' ? '' : ` at ${block.getFieldValue('HYPOTHESIS')}`;
+    return `  rewrite [${arrow}${block.getFieldValue('EQUATION')}]${where}\n`;
+};
+
+leanGenerator.forBlock['logic_induction'] = function (block) {
+    return `  induction ${block.getFieldValue('VARIABLE')} with\n`;
+};
+
+// Unfolding the definition of a function (or of addition, or of a power).
+export const NAT_DEFINITIONS = {
+    logic_unfold_double: 'double',
+    logic_unfold_sumto: 'sumTo',
+    logic_unfold_oddsum: 'oddSum',
+    logic_unfold_add: 'easylean_add_succ',
+    logic_unfold_pow: 'Nat.pow_succ',
+};
+Object.entries(NAT_DEFINITIONS).forEach(([type, lemma]) => {
+    leanGenerator.forBlock[type] = function (block) {
+        return block.getFieldValue('TARGET') === 'GOAL'
+            ? `  rewrite [${lemma}]\n`
+            : `  rewrite [${lemma}] at ${block.getFieldValue('HYPOTHESIS')}\n`;
+    };
+});
+
+// Arithmetic that is not the point of the level: linear (omega), and algebra
+// such as multiplying out brackets (grind). Neither looks inside the
+// definitions above, so unfolding them stays with the student.
+leanGenerator.forBlock['logic_calc'] = () => '  omega\n';
+leanGenerator.forBlock['logic_algebra'] = () => '  grind\n';
+
 // Unit 2 rules. Each one generates the specific introduction or elimination
 // rule, so that a rule used on the wrong connective fails instead of Lean
 // quietly doing something else (e.g. `constructor` proves an "or" by its left side).
@@ -320,6 +373,10 @@ leanGenerator.forBlock['logic_by_cases'] = function (block) {
 // Moves that split the proof: for each part, the statement input holding its
 // sub-proof and the line that opens that part in Lean (at the move's indentation).
 export const leanBranches = {
+    logic_induction: (block) => [
+        { input: 'BASE', header: '| zero =>' },
+        { input: 'STEP', header: `| succ ${block.getFieldValue('STEP_VARIABLE')} ${block.getFieldValue('HYPOTHESIS')} =>` },
+    ],
     logic_set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
     logic_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     logic_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],

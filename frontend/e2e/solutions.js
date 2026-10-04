@@ -35,6 +35,12 @@ const subsetElim = (h, member, name) => ['logic_subset_elim', { HYPOTHESIS: h, M
 const setEq = (first, second) => ['logic_set_eq', {}, { FIRST: first, SECOND: second }];
 // Unfolding a definition: in the goal, or in the assumption named h.
 const unfold = (operation, h) => [`logic_unfold_${operation}`, h ? { TARGET: 'HYPOTHESIS', HYPOTHESIS: h } : { TARGET: 'GOAL' }];
+const rfl = ['logic_rfl'];
+const calc = ['logic_calc'];
+const algebra = ['logic_algebra'];
+// Substitution by an equality: direction 'FORWARD' (left to right) or 'BACKWARD', in the goal or in assumption h.
+const rewrite = (equation, direction, h) => ['logic_rewrite', { EQUATION: equation, DIRECTION: direction, ...(h ? { TARGET: 'HYPOTHESIS', HYPOTHESIS: h } : { TARGET: 'GOAL' }) }];
+const induction = (n, base, k, ih, step) => ['logic_induction', { VARIABLE: n, STEP_VARIABLE: k, HYPOTHESIS: ih }, { BASE: base, STEP: step }];
 const byContradiction = (name) => ['logic_by_contradiction', { HYPOTHESIS: name }];
 
 const swapAnd = [assume('h'), andElim('h', 'h1', 'h2'), andIntro([exact('h2')], [exact('h1')])];
@@ -287,6 +293,53 @@ export const UNITS = [
                 steps: [setEq(
                     [subsetIntro('x0', 'hx'), unfold('compl', 'hx'), byContradiction('hn'), notElim('hx'), unfold('compl'), exact('hn')],
                     [subsetIntro('x0', 'hx'), unfold('compl'), notIntro('hc'), unfold('compl', 'hc'), contradiction('hc', 'hx')])],
+            }],
+        ],
+    },
+    {
+        unit: 6,
+        world: 'יחידה 6 - שוויון ואינדוקציה',
+        doc: '06-equality-and-induction.md',
+        levels: [
+            [{ label: 'פתרון', note: 'n + 0 = n לפי הגדרת החיבור.', steps: [rfl] }],
+            [{ label: 'פתרון', note: 'מחליפים את y ב־x + 7, ושני הצדדים זהים.', steps: [rewrite('h', 'FORWARD'), rfl] }],
+            [
+                { label: 'בהנחה', note: 'מימין לשמאל בהנחה hb: b מוחלף ב־a.', steps: [rewrite('h', 'BACKWARD', 'hb'), exact('hb')] },
+                { label: 'במטרה', note: 'משמאל לימין במטרה: a מוחלף ב־b.', steps: [rewrite('h', 'FORWARD'), exact('hb')] },
+            ],
+            [{ label: 'פתרון', note: 'מחליפים את a ב־b במטרה, ומקבלים את h2.', steps: [rewrite('h1', 'FORWARD'), exact('h2')] }],
+            [{
+                label: 'פתרון',
+                note: 'בבסיס פותחים את double; בצעד גם מחליפים לפי הנחת האינדוקציה, ואת השאר משלים חשבון.',
+                steps: [induction('n', [unfold('double'), rfl], 'k', 'ih', [unfold('double'), rewrite('ih', 'FORWARD'), calc])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'בצעד פותחים את הגדרת החיבור ומחליפים לפי הנחת האינדוקציה; בלי חשבון.',
+                steps: [induction('n', [rfl], 'k', 'ih', [unfold('add'), rewrite('ih', 'FORWARD'), rfl])],
+            }],
+            [{ label: 'פתרון', note: 'הצעד נכון לפי חשבון; הבסיס הוא שלא נכון.', steps: [assume('h'), calc] }],
+            [{
+                label: 'פתרון',
+                note: 'בצעד פותחים את הגדרת החזקה, ואז חשבון עם הנחת האינדוקציה.',
+                steps: [induction('n', [calc], 'k', 'ih', [unfold('pow'), calc])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את sumTo; בצעד, אלגברה עם הנחת האינדוקציה.',
+                steps: [induction('n', [unfold('sumto'), rfl], 'k', 'ih', [unfold('sumto'), algebra])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'בצעד, מקרים לפי הנחת האינדוקציה; בכל מקרה עד מתאים, וחשבון.',
+                steps: [induction('n', [orLeft, existsIntro('0'), rfl], 'k', 'ih', [orCases('ih',
+                    'he', [existsElim('he', 'm', 'hm'), orRight, existsIntro('m'), calc],
+                    'ho', [existsElim('ho', 'm', 'hm'), orLeft, existsIntro('m + 1'), calc])])],
+            }],
+            [{
+                label: 'פתרון',
+                note: 'פותחים את oddSum, מחליפים לפי הנחת האינדוקציה, ואלגברה.',
+                steps: [induction('n', [unfold('oddsum'), rfl], 'k', 'ih', [unfold('oddsum'), rewrite('ih', 'FORWARD'), algebra])],
             }],
         ],
     },

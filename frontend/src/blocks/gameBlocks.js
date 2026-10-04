@@ -339,7 +339,8 @@ export const defineGameBlocks = () => {
     };
 
     // Unfolding the definition of a set operation, in the goal or in an
-    // assumption (whose name field shows only then).
+    // assumption (whose name field shows only then). No comma after the
+    // operation: after a Latin name (double) it would move in right-to-left text.
     const unfoldBlock = (type, operation, tooltip) => {
         Blockly.Blocks[type] = {
             init: function () {
@@ -349,7 +350,7 @@ export const defineGameBlocks = () => {
                     return value;
                 });
                 this.appendDummyInput()
-                    .appendField(`לפי הגדרת ${operation}, נפתח את`)
+                    .appendField(`לפי הגדרת ${operation} נפתח את`)
                     .appendField(target, "TARGET")
                     .appendField(name, "HYPOTHESIS");
                 name.setVisible(false);
@@ -365,4 +366,73 @@ export const defineGameBlocks = () => {
     unfoldBlock('logic_unfold_powerset', 'קבוצת החזקה', 'B ∈ 𝒫(A) פירושו B ⊆ A.');
     unfoldBlock('logic_unfold_sunion', 'איחוד המשפחה', 'x ∈ ⋃₀ F פירושו: קיימת A ∈ F כך ש־x ∈ A.');
     unfoldBlock('logic_unfold_sinter', 'חיתוך המשפחה', 'x ∈ ⋂₀ F פירושו: לכל A ∈ F מתקיים x ∈ A.');
+
+    // Unit 6: equality and induction on the natural numbers.
+    const EQUALITY_COLOUR = 250;
+
+    Blockly.Blocks['logic_rfl'] = {
+        init: function () {
+            this.appendDummyInput().appendField("שני הצדדים שווים לפי ההגדרה");
+            move(this, EQUALITY_COLOUR, 'סוגר מטרה a = b כששני הצדדים שווים לפי ההגדרות, בלי חשבון.');
+        }
+    };
+
+    // Substituting by an equality, in a chosen direction, in the goal or in an
+    // assumption (whose name field shows only then).
+    Blockly.Blocks['logic_rewrite'] = {
+        init: function () {
+            const name = new Blockly.FieldTextInput("?");
+            const target = new Blockly.FieldDropdown([["המטרה", "GOAL"], ["ההנחה", "HYPOTHESIS"]], function (value) {
+                name.setVisible(value === "HYPOTHESIS");
+                return value;
+            });
+            this.appendDummyInput()
+                .appendField("נחליף לפי השוויון")
+                .appendField(new Blockly.FieldTextInput("?"), "EQUATION")
+                .appendField(new Blockly.FieldDropdown([["משמאל לימין", "FORWARD"], ["מימין לשמאל", "BACKWARD"]]), "DIRECTION");
+            this.appendDummyInput()
+                .appendField("בתוך")
+                .appendField(target, "TARGET")
+                .appendField(name, "HYPOTHESIS");
+            name.setVisible(false);
+            move(this, EQUALITY_COLOUR, 'משמאל לימין: כל מופע של הצד השמאלי של השוויון מוחלף בצד הימני. מימין לשמאל: להפך.');
+        }
+    };
+
+    Blockly.Blocks['logic_induction'] = {
+        init: function () {
+            this.appendDummyInput()
+                .appendField("נוכיח באינדוקציה על")
+                .appendField(new Blockly.FieldTextInput("?"), "VARIABLE");
+            this.appendStatementInput("BASE").setCheck("tactic").appendField("בסיס: נוכיח את הטענה עבור 0");
+            // No formula right after a field: in a right-to-left label "+ 1" would
+            // move to the end of the row.
+            this.appendStatementInput("STEP").setCheck("tactic")
+                .appendField("צעד: נניח שהטענה נכונה עבור")
+                .appendField(new Blockly.FieldTextInput("?"), "STEP_VARIABLE")
+                .appendField("ונקרא לזה")
+                .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS");
+            move(this, EQUALITY_COLOUR, 'כדי להוכיח טענה לכל n מוכיחים אותה עבור 0, ומוכיחים שאם היא נכונה עבור k, היא נכונה עבור k + 1.');
+        }
+    };
+
+    unfoldBlock('logic_unfold_double', 'double', 'double(0) = 0, ו־double(k + 1) = double(k) + 2.');
+    unfoldBlock('logic_unfold_sumto', 'sumTo', 'sumTo(0) = 0, ו־sumTo(k + 1) = sumTo(k) + (k + 1).');
+    unfoldBlock('logic_unfold_oddsum', 'oddSum', 'oddSum(0) = 0, ו־oddSum(k + 1) = oddSum(k) + (2k + 1).');
+    unfoldBlock('logic_unfold_add', 'החיבור', 'n + (m + 1) = (n + m) + 1: החיבור מוגדר לפי המחובר השני.');
+    unfoldBlock('logic_unfold_pow', 'החזקה', '2^(k + 1) = 2^k · 2.');
+
+    Blockly.Blocks['logic_calc'] = {
+        init: function () {
+            this.appendDummyInput().appendField("המטרה נובעת לפי חשבון");
+            move(this, EQUALITY_COLOUR, 'סוגר מטרה של חשבון לינארי (חיבור, כפל בקבוע, אי־שוויונות), גם בעזרת ההנחות. לא פותח הגדרות.');
+        }
+    };
+
+    Blockly.Blocks['logic_algebra'] = {
+        init: function () {
+            this.appendDummyInput().appendField("המטרה נובעת לפי אלגברה");
+            move(this, EQUALITY_COLOUR, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים), גם בעזרת ההנחות. לא פותח הגדרות.');
+        }
+    };
 };

@@ -1,4 +1,4 @@
-import { LEAN_PRELUDE, SET_PRELUDE, leanBranches, leanGenerator } from '../generator/lean';
+import { LEAN_PRELUDE, NAT_PRELUDE, SET_PRELUDE, leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
 
 const findGoalBlock = (workspace) => workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
@@ -24,7 +24,7 @@ export const generateGameLeanSource = (workspace, level, preamble, { includeFall
 
     // Levels often give assumptions the proof does not need, so Lean's
     // unused-variable warnings are just noise here.
-    const header = `${preamble}\n${LEAN_PRELUDE}${level.usesSets ? SET_PRELUDE : ''}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
+    const header = `${preamble}\n${LEAN_PRELUDE}${level.usesSets ? SET_PRELUDE : ''}${level.usesNat ? NAT_PRELUDE : ''}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
     const lines = [];
     const lineBlockIds = new Map();
     const partLastBlockIds = new Map();

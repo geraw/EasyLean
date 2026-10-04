@@ -314,8 +314,11 @@ const GameWorkspace = ({
         const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
         // Sets of objects (A : Set obj), and families of sets, are listed by name too.
         const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
+        // Natural numbers (n : Nat) are listed by name too.
+        const isNumber = ({ prop }) => ['Nat', 'ℕ'].includes(prop.trim());
+        const numbers = all.filter(isNumber).flatMap(({ name }) => name.split(/\s+/));
         const sets = all.filter(isSet).flatMap(({ name }) => name.split(/\s+/));
-        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption) && !isSet(assumption));
+        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption) && !isSet(assumption) && !isNumber(assumption));
         return (
         <>
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
@@ -326,6 +329,17 @@ const GameWorkspace = ({
                         <React.Fragment key={set}>
                             {index > 0 && ', '}
                             <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{set}</span>
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
+            {numbers.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                    מספרים:{' '}
+                    {numbers.map((number, index) => (
+                        <React.Fragment key={number}>
+                            {index > 0 && ', '}
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{number}</span>
                         </React.Fragment>
                     ))}
                 </div>
@@ -349,7 +363,7 @@ const GameWorkspace = ({
                     {assumption.name} : {formatProofGoal(assumption.prop)}
                 </div>
             ))}
-            {objects.length === 0 && assumptions.length === 0 && (
+            {objects.length === 0 && numbers.length === 0 && sets.length === 0 && assumptions.length === 0 && (
                 <div style={{ color: '#555', marginBottom: spacing }}>עדיין לא הוספנו הנחות.</div>
             )}
             <h4 style={{ margin: `${spacing} 0 6px 0` }}>מה נשאר להוכיח</h4>
@@ -447,7 +461,7 @@ const GameWorkspace = ({
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                <h1 style={{ margin: 0 }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {level.title}</h1>
+                <h1 style={{ margin: 0 }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {isolateFormulas(level.title)}</h1>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                     מעבר ישיר לשלב:
                     <select
@@ -458,7 +472,7 @@ const GameWorkspace = ({
                     >
                         {levels.map((availableLevel, index) => (
                             <option key={availableLevel.id} value={index}>
-                                {availableLevel.levelNumber}/{availableLevel.totalLevels} — {availableLevel.title}
+                                {availableLevel.levelNumber}/{availableLevel.totalLevels} — {isolateFormulas(availableLevel.title)}
                             </option>
                         ))}
                     </select>
