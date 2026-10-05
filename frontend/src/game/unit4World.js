@@ -50,7 +50,7 @@ export const unit4Levels = [
         goalLabel: 'P(a)',
         objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'h', prop: '∀x P(x)' }],
-        toolboxBlocks: ['logic_forall_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_forall_elim', 'tactic_exact'],
         introduction: `# "לכל"
 
 מעכשיו הטענות מדברות על *עצמים* מתוך תחום, ועל תכונות שלהם. למשל: התחום הוא הסטודנטים בקורס, ו־P(x) אומרת "x עבר את הבוחן".
@@ -113,7 +113,7 @@ export const unit4Levels = [
         goalLabel: '((∀x (P(x) ∧ Q(x))) → (∀x P(x)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_forall_elim', 'logic_and_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_forall_elim', 'logic_and_elim', 'tactic_exact'],
         introduction: `# עצם שרירותי
 
 אם כל הסטודנטים עברו גם את הבוחן וגם את התרגיל, אז כל הסטודנטים עברו את הבוחן.
@@ -176,7 +176,7 @@ export const unit4Levels = [
         goalLabel: '∃x (P(x) ∨ Q(x))',
         objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'hp', prop: 'P(a)' }],
-        toolboxBlocks: ['logic_exists_intro', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_exists_intro', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# "קיים"
 
 הטענה \`∃x P(x)\` נקראת "קיים x כך ש־P(x)": לפחות עצם אחד בתחום מקיים את P. למשל, "יש סטודנט שעבר את הבוחן".
@@ -205,7 +205,7 @@ export const unit4Levels = [
         goalLabel: '((∃x (P(x) ∧ Q(x))) → (∃x Q(x)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_exists_elim', 'logic_exists_intro', 'logic_and_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_exists_elim', 'logic_exists_intro', 'logic_and_elim', 'tactic_exact'],
         introduction: `# קודם מקבלים עצם, אחר כך בוחרים עד
 
 אם יש סטודנט שעבר גם את הבוחן וגם את התרגיל, אז יש סטודנט שעבר את התרגיל.
@@ -267,7 +267,7 @@ h אומרת רק שקיים עצם כזה; כדי לקבל אותו, *משתמ�
         goalLabel: '((¬∃x P(x)) → (∀x ¬P(x)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_not_intro', 'logic_not_elim', 'logic_exists_intro', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_not_intro', 'logic_not_elim', 'logic_exists_intro', 'tactic_exact'],
         introduction: `# שלילה של "קיים"
 
 אם אין אף סטודנט שנכשל, אז כל סטודנט לא נכשל: \`¬∃x P(x)\` גוררת \`∀x ¬P(x)\`.
@@ -297,7 +297,7 @@ h אומרת רק שקיים עצם כזה; כדי לקבל אותו, *משתמ�
         goalLabel: '((∃x ∀y R(x,y)) → (∀y ∃x R(x,y)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_forall_elim', 'logic_exists_elim', 'logic_exists_intro', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_forall_intro', 'logic_forall_elim', 'logic_exists_elim', 'logic_exists_intro', 'tactic_exact'],
         introduction: `# סדר הכמתים
 
 R(x,y) היא תכונה של שני עצמים, למשל "x עוזר ל־y".
@@ -329,7 +329,7 @@ R(x,y) היא תכונה של שני עצמים, למשל "x עוזר ל־y".
         goalLabel: '((¬∀x P(x)) → (∃x ¬P(x)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_forall_intro', 'logic_exists_intro', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_forall_intro', 'logic_exists_intro', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'tactic_exact'],
         introduction: `# בונוס: שלילה של "לכל"
 
 אם לא נכון שכל הסטודנטים עברו, אז יש סטודנט שלא עבר: \`¬∀x P(x)\` גוררת \`∃x ¬P(x)\`.

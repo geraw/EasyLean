@@ -65,7 +65,7 @@ export const unit5Levels = [
         goalLabel: 'x0 ∈ B',
         objects: [{ name: 'x0', type: 'obj' }],
         assumptions: [{ name: 'h', prop: 'A ⊆ B' }, { name: 'hx', prop: 'x0 ∈ A' }],
-        toolboxBlocks: ['logic_subset_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_elim', 'tactic_exact'],
         introduction: `# קבוצות והכלה
 
 *קבוצה* היא אוסף של עצמים מהתחום, ו־\`x0 ∈ A\` אומרת ש־x0 *שייך* ל־A. למשל: A היא קבוצת הסטודנטים שעברו את הבוחן, ו־B קבוצת הסטודנטים שרשאים לגשת למבחן.
@@ -91,7 +91,7 @@ export const unit5Levels = [
         goalLabel: 'x0 ∈ C',
         objects: [{ name: 'x0', type: 'obj' }],
         assumptions: [{ name: 'h1', prop: 'A ⊆ B' }, { name: 'h2', prop: 'B ⊆ C' }, { name: 'hx', prop: 'x0 ∈ A' }],
-        toolboxBlocks: ['logic_subset_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_elim', 'tactic_exact'],
         introduction: `# שרשרת של הכלות
 
 אם A מוכלת ב־B, ו־B מוכלת ב־C, ו־x0 ∈ A, אז x0 ∈ C. השתמשו בשתי ההכלות זו אחר זו, כמו בשרשרת הגרירות של יחידה 1.`,
@@ -109,7 +109,7 @@ export const unit5Levels = [
         params: '',
         proposition: '(A ⊆ B) → ((B ⊆ C) → (A ⊆ C))',
         goalLabel: '((A ⊆ B) → ((B ⊆ C) → (A ⊆ C)))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'tactic_exact'],
         introduction: `# מוכיחים הכלה
 
 כדי להוכיח \`A ⊆ C\` לוקחים איבר *שרירותי* של A, למשל x0, ומוכיחים שהוא שייך ל־C, כמו בהוכחת "לכל" ביחידה 4.
@@ -134,7 +134,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ B ⊆ A',
         goalLabel: 'A ∩ B ⊆ A',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'tactic_exact'],
         introduction: `# חיתוך
 
 \`A ∩ B\` היא *החיתוך* של A ו־B: הקבוצה של האיברים ששייכים לשתיהן. למשל: הסטודנטים שעברו גם את הבוחן וגם את התרגיל.
@@ -158,7 +158,7 @@ export const unit5Levels = [
         proposition: 'A ⊆ B ∩ C',
         goalLabel: 'A ⊆ B ∩ C',
         assumptions: [{ name: 'h1', prop: 'A ⊆ B' }, { name: 'h2', prop: 'A ⊆ C' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_inter', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_inter', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# שייכות לחיתוך
 
 אם A מוכלת גם ב־B וגם ב־C, אז היא מוכלת בחיתוך שלהן.
@@ -179,7 +179,7 @@ export const unit5Levels = [
         proposition: 'A ∪ B ⊆ C',
         goalLabel: 'A ∪ B ⊆ C',
         assumptions: [{ name: 'h1', prop: 'A ⊆ C' }, { name: 'h2', prop: 'B ⊆ C' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_union', 'logic_or_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_union', 'logic_or_elim', 'tactic_exact'],
         introduction: `# איחוד
 
 \`A ∪ B\` הוא *האיחוד* של A ו־B: האיברים ששייכים לפחות לאחת מהן. לפי ההגדרה, \`x0 ∈ A ∪ B\` פירושו \`x0 ∈ A ∨ x0 ∈ B\`.
@@ -202,7 +202,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ B = B ∩ A',
         goalLabel: 'A ∩ B = B ∩ A',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# שוויון קבוצות
 
 שתי קבוצות *שוות* אם יש להן בדיוק אותם איברים, כלומר כל אחת מוכלת בשנייה.
@@ -223,7 +223,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
         goalLabel: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# פילוג
 
 חיתוך מתפלג על איחוד: אם x0 שייך ל־A וגם ל־B או ל־C, אז הוא שייך ל־A ∩ B או ל־A ∩ C.
@@ -243,7 +243,7 @@ export const unit5Levels = [
         params: '',
         proposition: '(A ⊆ B) → (Bᶜ ⊆ Aᶜ)',
         goalLabel: '((A ⊆ B) → (Bᶜ ⊆ Aᶜ))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_compl', 'logic_not_intro', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_compl', 'logic_not_intro', 'logic_contradiction'],
         introduction: `# משלים
 
 \`Aᶜ\` היא *המשלים* של A: כל העצמים בתחום שלא שייכים ל־A. לפי ההגדרה, \`x0 ∈ Aᶜ\` פירושו \`x0 ∉ A\`.
@@ -266,7 +266,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A \\ B ⊆ A ∩ Bᶜ',
         goalLabel: 'A \\ B ⊆ A ∩ Bᶜ',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_diff', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_diff', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# הפרש
 
 \`A \\ B\` הוא *ההפרש* של A ו־B: האיברים של A שלא שייכים ל־B. לפי ההגדרה, \`x0 ∈ A \\ B\` פירושו \`x0 ∈ A ∧ x0 ∉ B\`.
@@ -288,7 +288,7 @@ export const unit5Levels = [
         params: '',
         proposition: '(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ',
         goalLabel: '(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'tactic_exact'],
         introduction: `# תרגיל מסכם: חוק דה מורגן לקבוצות
 
 המשלים של איחוד הוא החיתוך של המשלימים: מי שלא שייך לאף אחת מהקבוצות, לא שייך ל־A וגם לא שייך ל־B.
@@ -330,7 +330,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ Aᶜ = ∅',
         goalLabel: 'A ∩ Aᶜ = ∅',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_unfold_empty', 'logic_and_elim', 'logic_and_intro', 'logic_not_intro', 'logic_contradiction', 'logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_unfold_empty', 'logic_and_elim', 'logic_and_intro', 'logic_not_intro', 'logic_contradiction', 'logic_false_implies', 'tactic_apply_rule', 'tactic_exact'],
         introduction: `# קבוצה ומשלימה
 
 אין איבר ששייך גם ל־A וגם למשלים שלה: \`A ∩ Aᶜ = ∅\`. זה עיקרון הסתירה (שלב 3.2) בשפת הקבוצות.
@@ -350,7 +350,7 @@ export const unit5Levels = [
         params: '',
         proposition: '(A ⊆ B) → (𝒫 A ⊆ 𝒫 B)',
         goalLabel: '((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_powerset', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_powerset', 'tactic_exact'],
         introduction: `# קבוצת החזקה
 
 \`𝒫(A)\` היא *קבוצת החזקה* של A: הקבוצה של כל תתי־הקבוצות של A. האיברים שלה הם קבוצות, ולפי ההגדרה \`X ∈ 𝒫(A)\` פירושו \`X ⊆ A\`.
@@ -373,7 +373,7 @@ export const unit5Levels = [
         proposition: 'A ⊆ ⋃₀ F',
         goalLabel: 'A ⊆ ⋃₀ F',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sunion', 'logic_exists_intro', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sunion', 'logic_exists_intro', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# איחוד של משפחה
 
 F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃₀ F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x0 ∈ ⋃₀ F\` פירושו שקיימת קבוצה S ב־F כך ש־x0 ∈ S.
@@ -418,7 +418,7 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
         params: '',
         proposition: '(Aᶜ)ᶜ = A',
         goalLabel: '(Aᶜ)ᶜ = A',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_compl', 'logic_not_intro', 'logic_not_elim', 'logic_by_contradiction', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_compl', 'logic_not_intro', 'logic_not_elim', 'logic_by_contradiction', 'logic_contradiction', 'tactic_exact'],
         introduction: `# בונוס: משלים של משלים
 
 המשלים של המשלים של A הוא A עצמה. זו השלילה הכפולה של שלבים 3.4 ו־3.7, בשפת הקבוצות.

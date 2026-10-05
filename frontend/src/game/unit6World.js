@@ -103,7 +103,7 @@ export const unit6Levels = [
         goalLabel: 'P(a)',
         objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }],
         assumptions: [{ name: 'h', prop: 'a = b' }, { name: 'hb', prop: 'P(b)' }],
-        toolboxBlocks: ['logic_rewrite', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_rewrite', 'tactic_exact'],
         introduction: `# כיוון ההחלפה
 
 שוויון אפשר להפעיל בשני כיוונים: \`a = b\` מאפשרת להחליף את a ב־b (משמאל לימין), וגם את b ב־a (מימין לשמאל).
@@ -127,7 +127,7 @@ export const unit6Levels = [
         goalLabel: 'a = c',
         objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }, { name: 'c', type: 'obj' }],
         assumptions: [{ name: 'h1', prop: 'a = b' }, { name: 'h2', prop: 'b = c' }],
-        toolboxBlocks: ['logic_rewrite', 'logic_rfl', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_rewrite', 'logic_rfl', 'tactic_exact'],
         introduction: `# שרשרת של שוויונות
 
 אם a = b ו־b = c, אז a = c. זו *הטרנזיטיביות* של השוויון, והיא נובעת מהעיקרון של החלפה: מחליפים במטרה את a ב־b, ומקבלים את h2.`,
@@ -145,7 +145,7 @@ export const unit6Levels = [
         proposition: 'double n = n + n',
         goalLabel: 'double(n) = n + n',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_double', 'logic_rewrite', 'logic_rfl', 'logic_calc', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_double', 'logic_rewrite', 'logic_rfl', 'logic_calc'],
         introduction: `# אינדוקציה
 
 הפונקציה double מוגדרת *ברקורסיה*: \`double(0) = 0\`, ו־\`double(k + 1) = double(k) + 2\`. נוכיח ש־double(n) = n + n *לכל* n.
@@ -172,7 +172,7 @@ export const unit6Levels = [
         proposition: '0 + n = n',
         goalLabel: '0 + n = n',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_add', 'logic_rewrite', 'logic_rfl', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_add', 'logic_rewrite', 'logic_rfl'],
         introduction: `# 0 + n = n
 
 בשלב 1 ראינו ש־\`n + 0 = n\` לפי ההגדרה. האם גם \`0 + n = n\`? לא לפי ההגדרה: החיבור מוגדר לפי המחובר *השני*, ו־n כאן הוא מספר כלשהו.
@@ -194,7 +194,7 @@ export const unit6Levels = [
         proposition: '(k + 1 ≤ k) → (k + 1 + 1 ≤ k + 1)',
         goalLabel: '((k + 1 ≤ k) → (k + 1 + 1 ≤ k + 1))',
         objects: [{ name: 'k', type: 'ℕ' }],
-        toolboxBlocks: ['tactic_intro', 'logic_calc', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_calc'],
         introduction: `# צעד בלי בסיס
 
 נסתכל על הטענה P(n): \`n + 1 ≤ n\`. היא *לא* נכונה: אף מספר לא גדול מעצמו.
@@ -214,7 +214,7 @@ export const unit6Levels = [
         proposition: 'n + 1 ≤ 2 ^ n',
         goalLabel: 'n + 1 ≤ 2 ^ n',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_pow', 'logic_calc', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_pow', 'logic_calc'],
         introduction: `# אינדוקציה ואי־שוויון
 
 אינדוקציה מוכיחה גם אי־שוויונות. נוכיח ש־\`n + 1 ≤ 2^n\` לכל n.
@@ -236,7 +236,7 @@ export const unit6Levels = [
         proposition: '2 * sumTo n = n * (n + 1)',
         goalLabel: '2 · sumTo(n) = n · (n + 1)',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_sumto', 'logic_rewrite', 'logic_rfl', 'logic_calc', 'logic_algebra', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_sumto', 'logic_rewrite', 'logic_rfl', 'logic_calc', 'logic_algebra'],
         introduction: `# סכום המספרים
 
 \`sumTo(n)\` הוא הסכום \`0 + 1 + ... + n\`. הוא מוגדר ברקורסיה: \`sumTo(0) = 0\`, ו־\`sumTo(k + 1) = sumTo(k) + (k + 1)\`.
@@ -258,7 +258,7 @@ export const unit6Levels = [
         proposition: '(∃ j, n = 2 * j) ∨ (∃ j, n = 2 * j + 1)',
         goalLabel: '(∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1))',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_exists_elim', 'logic_exists_intro', 'logic_rfl', 'logic_calc', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_exists_elim', 'logic_exists_intro', 'logic_rfl', 'logic_calc'],
         introduction: `# תרגיל מסכם: זוגי או אי־זוגי
 
 כל מספר טבעי הוא זוגי (\`n = 2 · j\`) או אי־זוגי (\`n = 2 · j + 1\`). נוכיח זאת באינדוקציה, יחד עם הכלים של יחידות 2 ו־4.
@@ -280,7 +280,7 @@ export const unit6Levels = [
         proposition: 'oddSum n = n * n',
         goalLabel: 'oddSum(n) = n · n',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_oddsum', 'logic_rewrite', 'logic_rfl', 'logic_algebra', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_oddsum', 'logic_rewrite', 'logic_rfl', 'logic_algebra'],
         introduction: `# בונוס: סכום האי־זוגיים
 
 \`oddSum(n)\` הוא סכום n המספרים האי־זוגיים הראשונים: \`1 + 3 + 5 + ...\`. הוא מוגדר ברקורסיה: \`oddSum(0) = 0\`, ו־\`oddSum(k + 1) = oddSum(k) + (2k + 1)\`.

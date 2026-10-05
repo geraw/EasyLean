@@ -227,7 +227,7 @@ export const unit3Levels = [
         goalLabel: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_intro', 'logic_not_intro', 'logic_not_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_intro', 'logic_not_intro', 'logic_not_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# שלילה של "או"
 
 אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מחוקי דה מורגן.

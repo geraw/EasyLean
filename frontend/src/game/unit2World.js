@@ -60,7 +60,7 @@ export const unit2Levels = [
         goalLabel: 'Q',
         objects: [],
         assumptions: [{ name: 'h', prop: 'P ∧ Q' }],
-        toolboxBlocks: ['logic_and_elim', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_and_elim', 'tactic_exact'],
         introduction: `# "וגם"
 
 הטענה \`P ∧ Q\` נקראת "P וגם Q", והיא אומרת ששתי הטענות נכונות: גם P וגם Q.
@@ -95,7 +95,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
             { name: 'h1', prop: 'P' },
             { name: 'h2', prop: 'Q' },
         ],
-        toolboxBlocks: ['logic_and_intro', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_and_intro', 'tactic_exact'],
         introduction: `# הוכחה בשני חלקים
 
 הפעם המטרה היא \`P ∧ Q\`. כדי להוכיח "P וגם Q" צריך להוכיח את שני הצדדים: גם את P וגם את Q.
@@ -127,7 +127,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ Q) → (Q ∧ P))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# מחליפים את הצדדים
 
 המטרה היא גרירה: אם "P וגם Q", אז "Q וגם P". כמו ביחידה 1, מתחילים בהנחת התנאי שלה.
@@ -160,7 +160,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '(Q ∨ P)',
         objects: [],
         assumptions: [{ name: 'h', prop: 'P' }],
-        toolboxBlocks: ['logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# "או"
 
 הטענה \`Q ∨ P\` נקראת "Q או P", והיא אומרת שלפחות אחת משתי הטענות נכונה.
@@ -229,7 +229,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∨ Q) → (Q ∨ P))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# מתי בוחרים צד?
 
 המטרה: אם "P או Q", אז "Q או P". ההוכחה כבר התחילה: הנחנו את התנאי, h : P ∨ Q, ובחרנו להוכיח את צד שמאל של המטרה, Q.
@@ -298,7 +298,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ Q) ↔ (Q ∧ P))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['logic_iff_intro', 'tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_iff_intro', 'tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
         introduction: `# תרגיל מסכם: שני כיוונים
 
 כדי להוכיח "P אם ורק אם Q" מוכיחים את שני הכיוונים: את הגרירה \`P → Q\` ואת הגרירה \`Q → P\`.
@@ -331,7 +331,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# בונוס: פילוג
 
 הטענה הזאת אומרת ש"וגם" מתפלג על "או": אם P נכונה, וגם Q או R נכונה,

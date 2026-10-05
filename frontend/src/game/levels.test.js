@@ -9,6 +9,7 @@ import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
 import { loadWorkspace } from '../test/blocklyWorkspace';
+import { UNITS } from '../../e2e/solutions';
 
 const worlds = { unit0: unit0Levels, unit1: unit1Levels, unit2: unit2Levels, unit3: unit3Levels, unit4: unit4Levels, unit5: unit5Levels, unit6: unit6Levels };
 
@@ -33,11 +34,22 @@ describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
 });
 
 // The forward use of an implication (modus ponens), introduced in unit 1
-// level 3, stays available in every later level that can use it: an
-// assumption it derives is used through "זה בדיוק", so each comes with the other.
+// level 3, is offered only in levels where one of the intended solutions
+// uses it, so the toolbox holds no block that cannot help. An assumption it
+// derives is used through "זה בדיוק", so that block comes with it.
 describe('the forward step', () => {
-    const later = [...unit1Levels.slice(2), ...unit2Levels, ...unit3Levels, ...unit4Levels, ...unit5Levels, ...unit6Levels];
-    it.each(later.map((level) => [level.id, level]))('%s offers it together with "זה בדיוק"', (_, level) => {
-        expect(level.toolboxBlocks.includes('logic_modus_ponens')).toBe(level.toolboxBlocks.includes('tactic_exact'));
+    const usedBlocks = (steps, found = new Set()) => {
+        steps.forEach(([type, , inputs]) => {
+            found.add(type);
+            Object.values(inputs || {}).forEach(inner => usedBlocks(inner, found));
+        });
+        return found;
+    };
+    const cases = UNITS.flatMap(({ unit, levels: solutions }) =>
+        worlds[`unit${unit}`].map((level, i) => [level.id, level, usedBlocks(solutions[i].flatMap(s => s.steps))]));
+    it.each(cases)('%s offers it only where a solution uses it, together with "זה בדיוק"', (_, level, used) => {
+        const offers = level.toolboxBlocks.includes('logic_modus_ponens');
+        expect(offers).toBe(used.has('logic_modus_ponens'));
+        if (offers) expect(level.toolboxBlocks).toContain('tactic_exact');
     });
 });
