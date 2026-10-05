@@ -158,7 +158,7 @@ export const unit5Levels = [
         proposition: 'A ⊆ B ∩ C',
         goalLabel: 'A ⊆ B ∩ C',
         assumptions: [{ name: 'h1', prop: 'A ⊆ B' }, { name: 'h2', prop: 'A ⊆ C' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_inter', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_inter', 'logic_and_intro', 'tactic_exact'],
         introduction: `# שייכות לחיתוך
 
 אם A מוכלת גם ב־B וגם ב־C, אז היא מוכלת בחיתוך שלהן.
@@ -202,7 +202,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ B = B ∩ A',
         goalLabel: 'A ∩ B = B ∩ A',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
+        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_and_intro', 'tactic_exact'],
         introduction: `# שוויון קבוצות
 
 שתי קבוצות *שוות* אם יש להן בדיוק אותם איברים, כלומר כל אחת מוכלת בשנייה.
@@ -223,7 +223,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
         goalLabel: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
         introduction: `# פילוג
 
 חיתוך מתפלג על איחוד: אם x0 שייך ל־A וגם ל־B או ל־C, אז הוא שייך ל־A ∩ B או ל־A ∩ C.
@@ -266,7 +266,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A \\ B ⊆ A ∩ Bᶜ',
         goalLabel: 'A \\ B ⊆ A ∩ Bᶜ',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_diff', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_diff', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'tactic_exact'],
         introduction: `# הפרש
 
 \`A \\ B\` הוא *ההפרש* של A ו־B: האיברים של A שלא שייכים ל־B. לפי ההגדרה, \`x0 ∈ A \\ B\` פירושו \`x0 ∈ A ∧ x0 ∉ B\`.
@@ -373,7 +373,7 @@ export const unit5Levels = [
         proposition: 'A ⊆ ⋃₀ F',
         goalLabel: 'A ⊆ ⋃₀ F',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sunion', 'logic_exists_intro', 'logic_and_intro', 'logic_and_combine', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sunion', 'logic_exists_intro', 'logic_and_intro', 'tactic_exact'],
         introduction: `# איחוד של משפחה
 
 F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃₀ F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x0 ∈ ⋃₀ F\` פירושו שקיימת קבוצה S ב־F כך ש־x0 ∈ S.
@@ -396,7 +396,7 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
         proposition: '⋂₀ F ⊆ A',
         goalLabel: '⋂₀ F ⊆ A',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sinter', 'logic_forall_elim', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sinter', 'logic_forall_elim', 'logic_modus_ponens', 'tactic_exact'],
         introduction: `# חיתוך של משפחה
 
 \`⋂₀ F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x0 ∈ ⋂₀ F\` פירושו שלכל קבוצה S ב־F מתקיים x0 ∈ S.

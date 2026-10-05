@@ -160,13 +160,13 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         goalLabel: '(Q ∨ P)',
         objects: [],
         assumptions: [{ name: 'h', prop: 'P' }],
-        toolboxBlocks: ['logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['logic_or_intro_right', 'tactic_exact'],
         introduction: `# "או"
 
 הטענה \`Q ∨ P\` נקראת "Q או P", והיא אומרת שלפחות אחת משתי הטענות נכונה.
 
 כדי להוכיח "או" מספיק להוכיח צד אחד. אבל צריך לבחור את הצד הנכון: את הצד שאפשר להוכיח ממה שיש בידינו.
-כאן נתונה ההנחה \`h : P\`, ולא ידוע לנו דבר על Q. איזה צד כדאי לבחור?`,
+כאן נתונה ההנחה \`h : P\`, ולא ידוע לנו דבר על Q, ולכן נבחר בצד ימין, P.`,
         newTacticsBlocks: ['logic_or_intro_left', 'logic_or_intro_right'],
         newTacticsInfo: [orIntroInfo],
         newDefinitions: [],

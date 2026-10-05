@@ -33,11 +33,9 @@ describe.each(Object.entries(worlds))('%s world levels', (_, levels) => {
     });
 });
 
-// The forward use of an implication (modus ponens), introduced in unit 1
-// level 3, is offered only in levels where one of the intended solutions
-// uses it, so the toolbox holds no block that cannot help. An assumption it
-// derives is used through "זה בדיוק", so that block comes with it.
-describe('the forward step', () => {
+// Each toolbox holds only blocks that one of the level's intended solutions
+// (e2e/solutions.js) uses, so the student never meets a block that cannot help.
+describe('the toolbox', () => {
     const usedBlocks = (steps, found = new Set()) => {
         steps.forEach(([type, , inputs]) => {
             found.add(type);
@@ -47,9 +45,7 @@ describe('the forward step', () => {
     };
     const cases = UNITS.flatMap(({ unit, levels: solutions }) =>
         worlds[`unit${unit}`].map((level, i) => [level.id, level, usedBlocks(solutions[i].flatMap(s => s.steps))]));
-    it.each(cases)('%s offers it only where a solution uses it, together with "זה בדיוק"', (_, level, used) => {
-        const offers = level.toolboxBlocks.includes('logic_modus_ponens');
-        expect(offers).toBe(used.has('logic_modus_ponens'));
-        if (offers) expect(level.toolboxBlocks).toContain('tactic_exact');
+    it.each(cases)('%s offers only blocks that a solution uses', (_, level, used) => {
+        expect(level.toolboxBlocks.filter(type => !used.has(type))).toEqual([]);
     });
 });

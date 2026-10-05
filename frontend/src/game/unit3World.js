@@ -257,12 +257,12 @@ export const unit3Levels = [
         goalLabel: '(¬¬P → P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_by_contradiction', 'logic_contradiction'],
+        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_contradiction'],
         introduction: `# הוכחה בשלילה
 
 בשלב 4 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
 
-המטרה אחרי הנחת התנאי היא P, ולא שלילה, ולכן הבלוק של הוכחת שלילה לא מתאים.
+המטרה אחרי הנחת התנאי היא P, ולא שלילה, ולכן אי אפשר להוכיח אותה כמו בשלב 4.
 *הוכחה בשלילה* עובדת לכל מטרה: מניחים שהמטרה לא נכונה ומגיעים לסתירה.
 
 שימו לב להבדל: כדי להוכיח ¬P מניחים P (שלב 4). בהוכחה בשלילה של P מניחים ¬P.`,

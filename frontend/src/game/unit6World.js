@@ -127,7 +127,7 @@ export const unit6Levels = [
         goalLabel: 'a = c',
         objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }, { name: 'c', type: 'obj' }],
         assumptions: [{ name: 'h1', prop: 'a = b' }, { name: 'h2', prop: 'b = c' }],
-        toolboxBlocks: ['logic_rewrite', 'logic_rfl', 'tactic_exact'],
+        toolboxBlocks: ['logic_rewrite', 'tactic_exact'],
         introduction: `# שרשרת של שוויונות
 
 אם a = b ו־b = c, אז a = c. זו *הטרנזיטיביות* של השוויון, והיא נובעת מהעיקרון של החלפה: מחליפים במטרה את a ב־b, ומקבלים את h2.`,
@@ -236,7 +236,7 @@ export const unit6Levels = [
         proposition: '2 * sumTo n = n * (n + 1)',
         goalLabel: '2 · sumTo(n) = n · (n + 1)',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['logic_induction', 'logic_unfold_sumto', 'logic_rewrite', 'logic_rfl', 'logic_calc', 'logic_algebra'],
+        toolboxBlocks: ['logic_induction', 'logic_unfold_sumto', 'logic_rfl', 'logic_algebra'],
         introduction: `# סכום המספרים
 
 \`sumTo(n)\` הוא הסכום \`0 + 1 + ... + n\`. הוא מוגדר ברקורסיה: \`sumTo(0) = 0\`, ו־\`sumTo(k + 1) = sumTo(k) + (k + 1)\`.

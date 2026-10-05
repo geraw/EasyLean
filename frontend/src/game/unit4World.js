@@ -176,7 +176,7 @@ export const unit4Levels = [
         goalLabel: '∃x (P(x) ∨ Q(x))',
         objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'hp', prop: 'P(a)' }],
-        toolboxBlocks: ['logic_exists_intro', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['logic_exists_intro', 'logic_or_intro_left', 'tactic_exact'],
         introduction: `# "קיים"
 
 הטענה \`∃x P(x)\` נקראת "קיים x כך ש־P(x)": לפחות עצם אחד בתחום מקיים את P. למשל, "יש סטודנט שעבר את הבוחן".
@@ -329,7 +329,7 @@ R(x,y) היא תכונה של שני עצמים, למשל "x עוזר ל־y".
         goalLabel: '((¬∀x P(x)) → (∃x ¬P(x)))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_forall_intro', 'logic_exists_intro', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'tactic_exact'],
+        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_forall_intro', 'logic_exists_intro', 'logic_not_elim', 'tactic_exact'],
         introduction: `# בונוס: שלילה של "לכל"
 
 אם לא נכון שכל הסטודנטים עברו, אז יש סטודנט שלא עבר: \`¬∀x P(x)\` גוררת \`∃x ¬P(x)\`.
