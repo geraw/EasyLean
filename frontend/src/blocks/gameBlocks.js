@@ -227,7 +227,7 @@ export const defineGameBlocks = () => {
                 .appendField("ונקרא לזה")
                 .appendField(new Blockly.FieldTextInput("?"), "HYPOTHESIS")
                 .appendField("ונגיע לסתירה");
-            move(this, NEGATION_COLOUR, 'כדי להוכיח P מניחים ¬P ומגיעים לסתירה (עיקרון של הלוגיקה הקלאסית).');
+            move(this, NEGATION_COLOUR, 'כדי להוכיח P מניחים ¬P ומגיעים לסתירה.');
         }
     };
 
@@ -243,7 +243,7 @@ export const defineGameBlocks = () => {
             this.appendStatementInput("RIGHT").setCheck("tactic")
                 .appendField("אם היא לא נכונה, נקרא לזה")
                 .appendField(new Blockly.FieldTextInput("?"), "RIGHT_NAME");
-            move(this, NEGATION_COLOUR, 'כל טענה נכונה או לא נכונה; מוכיחים את המטרה בשני המקרים (עיקרון של הלוגיקה הקלאסית).');
+            move(this, NEGATION_COLOUR, 'כל טענה נכונה או לא נכונה; מוכיחים את המטרה בשני המקרים.');
         }
     };
 

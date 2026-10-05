@@ -289,7 +289,7 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
-                note: 'הכלה ראשונה בהוכחה בשלילה (עיקרון קלאסי); השנייה בהוכחת שלילה.',
+                note: 'הכלה ראשונה בהוכחה בשלילה; השנייה בהוכחת שלילה.',
                 steps: [setEq(
                     [subsetIntro('x0', 'hx'), unfold('compl', 'hx'), byContradiction('hn'), notElim('hx'), unfold('compl'), exact('hn')],
                     [subsetIntro('x0', 'hx'), unfold('compl'), notIntro('hc'), unfold('compl', 'hc'), contradiction('hc', 'hx')])],
