@@ -5,6 +5,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/EasyLean/',
+  // Two pages: the course (index.html) and its handwritten version.
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        handwritten: 'handwritten.html',
+      },
+    },
+  },
   test: {
     // e2e/ holds the Playwright specs, which Vitest must not pick up.
     include: ['src/**/*.test.{js,jsx}'],

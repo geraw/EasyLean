@@ -91,3 +91,13 @@ export const formatProofGoal = (text) => {
     return normalized.replace(/ \* /g, ' · ').replace(/\b(double|sumTo|oddSum) (\([^()]*\)|[\p{L}\p{N}_]+)/gu,
         (_, name, argument) => `${name}(${argument.replace(/^\((.*)\)$/, '$1')})`);
 };
+
+// The condition and conclusion of an implication, as Lean or a student
+// writes it (`P → Q → R` is P and `Q → R`), or null for any other formula.
+export const splitImplication = (text) => {
+    const normalized = stripOuterParentheses(text || '');
+    if (findTopLevel(normalized, CONNECTIVES[0][1])) return null;
+    const found = findTopLevel(normalized, CONNECTIVES[1][1]);
+    if (!found) return null;
+    return [normalized.slice(0, found.index).trim(), normalized.slice(found.index + found.length).trim()];
+};

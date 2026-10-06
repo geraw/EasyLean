@@ -241,8 +241,9 @@ const EXPLANATIONS = [
 ];
 
 // Explanations are Hebrew with formulas inside, so negations are isolated (see bidi.js).
-export const explainLeanMessage = (text) => {
-    for (const { pattern, explain } of EXPLANATIONS) {
+// A version of the course can put its own explanations first (see handwritten/).
+export const explainLeanMessage = (text, explanations = []) => {
+    for (const { pattern, explain } of [...explanations, ...EXPLANATIONS]) {
         const match = text.match(pattern);
         if (match) return isolateFormulas(explain(match, text));
     }
@@ -252,13 +253,13 @@ export const explainLeanMessage = (text) => {
 // The first problem worth showing a student, as { line, message, unsolved }, or null.
 // Holes left on purpose to compute a proof state are not problems, and
 // neither are unsolved goals unless the whole proof is being checked.
-export const findLeanProblem = (output, { includeUnsolvedGoals = false } = {}) => {
+export const findLeanProblem = (output, { includeUnsolvedGoals = false, explanations = [] } = {}) => {
     for (const { line, severity, text } of parseLeanMessages(output)) {
         if (severity !== 'error') continue;
         if (/don't know how to synthesize placeholder/.test(text)) continue;
         const unsolved = /^unsolved goals/.test(text);
         if (!includeUnsolvedGoals && unsolved) continue;
-        return { line, message: explainLeanMessage(text), unsolved };
+        return { line, message: explainLeanMessage(text, explanations), unsolved };
     }
     return null;
 };

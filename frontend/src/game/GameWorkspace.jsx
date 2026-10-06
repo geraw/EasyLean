@@ -48,6 +48,12 @@ const renderMarkdownLite = (text) => {
     });
 };
 
+// A version of the course can change how the game reads (see handwritten/):
+// hideAssumptionNames shows assumptions by what they say only; explanations
+// and incompleteMessage replace the usual texts; moveStates computes, after
+// every change, the proof state before each move ({ build, read, apply }).
+const DEFAULT_VERSION = {};
+
 const GameWorkspace = ({
     levels,
     worldName,
@@ -59,7 +65,9 @@ const GameWorkspace = ({
     // After the last level, offers moving on to the next unit (e.g. "ליחידה 1").
     nextWorldLabel = null,
     onNextWorld = null,
+    version = DEFAULT_VERSION,
 }) => {
+    const incompleteMessage = version.incompleteMessage || INCOMPLETE_MOVE;
     const [levelIdx, setLevelIdx] = useState(0);
     const [workspace, setWorkspace] = useState(null);
     const [workspaceRevision, setWorkspaceRevision] = useState(0);
@@ -189,7 +197,7 @@ const GameWorkspace = ({
     // Where a failed check went wrong: the block whose code Lean complained
     // about (falling back to the evaluated or last move) and an explanation.
     const locateProblem = (output, source, options) => {
-        const problem = findLeanProblem(output, options);
+        const problem = findLeanProblem(output, { ...options, explanations: version.explanations });
         return {
             blockId: (problem && ((problem.unsolved && source.partLastBlockIds.get(problem.line)) || source.lineBlockIds.get(problem.line)))
                 || evaluatedBlockId || getLastProofBlockId(workspace),
@@ -244,11 +252,11 @@ const GameWorkspace = ({
                     if (firstProblem) {
                         markBlockError(workspace, firstProblem.blockId, firstProblem.message);
                     } else if (incomplete) {
-                        markBlockError(workspace, incomplete.id, INCOMPLETE_MOVE, { gentle: true });
+                        markBlockError(workspace, incomplete.id, incompleteMessage, { gentle: true });
                     } else {
                         clearBlockError();
                     }
-                    if (incomplete) states[0] = { ...states[0], prompt: INCOMPLETE_MOVE };
+                    if (incomplete) states[0] = { ...states[0], prompt: incompleteMessage };
                     setProofStates({ before: states[0], after: states[1] || null });
                 }
             } catch {
@@ -265,12 +273,32 @@ const GameWorkspace = ({
         return () => clearTimeout(timeout);
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
+    // The proof state before each move, for versions whose moves follow it.
+    const moveStatesRequestRef = useRef(0);
+    useEffect(() => {
+        const { moveStates } = version;
+        if (!moveStates || !proofStateEndpoint || !workspace) return undefined;
+        const requestId = moveStatesRequestRef.current + 1;
+        moveStatesRequestRef.current = requestId;
+        const timeout = setTimeout(async () => {
+            const source = moveStates.build(workspace, level, preamble);
+            if (!source) return;
+            try {
+                const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code });
+                if (moveStatesRequestRef.current === requestId) moveStates.apply(workspace, moveStates.read(data.output || '', source));
+            } catch {
+                // Without the states the moves keep their general wording.
+            }
+        }, 180);
+        return () => clearTimeout(timeout);
+    }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint, version]);
+
     const runProof = async () => {
         const incomplete = findIncompleteMove(workspace);
         if (incomplete) {
-            markBlockError(workspace, incomplete.id, INCOMPLETE_MOVE, { gentle: true });
+            markBlockError(workspace, incomplete.id, incompleteMessage, { gentle: true });
             setStatus('error');
-            setOutput(INCOMPLETE_MOVE);
+            setOutput(incompleteMessage);
             return;
         }
         // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
@@ -357,10 +385,10 @@ const GameWorkspace = ({
                     ))}
                 </div>
             )}
-            {assumptions.map((assumption) => (
-                <div key={assumption.name} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+            {assumptions.map((assumption, index) => (
+                <div key={index} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
                     {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
-                    {assumption.name} : {formatProofGoal(assumption.prop)}
+                    {!version.hideAssumptionNames && `${assumption.name} : `}{formatProofGoal(assumption.prop)}
                 </div>
             ))}
             {objects.length === 0 && numbers.length === 0 && sets.length === 0 && assumptions.length === 0 && (
@@ -518,7 +546,7 @@ const GameWorkspace = ({
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
                         {level.assumptions.map(a => (
-                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{a.name} : {a.prop}</div>
+                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{!version.hideAssumptionNames && `${a.name} : `}{a.prop}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
                         <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>{level.goalLabel}</div>

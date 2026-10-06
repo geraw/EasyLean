@@ -32,6 +32,7 @@
 | [design/architecture-and-tools.md](design/architecture-and-tools.md) | ארכיטקטורה וכלים נדרשים |
 | [design/prototype-gap.md](design/prototype-gap.md) | הפער בין האב-טיפוס הקיים לדרישות |
 | [design/open-decisions.md](design/open-decisions.md) | החלטות פתוחות |
+| [design/handwritten-version.md](design/handwritten-version.md) | גרסה ניסיונית: הוכחה בכתב יד, בלי שמות להנחות |
 
 ## סטטוס
 

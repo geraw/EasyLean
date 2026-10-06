@@ -106,6 +106,9 @@ const movesInOrder = (block) => {
 
 const hasPlaceholder = (block) => block.inputList.some((input) => input.fieldRow.some((field) => field.EDITABLE && field.isVisible() && String(field.getValue()).trim() === PLACEHOLDER));
 
+// Every move of the proof, in the order they are read.
+export const proofMoves = (workspace) => movesInOrder(findGoalBlock(workspace)?.getInputTargetBlock('PROOF'));
+
 // The first move with a field the student has not filled in yet, or null.
 export const findIncompleteMove = (workspace) => {
     const proof = findGoalBlock(workspace)?.getInputTargetBlock('PROOF');

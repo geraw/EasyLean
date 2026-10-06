@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatProofGoal } from './formatProofGoal';
+import { formatProofGoal, splitImplication } from './formatProofGoal';
 
 describe('formatProofGoal', () => {
     it('leaves an atomic goal alone', () => {
@@ -86,5 +86,19 @@ describe('formatProofGoal with the functions of unit 6', () => {
     it('writes their arguments in parentheses', () => {
         expect(formatProofGoal('double (k + 1) = k + 1 + (k + 1)')).toBe('double(k + 1) = k + 1 + (k + 1)');
         expect(formatProofGoal('2 * sumTo n = n * (n + 1)')).toBe('2 · sumTo(n) = n · (n + 1)');
+    });
+});
+
+describe('splitImplication', () => {
+    it.each([
+        ['P → Q', ['P', 'Q']],
+        ['(P → Q) → R', ['(P → Q)', 'R']],
+        ['P → Q → R', ['P', 'Q → R']],
+        ['(P -> Q)', ['P', 'Q']],
+        ['P', null],
+        ['P ∧ Q', null],
+        ['P ↔ (Q → R)', null],
+    ])('%s', (formula, parts) => {
+        expect(splitImplication(formula)).toEqual(parts);
     });
 });
