@@ -69,10 +69,10 @@ test('reaching a contradiction on a goal that is not ⊥ is explained', async ({
 });
 
 test('proving a goal that is not a negation by assuming what it negates is explained', async ({ page }) => {
-    await goToLevel(page, 6);
+    await goToLevel(page, 5);
     await buildProof(page, [assume('h'), notIntro('hn')]);
     await expect(proofStatePanel(page).getByRole('alert'))
-        .toContainText('המטרה היא P, והיא לא שלילה');
+        .toContainText('והיא לא שלילה, ולכן אי אפשר להוכיח אותה בהנחת הטענה שהיא שוללת');
 });
 
 test('checking both possibilities gives one case with P and one with ¬P', async ({ page }) => {
