@@ -6,6 +6,7 @@ import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveSt
 import { unit0Levels, unit0WorldName } from './unit0World';
 import { unit1Levels, unit1WorldName } from './unit1World';
 import { unit2Levels, unit2WorldName } from './unit2World';
+import { unit3Levels, unit3WorldName } from './unit3World';
 import { BACKEND_URL } from '../backendUrl';
 import '../App.css';
 
@@ -35,7 +36,8 @@ const modeButtonStyle = (active) => ({
 const UNITS = {
   unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
   unit1: { levels: unit1Levels, worldName: unit1WorldName, next: { mode: 'unit2', label: 'ליחידה 2' } },
-  unit2: { levels: unit2Levels, worldName: unit2WorldName },
+  unit2: { levels: unit2Levels, worldName: unit2WorldName, next: { mode: 'unit3', label: 'ליחידה 3' } },
+  unit3: { levels: unit3Levels, worldName: unit3WorldName },
 };
 
 function App() {

@@ -105,3 +105,11 @@ export const splitConnective = (text, symbol) => {
 
 // The condition and conclusion of an implication (`P → Q → R` is P and `Q → R`).
 export const splitImplication = (text) => splitConnective(text, '→');
+
+// The statement a negation denies (`¬(P ∨ Q)` is `P ∨ Q`), or null when the
+// formula is not a negation (`¬P ∨ Q` is an "or").
+export const negatedStatement = (text) => {
+    const normalized = stripOuterParentheses(text || '');
+    if (!normalized.startsWith('¬') || CONNECTIVES.some(([, spellings]) => findTopLevel(normalized, spellings))) return null;
+    return normalized.slice(1).trim();
+};

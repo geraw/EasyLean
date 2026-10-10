@@ -12,6 +12,13 @@ const combine = (left, right) => ['hw_and_combine', { LEFT: left, RIGHT: right }
 const orIntro = (side) => ['hw_or_intro', { SIDE: side }];
 const orCases = (or, left, right) => ['hw_or_elim', { OR: or }, { LEFT: left, RIGHT: right }];
 const iffElim = (iff) => ['hw_iff_elim', { IFF: iff }];
+const contradiction = (fact) => ['hw_contradiction', { FACT: fact }];
+const nonContradiction = (formula) => ['hw_non_contradiction', { FORMULA: formula }];
+const falseImplies = (formula) => ['hw_false_implies', { FORMULA: formula }];
+const notIntro = ['hw_not_intro'];
+const notElim = (negation) => ['hw_not_elim', { NEGATION: negation }];
+const byContradiction = ['hw_by_contradiction'];
+const byCases = (formula, left, right) => ['hw_by_cases', { FORMULA: formula }, { LEFT: left, RIGHT: right }];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -80,6 +87,58 @@ export const HANDWRITTEN_UNITS = [
                         [orIntro('RIGHT'), combine('P', 'R'), close])],
                 },
             ],
+        ],
+    },
+    {
+        unit: 3,
+        world: 'יחידה 3 - שלילה והוכחה בשלילה',
+        levels: [
+            [{ label: 'פתרון', steps: [contradiction('P')] }],
+            [
+                { label: 'אחורה', steps: [nonContradiction('P'), backward('P ∧ ¬P → False'), andIntro([close], [close])] },
+                { label: 'קדימה', steps: [nonContradiction('P'), combine('P', '¬P'), forward('P ∧ ¬P → False', 'P ∧ ¬P'), close] },
+            ],
+            [
+                { label: 'אחורה', steps: [falseImplies('Q'), backward('False → Q'), contradiction('P')] },
+                { label: 'קדימה', steps: [forward('¬P', 'P'), falseImplies('Q'), forward('False → Q', 'False'), close] },
+            ],
+            [
+                { label: 'פתרון', steps: [notIntro, contradiction('P')] },
+                { label: 'קדימה', steps: [notIntro, forward('¬P', 'P'), close] },
+            ],
+            [
+                { label: 'אחורה', steps: [notIntro, notElim('¬Q'), backward('P → Q'), close] },
+                { label: 'קדימה', steps: [notIntro, forward('P → Q', 'P'), contradiction('Q')] },
+            ],
+            [{
+                label: 'פתרון',
+                steps: [assume, andIntro(
+                    [notIntro, notElim('¬(P ∨ Q)'), orIntro('LEFT'), close],
+                    [notIntro, notElim('¬(P ∨ Q)'), orIntro('RIGHT'), close])],
+            }],
+            [{ label: 'פתרון', steps: [assume, byContradiction, contradiction('¬P')] }],
+            [
+                { label: 'אחורה', steps: [byCases('P', [backward('P → Q'), close], [backward('¬P → Q'), close])] },
+                { label: 'קדימה', steps: [byCases('P', [forward('P → Q', 'P'), close], [forward('¬P → Q', '¬P'), close])] },
+            ],
+            [
+                {
+                    label: 'אחורה',
+                    steps: [assume, byCases('P',
+                        [orIntro('RIGHT'), notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
+                        [orIntro('LEFT'), close])],
+                },
+                {
+                    label: 'קדימה',
+                    steps: [assume, byCases('P',
+                        [orIntro('RIGHT'), notIntro, combine('P', 'Q'), forward('¬(P ∧ Q)', 'P ∧ Q'), close],
+                        [orIntro('LEFT'), close])],
+                },
+            ],
+            [{
+                label: 'פתרון',
+                steps: [assume, notIntro, notElim('¬(P → Q)'), assume, falseImplies('Q'), backward('False → Q'), contradiction('P')],
+            }],
         ],
     },
 ];

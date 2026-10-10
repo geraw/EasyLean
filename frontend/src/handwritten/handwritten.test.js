@@ -11,11 +11,12 @@ import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
 import { unit2Levels } from './unit2World';
+import { unit3Levels } from './unit3World';
 import { HANDWRITTEN_UNITS } from '../../e2e/handwrittenSolutions';
 
 defineHandwrittenBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels];
 
 // A level's workspace with one of its solutions in place of the starting moves.
 const solved = (level, steps) => {
@@ -145,6 +146,48 @@ describe('the moves of unit 2', () => {
     });
 });
 
+describe('the moves of unit 3', () => {
+    it('state contradictions as False, and find assumptions by statement', () => {
+        const level = unit3Levels[9];
+        const { workspace } = solved(level, [['hw_assume'], ['hw_not_intro'], ['hw_not_elim', { NEGATION: '¬(P → Q)' }], ['hw_assume'],
+            ['hw_false_implies', { FORMULA: 'Q' }], ['hw_apply_rule', { RULE: 'False → Q' }], ['hw_contradiction', { FACT: 'P' }]]);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  refine Not.intro (fun _ => ?_)',
+            '  refine (absurd ?_ ‹¬(P → Q)› : False)',
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  have : False → (Q) := False.elim',
+            '  refine easylean_mp ‹False → Q› ?_',
+            '  exact (absurd ‹P› ‹¬(P)› : False)',
+        ].join('\n'));
+    });
+
+    it('read like a written proof', () => {
+        const { blocks: [contradiction, principle, exFalso, notIntro, notElim, byContradiction, byCases, forward] } = solved(unit3Levels[9], [
+            ['hw_contradiction', { FACT: 'P ∨ Q' }], ['hw_non_contradiction', { FORMULA: 'P' }], ['hw_false_implies', { FORMULA: 'Q' }],
+            ['hw_not_intro'], ['hw_not_elim', { NEGATION: '¬(P → Q)' }], ['hw_by_contradiction'], ['hw_by_cases', { FORMULA: 'P' }],
+            ['hw_forward', { RULE: '¬P', PREMISE: 'P' }],
+        ]);
+        expect(phraseOf(contradiction)).toBe('ואת השלילה שלה ¬(P ∨ Q) וזו סתירה.');
+        expect(phraseOf(principle)).toBe('נובע ((P ∧ ¬P) → ⊥)');
+        expect(phraseOf(exFalso)).toBe('ולכן נובע (⊥ → Q)');
+        notIntro.setStateBefore({ assumptions: [], goal: '¬¬P' });
+        expect(phraseOf(notIntro)).toBe('כדי להוכיח ¬¬P נניח ¬P ונגיע לסתירה');
+        expect(phraseOf(notElim)).toBe('כדי להגיע לסתירה די להוכיח (P → Q)');
+        byContradiction.setStateBefore({ assumptions: [], goal: 'P ∨ Q' });
+        expect(phraseOf(byContradiction)).toBe('נוכיח בשלילה: נניח ¬(P ∨ Q) ונגיע לסתירה');
+        expect([phraseOf(byCases, 'LEFT_TEXT'), phraseOf(byCases, 'RIGHT_TEXT')]).toEqual(['מקרה ראשון: נניח P', 'מקרה שני: נניח ¬P']);
+        // A negation is an implication to ⊥.
+        expect(phraseOf(forward)).toBe('נובע ⊥');
+    });
+
+    it('offer the goal too where any statement is asked for', () => {
+        const { blocks: [exFalso] } = solved(unit3Levels[2], [['hw_false_implies']]);
+        exFalso.setStateBefore({ assumptions: ['P', '¬P'], goal: 'Q' });
+        expect(exFalso.getField('FORMULA').getOptions(false).map(([, value]) => value)).toEqual(['?', 'Q', 'P', '¬P', '__write_own__']);
+    });
+});
+
 describe('the proof state before each move', () => {
     it('comes from one check, a theorem per move', () => {
         const level = unit1Levels[0];
@@ -184,6 +227,9 @@ describe('handwritten explanations', () => {
         ['using an "and" that the assumption is not',
             'Application type mismatch: The argument\n  ?m.5\nhas type\n  P\nbut is expected to have type\n  ?m.3 ∧ ?m.4\nin the application\n  And.left ?m.5',
             'ההנחה P היא לא טענת "וגם", ולכן אין לה שני צדדים.'],
+        ['using as a negation an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.7\nhas type\n  Q\nbut is expected to have type\n  ¬?m.4\nin the application\n  absurd ?m.6 ?m.7',
+            'ההנחה Q היא לא שלילה, ולכן אין טענה שהיא שוללת.'],
         ['a letter that is not in the level', 'Unknown identifier `S`',
             'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
         ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',
