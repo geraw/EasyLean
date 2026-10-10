@@ -93,7 +93,10 @@ export const HANDWRITTEN_UNITS = [
         unit: 3,
         world: 'יחידה 3 - שלילה והוכחה בשלילה',
         levels: [
-            [{ label: 'פתרון', steps: [contradiction('P')] }],
+            [
+                { label: 'פתרון', steps: [contradiction('P')] },
+                { label: 'מהשלילה', steps: [contradiction('¬P')] },
+            ],
             [
                 { label: 'אחורה', steps: [nonContradiction('P'), backward('P ∧ ¬P → False'), andIntro([close], [close])] },
                 { label: 'קדימה', steps: [nonContradiction('P'), combine('P', '¬P'), forward('P ∧ ¬P → False', 'P ∧ ¬P'), close] },

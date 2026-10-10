@@ -168,7 +168,7 @@ describe('the moves of unit 3', () => {
             ['hw_not_intro'], ['hw_not_elim', { NEGATION: '¬(P → Q)' }], ['hw_by_contradiction'], ['hw_by_cases', { FORMULA: 'P' }],
             ['hw_forward', { RULE: '¬P', PREMISE: 'P' }],
         ]);
-        expect(phraseOf(contradiction)).toBe('ואת השלילה שלה ¬(P ∨ Q) וזו סתירה.');
+        expect(phraseOf(contradiction)).toBe('ואת ¬(P ∨ Q) וזו סתירה.');
         expect(phraseOf(principle)).toBe('נובע ((P ∧ ¬P) → ⊥)');
         expect(phraseOf(exFalso)).toBe('ולכן נובע (⊥ → Q)');
         notIntro.setStateBefore({ assumptions: [], goal: '¬¬P' });
@@ -179,6 +179,20 @@ describe('the moves of unit 3', () => {
         expect([phraseOf(byCases, 'LEFT_TEXT'), phraseOf(byCases, 'RIGHT_TEXT')]).toEqual(['מקרה ראשון: נניח P', 'מקרה שני: נניח ¬P']);
         // A negation is an implication to ⊥.
         expect(phraseOf(forward)).toBe('נובע ⊥');
+    });
+
+    it('reach a contradiction from either a statement or its negation', () => {
+        const level = unit3Levels[0];
+        const { workspace, blocks: [contradiction] } = solved(level, [['hw_contradiction', { FACT: '¬P' }]]);
+        // ¬P contradicts P, unless ¬¬P is in hand.
+        expect(phraseOf(contradiction)).toBe('ואת P וזו סתירה.');
+        contradiction.setStateBefore({ assumptions: ['¬¬P', '¬P'], goal: 'False' });
+        expect(phraseOf(contradiction)).toBe('ואת ¬¬P וזו סתירה.');
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  first',
+            '  | exact (absurd ‹¬P› ‹¬(¬P)› : False)',
+            '  | exact (absurd ‹P› ‹¬P› : False)',
+        ].join('\n'));
     });
 
     it('offer the goal too where any statement is asked for', () => {

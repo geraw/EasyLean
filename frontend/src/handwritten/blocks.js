@@ -137,6 +137,15 @@ const asImplication = (formula) => {
 
 const negation = (formula) => `¬(${formula})`;
 
+const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
+
+// What contradicts the chosen statement: its negation, or, for a negation
+// ¬Q, the statement Q it denies (unless ¬¬Q is what is in hand).
+const contradictionPartner = (fact, inHand = []) => {
+    const denied = negatedStatement(fact);
+    return denied && !inHand.some((formula) => sameStatement(formula, negation(fact))) ? denied : negation(fact);
+};
+
 // Blocks keep their text up to date: from their own fields (see
 // FieldAssumption), and from the proof state before them (stateBefore, set by
 // the game workspace).
@@ -354,7 +363,8 @@ export const defineHandwrittenBlocks = () => {
         },
     };
     // A statement and its negation, both in hand: a contradiction, which
-    // closes the goal ⊥.
+    // closes the goal ⊥. Either of the two may be chosen; the block names the
+    // other (see contradictionPartner).
     Blockly.Blocks['hw_contradiction'] = {
         init() {
             this.appendDummyInput()
@@ -368,7 +378,7 @@ export const defineHandwrittenBlocks = () => {
         updateText() {
             const fact = this.getFieldValue('FACT');
             setPhrase(this, filled(fact)
-                ? ['ואת השלילה שלה', { formula: negation(fact) }, 'וזו סתירה.']
+                ? ['ואת', { formula: contradictionPartner(fact, this.stateBefore?.assumptions) }, 'וזו סתירה.']
                 : ['ואת השלילה שלה, וזו סתירה.']);
         },
     };
@@ -522,9 +532,14 @@ leanGenerator.forBlock['hw_iff_elim'] = (block) => {
 
 // Unit 3. As in the course, a contradiction is stated as False, so that it
 // only closes the goal ⊥; the course's explanations of these rules apply.
+// A negation ¬Q contradicts ¬¬Q or Q: Lean tries both, Q last, so that when
+// neither is in hand it explains that Q is not.
 leanGenerator.forBlock['hw_contradiction'] = (block) => {
     const fact = block.getFieldValue('FACT');
-    return `  exact (absurd ‹${fact}› ‹¬(${fact})› : False)\n`;
+    const withNegation = `exact (absurd ‹${fact}› ‹¬(${fact})› : False)`;
+    const denied = negatedStatement(fact);
+    if (!denied) return `  ${withNegation}\n`;
+    return `  first\n  | ${withNegation}\n  | exact (absurd ‹${denied}› ‹${fact}› : False)\n`;
 };
 
 leanGenerator.forBlock['hw_non_contradiction'] = (block) => {
