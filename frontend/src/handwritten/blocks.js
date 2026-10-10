@@ -167,7 +167,7 @@ export const defineHandwrittenBlocks = () => {
             this.appendDummyInput()
                 .appendField('לפי הגרירה')
                 .appendField(new FieldAssumption(), 'RULE')
-                .appendField('שהנחנו,');
+                .appendField('שיש לנו ביד,');
             appendPhrase(this);
             move(this, 'אם המסקנה של גרירה שבידינו היא מה שצריך להוכיח, די להוכיח את התנאי שלה.');
             this.updateText();
