@@ -11,7 +11,6 @@ const openHandwritten = async (page, worldName, levelIndex = 0) => {
     await page.getByRole('combobox').selectOption(String(levelIndex));
 };
 
-const UNIT0 = HANDWRITTEN_UNITS[0].world;
 const UNIT1 = HANDWRITTEN_UNITS[1].world;
 
 // A move's text and the options of one of its fields, as students read them.
@@ -36,10 +35,10 @@ for (const { unit, world, levels } of HANDWRITTEN_UNITS) {
     });
 }
 
-test('the planned error of unit 0 is explained by statements', async ({ page }) => {
-    await openHandwritten(page, UNIT0, 1);
+test('the planned error, closing too early, is explained by statements', async ({ page }) => {
+    await openHandwritten(page, UNIT1, 1);
     const state = page.getByRole('region', { name: 'מצב ההוכחה' });
-    await expect(state.getByRole('alert')).toContainText('ההנחה P היא לא מה שצריך להוכיח: צריך להוכיח Q');
+    await expect(state.getByRole('alert')).toContainText('אין בידינו הנחה שאומרת Q');
 });
 
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {

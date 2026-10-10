@@ -58,7 +58,7 @@ describe('the moves', () => {
             '  refine easylean_imp_intro (fun _ => ?_)',
             '  have := easylean_mp ‹P → Q› ‹P›',
             '  have := easylean_mp ‹Q → R› ‹Q›',
-            '  exact (‹R› : R)',
+            '  assumption',
         ].join('\n'));
     });
 
@@ -74,10 +74,10 @@ describe('the moves', () => {
     });
 
     it('offer the assumptions in hand before them, and typing one in', () => {
-        const { blocks: [close] } = solved(unit0Levels[1], [['hw_exact']]);
-        const field = close.getField('FACT');
+        const { blocks: [backward] } = solved(unit1Levels[1], [['hw_apply_rule']]);
+        const field = backward.getField('RULE');
         expect(field.getValue()).toBe('?');
-        close.setStateBefore({ assumptions: ['P', 'P → Q'], goal: 'Q' });
+        backward.setStateBefore({ assumptions: ['P', 'P → Q'], goal: 'Q' });
         expect(field.getOptions(false).map(([label, value]) => [withoutIsolates(label), value])).toEqual([
             ['?', '?'], ['P', 'P'], ['(P → Q)', 'P → Q'], ['✎ כתיבה ידנית...', '__write_own__'],
         ]);
@@ -111,9 +111,6 @@ describe('handwritten explanations', () => {
     const explain = (message) => withoutIsolates(explainLeanMessage(message, HANDWRITTEN_EXPLANATIONS));
 
     it.each([
-        ['closing with an assumption that is not the goal',
-            'Type mismatch\n  h\nhas type\n  P\nbut is expected to have type\n  Q',
-            'ההנחה P היא לא מה שצריך להוכיח: צריך להוכיח Q. אפשר לסיים רק בעזרת הנחה שאומרת בדיוק את זה.'],
         ['going back by an implication whose conclusion is not the goal',
             'Application type mismatch: The argument\n  h1\nhas type\n  P → Q\nbut is expected to have type\n  ?m.2 → R\nin the application\n  easylean_mp h1',
             'המסקנה של (P → Q) היא Q, אבל צריך להוכיח R. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה היא בדיוק מה שצריך להוכיח.'],
@@ -123,9 +120,9 @@ describe('handwritten explanations', () => {
         ['using an assumption that is not an implication as one',
             'Application type mismatch: The argument\n  ?m.5\nhas type\n  P\nbut is expected to have type\n  ?m.3 → ?m.4\nin the application\n  easylean_mp ?m.5',
             'ההנחה P היא לא גרירה, ולכן אין לה תנאי ומסקנה.'],
-        ['a statement that is not in hand',
+        ['closing before the goal is in hand, or a statement that is not in hand',
             'Tactic `assumption` failed\n\nP Q : Prop\nh1 : P → Q\nhp : P\n⊢ Q',
-            'אין בידינו הנחה שאומרת Q. בחרו הנחה מהרשימה, או בדקו את מה שכתבתם מול מצב ההוכחה.'],
+            'אין בידינו הנחה שאומרת Q. במצב ההוכחה רואים מה יש לנו ביד.'],
         ['a letter that is not in the level', 'Unknown identifier `S`',
             'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
         ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',

@@ -31,15 +31,10 @@ export const HANDWRITTEN_EXPLANATIONS = [
         },
     },
     {
-        // Closing the goal with an assumption that says something else (the
-        // course's own rules, easylean_…, have their own explanations).
-        pattern: /^type mismatch\s*\n[ \t]*(?![ \t]|easylean_)(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
-        explain: ([, , actual, expected]) => `ההנחה ${formula(actual)} היא לא מה שצריך להוכיח: צריך להוכיח ${formula(expected)}. אפשר לסיים רק בעזרת הנחה שאומרת בדיוק את זה.`,
-    },
-    {
-        // A statement that is not one of the assumptions in hand.
+        // Closing before the goal is in hand, or a statement chosen in a move
+        // that is not one of the assumptions in hand.
         pattern: /^Tactic `assumption` failed[\s\S]*?^⊢ (.+)$/m,
-        explain: ([, statement]) => `אין בידינו הנחה שאומרת ${formula(statement)}. בחרו הנחה מהרשימה, או בדקו את מה שכתבתם מול מצב ההוכחה.`,
+        explain: ([, statement]) => `אין בידינו הנחה שאומרת ${formula(statement)}. במצב ההוכחה רואים מה יש לנו ביד.`,
     },
     {
         pattern: /unknown identifier [`'‘]?([^`'’\s]+)[`'’]?/i,

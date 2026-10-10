@@ -107,17 +107,13 @@ const followState = {
 };
 
 export const defineHandwrittenBlocks = () => {
-    // Closing the goal with an assumption that says exactly the goal.
+    // Closing the goal: something in hand says exactly the goal. Lean looks
+    // for it among everything in hand, so the student does not point to it.
     Blockly.Blocks['hw_exact'] = {
         init() {
-            this.appendDummyInput()
-                .appendField('לפי ההנחה')
-                .appendField(new FieldAssumption(), 'FACT')
-                .appendField('וזה בדיוק מה שצריך להוכיח.');
+            this.appendDummyInput().appendField('הגענו בדיוק למה שצריך להוכיח.');
             move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שצריך להוכיח, ההוכחה הושלמה.');
         },
-        ...followState,
-        updateText() {},
     };
 
     // Proving an implication: assume its condition, prove its conclusion.
@@ -178,13 +174,10 @@ export const defineHandwrittenBlocks = () => {
     };
 };
 
-// Lean finds each assumption by its statement: ‹P› is the assumption saying P.
-// Closing states the goal too, so a wrong assumption is a type mismatch,
-// and a statement that is not in hand fails to be found.
-leanGenerator.forBlock['hw_exact'] = (block) => {
-    const fact = block.getFieldValue('FACT');
-    return `  exact (‹${fact}› : ${fact})\n`;
-};
+// Lean finds each assumption by its statement: ‹P› is the assumption saying P,
+// and closing finds one saying the goal. Either fails as `assumption` when no
+// assumption in hand says it.
+leanGenerator.forBlock['hw_exact'] = () => '  assumption\n';
 
 leanGenerator.forBlock['hw_assume'] = () => '  refine easylean_imp_intro (fun _ => ?_)\n';
 
