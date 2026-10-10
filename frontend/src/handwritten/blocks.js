@@ -161,9 +161,9 @@ export const defineHandwrittenBlocks = () => {
     Blockly.Blocks['hw_forward'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מההנחה')
+                .appendField('מהגרירה')
                 .appendField(new FieldAssumption(), 'RULE')
-                .appendField('ומההנחה')
+                .appendField('ומ־')
                 .appendField(new FieldAssumption(), 'PREMISE');
             appendPhrase(this);
             move(this, 'מגרירה ומהתנאי שלה נובעת המסקנה שלה, והיא מצטרפת להנחות.');
