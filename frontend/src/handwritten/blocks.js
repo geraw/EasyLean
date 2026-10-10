@@ -111,8 +111,8 @@ export const defineHandwrittenBlocks = () => {
     // for it among everything in hand, so the student does not point to it.
     Blockly.Blocks['hw_exact'] = {
         init() {
-            this.appendDummyInput().appendField('הגענו בדיוק למה שצריך להוכיח.');
-            move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שצריך להוכיח, ההוכחה הושלמה.');
+            this.appendDummyInput().appendField('יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.');
+            move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שרוצים להוכיח, ההוכחה הושלמה.');
         },
     };
 
@@ -137,8 +137,9 @@ export const defineHandwrittenBlocks = () => {
     Blockly.Blocks['hw_apply_rule'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי ההנחה')
-                .appendField(new FieldAssumption(), 'RULE');
+                .appendField('לפי הגרירה')
+                .appendField(new FieldAssumption(), 'RULE')
+                .appendField('שהנחנו,');
             appendPhrase(this);
             move(this, 'אם המסקנה של גרירה שבידינו היא מה שצריך להוכיח, די להוכיח את התנאי שלה.');
             this.updateText();
