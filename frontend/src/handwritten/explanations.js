@@ -31,6 +31,13 @@ export const HANDWRITTEN_EXPLANATIONS = [
         },
     },
     {
+        // Using an "and" or an "iff" that the assumption is not.
+        pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type[\s\S]*?in the application\s*\n\s*(And|Iff)\./,
+        explain: ([, type, connective]) => (connective === 'And'
+            ? `ההנחה ${formula(type)} היא לא טענת "וגם", ולכן אין לה שני צדדים.`
+            : `ההנחה ${formula(type)} היא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים.`),
+    },
+    {
         // Closing before the goal is in hand, or a statement chosen in a move
         // that is not one of the assumptions in hand.
         pattern: /^Tactic `assumption` failed[\s\S]*?^⊢ (.+)$/m,

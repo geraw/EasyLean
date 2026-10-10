@@ -92,12 +92,16 @@ export const formatProofGoal = (text) => {
         (_, name, argument) => `${name}(${argument.replace(/^\((.*)\)$/, '$1')})`);
 };
 
-// The condition and conclusion of an implication, as Lean or a student
-// writes it (`P → Q → R` is P and `Q → R`), or null for any other formula.
-export const splitImplication = (text) => {
+// The two sides of a formula whose main connective is `symbol` (one of
+// CONNECTIVES), as Lean or a student writes it, or null for any other formula.
+export const splitConnective = (text, symbol) => {
     const normalized = stripOuterParentheses(text || '');
-    if (findTopLevel(normalized, CONNECTIVES[0][1])) return null;
-    const found = findTopLevel(normalized, CONNECTIVES[1][1]);
+    const position = CONNECTIVES.findIndex(([candidate]) => candidate === symbol);
+    if (CONNECTIVES.slice(0, position).some(([, spellings]) => findTopLevel(normalized, spellings))) return null;
+    const found = findTopLevel(normalized, CONNECTIVES[position][1]);
     if (!found) return null;
     return [normalized.slice(0, found.index).trim(), normalized.slice(found.index + found.length).trim()];
 };
+
+// The condition and conclusion of an implication (`P → Q → R` is P and `Q → R`).
+export const splitImplication = (text) => splitConnective(text, '→');

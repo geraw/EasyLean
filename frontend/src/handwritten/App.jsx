@@ -5,6 +5,7 @@ import { HANDWRITTEN_EXPLANATIONS, INCOMPLETE_MOVE } from './explanations';
 import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels, unit0WorldName } from './unit0World';
 import { unit1Levels, unit1WorldName } from './unit1World';
+import { unit2Levels, unit2WorldName } from './unit2World';
 import { BACKEND_URL } from '../backendUrl';
 import '../App.css';
 
@@ -33,7 +34,8 @@ const modeButtonStyle = (active) => ({
 
 const UNITS = {
   unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
-  unit1: { levels: unit1Levels, worldName: unit1WorldName },
+  unit1: { levels: unit1Levels, worldName: unit1WorldName, next: { mode: 'unit2', label: 'ליחידה 2' } },
+  unit2: { levels: unit2Levels, worldName: unit2WorldName },
 };
 
 function App() {

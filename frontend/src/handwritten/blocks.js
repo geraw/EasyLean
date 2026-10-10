@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
-import { leanGenerator } from '../generator/lean';
+import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
-import { formatProofGoal, splitImplication } from '../game/formatProofGoal';
+import { formatProofGoal, splitConnective, splitImplication } from '../game/formatProofGoal';
 import { isolateFormulas } from '../game/bidi';
 
 // The handwritten version of the course: moves read like a proof written by
@@ -52,6 +52,27 @@ class FieldAssumption extends Blockly.FieldDropdown {
     }
 }
 
+// Which side of an "or" to prove, shown by its statement once the goal before
+// the move is known (block.stateBefore). A new field starts unchosen.
+class FieldSide extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const sides = splitConnective(this.getSourceBlock()?.stateBefore?.goal, '∨');
+            const options = [[sides ? shown(sides[0]) : 'צד שמאל', 'LEFT'], [sides ? shown(sides[1]) : 'צד ימין', 'RIGHT']];
+            const current = this.getValue();
+            return !current || current === PLACEHOLDER ? [[PLACEHOLDER, PLACEHOLDER], ...options] : options;
+        });
+    }
+
+    // Shows the chosen side by the goal before the move, as it is now.
+    refreshText() {
+        const option = this.getOptions(false).find(([, value]) => value === this.getValue());
+        if (!option) return;
+        this.selectedOption = option;
+        this.forceRerender();
+    }
+}
+
 const MOVE_COLOUR = 160;
 
 const move = (block, tooltip) => {
@@ -63,21 +84,26 @@ const move = (block, tooltip) => {
 
 // A sentence that follows the proof state and the fields, as a row of labels:
 // Hebrew and formulas in separate labels, since one label mixing them is
-// drawn left to right. Unused labels are hidden.
+// drawn left to right. Unused labels are hidden. A move has its sentence
+// (PHRASE0…), and a move that splits the proof also has one heading each part
+// (LEFT_TEXT0… for the part LEFT).
 const PHRASE_LENGTH = 4;
 
-const appendPhrase = (block) => {
-    const input = block.appendDummyInput('PHRASE');
-    for (let index = 0; index < PHRASE_LENGTH; index += 1) input.appendField(new Blockly.FieldLabel(''), `PHRASE${index}`);
+const appendPhrase = (block, input = block.appendDummyInput('PHRASE'), prefix = 'PHRASE') => {
+    for (let index = 0; index < PHRASE_LENGTH; index += 1) input.appendField(new Blockly.FieldLabel(''), `${prefix}${index}`);
+    return input;
 };
+
+// A part of the proof, headed by its own sentence.
+const appendPart = (block, name) => appendPhrase(block, block.appendStatementInput(name).setCheck('tactic'), `${name}_TEXT`);
 
 // Sets the sentence, given as Hebrew strings and { formula } parts, without
 // firing events: it is not a change the student made.
-const setPhrase = (block, parts) => {
+const setPhrase = (block, parts, prefix = 'PHRASE') => {
     Blockly.Events.disable();
     try {
         for (let index = 0; index < PHRASE_LENGTH; index += 1) {
-            const field = block.getField(`PHRASE${index}`);
+            const field = block.getField(`${prefix}${index}`);
             if (!field) return;
             const part = parts[index];
             const text = part === undefined ? '' : typeof part === 'string' ? part : shown(part.formula);
@@ -90,8 +116,10 @@ const setPhrase = (block, parts) => {
     if (block.rendered) block.queueRender?.();
 };
 
-// The sentence as students read it (for tests).
-export const phraseOf = (block) => Array.from({ length: PHRASE_LENGTH }, (_, index) => block.getFieldValue(`PHRASE${index}`))
+const setPartHeading = (block, name, parts) => setPhrase(block, parts, `${name}_TEXT`);
+
+// The sentence as students read it, or a part's heading (for tests).
+export const phraseOf = (block, prefix = 'PHRASE') => Array.from({ length: PHRASE_LENGTH }, (_, index) => block.getFieldValue(`${prefix}${index}`))
     .filter(Boolean).join(' ').replace(/[\u2066\u2069]/g, '');
 
 const filled = (value) => value && value !== PLACEHOLDER;
@@ -173,6 +201,145 @@ export const defineHandwrittenBlocks = () => {
             setPhrase(this, parts ? ['נובע', { formula: parts[1] }] : ['נובעת המסקנה של הגרירה']);
         },
     };
+
+    // Using an "and": both of its sides follow.
+    Blockly.Blocks['hw_and_elim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('מה"וגם"')
+                .appendField(new FieldAssumption(), 'AND');
+            appendPhrase(this);
+            move(this, 'מ"P וגם Q" נובע P, ונובע גם Q. שניהם מצטרפים להנחות.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const and = this.getFieldValue('AND');
+            const sides = filled(and) && splitConnective(and, '∧');
+            setPhrase(this, sides
+                ? ['נובע', { formula: sides[0] }, 'ונובע', { formula: sides[1] }]
+                : ['נובעים שני הצדדים שלו']);
+        },
+    };
+
+    // Proving an "and": each side in a part of its own.
+    Blockly.Blocks['hw_and_intro'] = {
+        init() {
+            appendPhrase(this);
+            appendPart(this, 'LEFT');
+            appendPart(this, 'RIGHT');
+            move(this, 'כדי להוכיח "P וגם Q" מוכיחים את P ומוכיחים את Q, כל אחד לחוד.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const sides = splitConnective(this.stateBefore?.goal, '∧');
+            setPhrase(this, sides
+                ? ['כדי להוכיח', { formula: this.stateBefore.goal }, 'נוכיח כל צד לחוד']
+                : ['כדי להוכיח את ה"וגם", נוכיח כל צד לחוד']);
+            setPartHeading(this, 'LEFT', sides ? ['נוכיח', { formula: sides[0] }] : ['צד שמאל:']);
+            setPartHeading(this, 'RIGHT', sides ? ['נוכיח', { formula: sides[1] }] : ['צד ימין:']);
+        },
+    };
+
+    // Combining two assumptions into one "and" (proving an "and" forward).
+    Blockly.Blocks['hw_and_combine'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('מ־')
+                .appendField(new FieldAssumption(), 'LEFT')
+                .appendField('ומ־')
+                .appendField(new FieldAssumption(), 'RIGHT');
+            appendPhrase(this);
+            move(this, 'מ־P ומ־Q נובע "P וגם Q", והוא מצטרף להנחות.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const left = this.getFieldValue('LEFT');
+            const right = this.getFieldValue('RIGHT');
+            setPhrase(this, filled(left) && filled(right)
+                ? ['נובע', { formula: `(${left}) ∧ (${right})` }]
+                : ['נובע ה"וגם" של שתיהן']);
+        },
+    };
+
+    // Proving an "or" by one of its sides, chosen by what it says.
+    Blockly.Blocks['hw_or_intro'] = {
+        init() {
+            appendPhrase(this).appendField(new FieldSide(), 'SIDE');
+            move(this, 'כדי להוכיח "P או Q" די להוכיח את אחד הצדדים: את זה שאפשר להוכיח ממה שבידינו.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            setPhrase(this, splitConnective(goal, '∨')
+                ? ['כדי להוכיח', { formula: goal }, 'די להוכיח']
+                : ['כדי להוכיח את ה"או" די להוכיח את']);
+            this.getField('SIDE')?.refreshText();
+        },
+    };
+
+    // Using an "or": the goal is proved in each of its cases.
+    Blockly.Blocks['hw_or_elim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('נחלק למקרים לפי ה"או"')
+                .appendField(new FieldAssumption(), 'OR');
+            appendPart(this, 'LEFT');
+            appendPart(this, 'RIGHT');
+            move(this, 'אם ידוע "P או Q", מוכיחים את המטרה פעם אחת בהנחה P ופעם אחת בהנחה Q.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const or = this.getFieldValue('OR');
+            const sides = filled(or) && splitConnective(or, '∨');
+            setPartHeading(this, 'LEFT', sides ? ['מקרה ראשון: נניח', { formula: sides[0] }] : ['מקרה ראשון: צד שמאל נכון']);
+            setPartHeading(this, 'RIGHT', sides ? ['מקרה שני: נניח', { formula: sides[1] }] : ['מקרה שני: צד ימין נכון']);
+        },
+    };
+
+    // Proving an "iff": each direction in a part of its own.
+    Blockly.Blocks['hw_iff_intro'] = {
+        init() {
+            appendPhrase(this);
+            appendPart(this, 'FORWARD');
+            appendPart(this, 'BACKWARD');
+            move(this, 'כדי להוכיח "P אם ורק אם Q" מוכיחים את P → Q ואת Q → P, כל אחת לחוד.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const sides = splitConnective(this.stateBefore?.goal, '↔');
+            setPhrase(this, sides
+                ? ['כדי להוכיח', { formula: this.stateBefore.goal }, 'נוכיח את שני הכיוונים']
+                : ['כדי להוכיח את ה"אם ורק אם", נוכיח את שני הכיוונים']);
+            setPartHeading(this, 'FORWARD', sides ? ['נוכיח', { formula: `(${sides[0]}) → (${sides[1]})` }] : ['כיוון ראשון (→):']);
+            setPartHeading(this, 'BACKWARD', sides ? ['נוכיח', { formula: `(${sides[1]}) → (${sides[0]})` }] : ['כיוון שני (←):']);
+        },
+    };
+
+    // Using an "iff": both of its directions follow.
+    Blockly.Blocks['hw_iff_elim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('מה"אם ורק אם"')
+                .appendField(new FieldAssumption(), 'IFF');
+            appendPhrase(this);
+            move(this, 'מ"P אם ורק אם Q" נובעות הגרירות P → Q ו־Q → P. שתיהן מצטרפות להנחות.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const iff = this.getFieldValue('IFF');
+            const sides = filled(iff) && splitConnective(iff, '↔');
+            setPhrase(this, sides
+                ? ['נובע', { formula: `(${sides[0]}) → (${sides[1]})` }, 'ונובע', { formula: `(${sides[1]}) → (${sides[0]})` }]
+                : ['נובעים שני הכיוונים שלו']);
+        },
+    };
 };
 
 // Lean finds each assumption by its statement: ‹P› is the assumption saying P,
@@ -186,3 +353,35 @@ leanGenerator.forBlock['hw_apply_rule'] = (block) => `  refine easylean_mp ‹${
 
 leanGenerator.forBlock['hw_forward'] = (block) =>
     `  have := easylean_mp ‹${block.getFieldValue('RULE')}› ‹${block.getFieldValue('PREMISE')}›\n`;
+
+// Unit 2. As in the course, each move is the specific rule, so that it fails
+// on a goal or an assumption of the wrong kind; the parts of a move that
+// splits the proof are opened as in the course (leanBranches).
+leanGenerator.forBlock['hw_and_elim'] = (block) => {
+    const and = block.getFieldValue('AND');
+    return `  have := And.left ‹${and}›\n  have := And.right ‹${and}›\n`;
+};
+
+leanGenerator.forBlock['hw_and_intro'] = () => '  apply And.intro\n';
+
+leanGenerator.forBlock['hw_and_combine'] = (block) =>
+    `  have := And.intro ‹${block.getFieldValue('LEFT')}› ‹${block.getFieldValue('RIGHT')}›\n`;
+
+// An unchosen side leaves the goal as it is (the move is reported as incomplete).
+leanGenerator.forBlock['hw_or_intro'] = (block) => ({ LEFT: '  apply Or.inl\n', RIGHT: '  apply Or.inr\n' })[block.getFieldValue('SIDE')] || '  skip\n';
+
+leanGenerator.forBlock['hw_or_elim'] = (block) => `  cases ‹${block.getFieldValue('OR')}› with\n`;
+
+leanGenerator.forBlock['hw_iff_intro'] = () => '  apply Iff.intro\n';
+
+leanGenerator.forBlock['hw_iff_elim'] = (block) => {
+    const iff = block.getFieldValue('IFF');
+    return `  have := Iff.mp ‹${iff}›\n  have := Iff.mpr ‹${iff}›\n`;
+};
+
+// The new assumption of each case has no name (_), and Lean finds it by its statement.
+Object.assign(leanBranches, {
+    hw_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
+    hw_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
+    hw_or_elim: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
+});

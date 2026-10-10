@@ -66,3 +66,24 @@ test('a statement can be typed in instead of chosen', async ({ page }) => {
     await expect.poll(() => page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getFieldValue('RULE'), backward)).toBe('P → Q');
     await expect.poll(() => moveText(page, backward)).toBe('כדי להוכיח Q די להוכיח P');
 });
+
+const UNIT2 = HANDWRITTEN_UNITS[2].world;
+
+test('a move that splits the proof heads each part by the proof state', async ({ page }) => {
+    await openHandwritten(page, UNIT2, 1);
+    const [andIntro] = await buildProof(page, [['hw_and_intro']]);
+    const heading = (part) => page.evaluate(([id, prefix]) => {
+        const block = window.__easyleanWorkspace.getBlockById(id);
+        return [0, 1, 2, 3].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[⁦⁩]/g, '');
+    }, [andIntro, `${part}_TEXT`]);
+    await expect.poll(() => moveText(page, andIntro)).toBe('כדי להוכיח (P ∧ Q) נוכיח כל צד לחוד');
+    await expect.poll(() => heading('LEFT')).toBe('נוכיח P');
+    await expect.poll(() => heading('RIGHT')).toBe('נוכיח Q');
+});
+
+test('the side of an "or" is chosen by what it says', async ({ page }) => {
+    await openHandwritten(page, UNIT2, 3);
+    const [orIntro] = await buildProof(page, [['hw_or_intro']]);
+    await expect.poll(() => fieldOptions(page, orIntro, 'SIDE')).toEqual(['?', 'Q', 'P']);
+    await expect.poll(() => moveText(page, orIntro)).toBe('כדי להוכיח (Q ∨ P) די להוכיח');
+});
