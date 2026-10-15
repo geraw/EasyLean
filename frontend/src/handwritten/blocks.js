@@ -170,15 +170,18 @@ export const defineHandwrittenBlocks = () => {
     Blockly.Blocks['hw_assume'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה.');
+            move(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה. כך מוכיחים גם שלילה ¬P, שהיא הגרירה P → ⊥.');
             this.updateText();
         },
         ...followState,
         updateText() {
-            const parts = splitImplication(this.stateBefore?.goal);
-            setPhrase(this, parts
-                ? ['כדי להוכיח את הגרירה, נניח', { formula: parts[0] }, 'ונוכיח', { formula: parts[1] }]
-                : ['כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה']);
+            const goal = this.stateBefore?.goal;
+            const parts = splitImplication(goal);
+            // ¬P is P → ⊥, so a negation is proved the same way.
+            const denied = negatedStatement(goal);
+            if (parts) setPhrase(this, ['כדי להוכיח את הגרירה, נניח', { formula: parts[0] }, 'ונוכיח', { formula: parts[1] }]);
+            else if (denied) setPhrase(this, ['כדי להוכיח', { formula: goal }, 'נניח', { formula: denied }, 'ונגיע לסתירה']);
+            else setPhrase(this, ['כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה']);
         },
     };
 
@@ -198,9 +201,9 @@ export const defineHandwrittenBlocks = () => {
         updateText() {
             const rule = this.getFieldValue('RULE');
             const parts = filled(rule) && asImplication(rule);
-            setPhrase(this, parts
-                ? ['כדי להוכיח', { formula: parts[1] }, 'די להוכיח', { formula: parts[0] }]
-                : ['כדי להוכיח את המסקנה שלה, די להוכיח את התנאי שלה']);
+            if (!parts) setPhrase(this, ['כדי להוכיח את המסקנה שלה, די להוכיח את התנאי שלה']);
+            else if (parts[1] === 'False') setPhrase(this, ['כדי להגיע לסתירה די להוכיח', { formula: parts[0] }]);
+            else setPhrase(this, ['כדי להוכיח', { formula: parts[1] }, 'די להוכיח', { formula: parts[0] }]);
         },
     };
 
@@ -383,76 +386,19 @@ export const defineHandwrittenBlocks = () => {
         },
     };
 
-    // The principle of non-contradiction as an implication in hand: (P ∧ ¬P) → ⊥.
-    Blockly.Blocks['hw_non_contradiction'] = {
+    // Ex falso: a contradiction implies anything, so any goal follows from ⊥.
+    Blockly.Blocks['hw_exfalso'] = {
         init() {
-            this.appendDummyInput()
-                .appendField('לפי עיקרון הסתירה, הטענה')
-                .appendField(new FieldAssumption({ withGoal: true, prompt: 'כתבו טענה, למשל P' }), 'FORMULA')
-                .appendField('ושלילתה גוררות סתירה');
             appendPhrase(this);
-            move(this, 'עיקרון הסתירה: (P ∧ ¬P) → ⊥ נכונה לכל טענה P. הגרירה מצטרפת להנחות.');
+            move(this, 'מסתירה נובעת כל טענה: כדי להוכיח כל מטרה, די להגיע לסתירה.');
             this.updateText();
         },
         ...followState,
         updateText() {
-            const formula = this.getFieldValue('FORMULA');
-            setPhrase(this, filled(formula)
-                ? ['נובע', { formula: `((${formula}) ∧ ${negation(formula)}) → False` }]
-                : ['נובעת הגרירה: הטענה ושלילתה גוררות סתירה']);
-        },
-    };
-
-    // Ex falso as an implication in hand: ⊥ → Q.
-    Blockly.Blocks['hw_false_implies'] = {
-        init() {
-            this.appendDummyInput()
-                .appendField('סתירה גוררת כל טענה, ובפרט את')
-                .appendField(new FieldAssumption({ withGoal: true, prompt: 'כתבו טענה, למשל Q' }), 'FORMULA');
-            appendPhrase(this);
-            move(this, 'מסתירה נובעת כל טענה: הגרירה ⊥ → Q נכונה תמיד. היא מצטרפת להנחות.');
-            this.updateText();
-        },
-        ...followState,
-        updateText() {
-            const formula = this.getFieldValue('FORMULA');
-            setPhrase(this, filled(formula) ? ['ולכן נובע', { formula: `False → (${formula})` }] : ['ולכן נובעת הגרירה: סתירה גוררת אותה']);
-        },
-    };
-
-    // Proving a negation: assume the statement it denies, reach a contradiction.
-    Blockly.Blocks['hw_not_intro'] = {
-        init() {
-            appendPhrase(this);
-            move(this, 'כדי להוכיח ¬P מניחים P ומגיעים לסתירה.');
-            this.updateText();
-        },
-        ...followState,
-        updateText() {
-            const denied = negatedStatement(this.stateBefore?.goal);
-            setPhrase(this, denied
-                ? ['כדי להוכיח', { formula: this.stateBefore.goal }, 'נניח', { formula: denied }, 'ונגיע לסתירה']
-                : ['כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה']);
-        },
-    };
-
-    // Using a negation: to reach a contradiction, it is enough to prove what it denies.
-    Blockly.Blocks['hw_not_elim'] = {
-        init() {
-            this.appendDummyInput()
-                .appendField('לפי השלילה')
-                .appendField(new FieldAssumption(), 'NEGATION')
-                .appendField('שיש לנו ביד,');
-            appendPhrase(this);
-            move(this, 'אם בידינו ¬P, כדי להגיע לסתירה די להוכיח את P.');
-            this.updateText();
-        },
-        ...followState,
-        updateText() {
-            const denied = negatedStatement(filled(this.getFieldValue('NEGATION')) && this.getFieldValue('NEGATION'));
-            setPhrase(this, denied
-                ? ['כדי להגיע לסתירה די להוכיח', { formula: denied }]
-                : ['כדי להגיע לסתירה די להוכיח את הטענה שהיא שוללת']);
+            const goal = this.stateBefore?.goal;
+            setPhrase(this, goal
+                ? ['מסתירה נובע הכול, ולכן כדי להוכיח', { formula: goal }, 'די להגיע לסתירה']
+                : ['מסתירה נובע הכול, ולכן די להגיע לסתירה']);
         },
     };
 
@@ -542,16 +488,7 @@ leanGenerator.forBlock['hw_contradiction'] = (block) => {
     return `  first\n  | ${withNegation}\n  | exact (absurd ‹${denied}› ‹${fact}› : False)\n`;
 };
 
-leanGenerator.forBlock['hw_non_contradiction'] = (block) => {
-    const p = block.getFieldValue('FORMULA');
-    return `  have : ((${p}) ∧ ¬(${p})) → False := fun h => absurd h.1 h.2\n`;
-};
-
-leanGenerator.forBlock['hw_false_implies'] = (block) => `  have : False → (${block.getFieldValue('FORMULA')}) := False.elim\n`;
-
-leanGenerator.forBlock['hw_not_intro'] = () => '  refine Not.intro (fun _ => ?_)\n';
-
-leanGenerator.forBlock['hw_not_elim'] = (block) => `  refine (absurd ?_ ‹${block.getFieldValue('NEGATION')}› : False)\n`;
+leanGenerator.forBlock['hw_exfalso'] = () => '  apply False.elim\n';
 
 leanGenerator.forBlock['hw_by_contradiction'] = () => '  apply Classical.byContradiction\n  intro _\n';
 

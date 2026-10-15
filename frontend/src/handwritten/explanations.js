@@ -38,11 +38,6 @@ export const HANDWRITTEN_EXPLANATIONS = [
             : `ההנחה ${formula(type)} היא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים.`),
     },
     {
-        // Using as a negation an assumption that is not one.
-        pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort .*)?but is expected to have type\s*\n\s*¬[\s\S]*?in the application\s*\n\s*absurd /,
-        explain: ([, type]) => `ההנחה ${formula(type)} היא לא שלילה, ולכן אין טענה שהיא שוללת.`,
-    },
-    {
         // Closing before the goal is in hand, or a statement chosen in a move
         // that is not one of the assumptions in hand.
         pattern: /^Tactic `assumption` failed[\s\S]*?^⊢ (.+)$/m,
