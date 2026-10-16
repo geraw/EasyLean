@@ -15,6 +15,13 @@ const APPLICATION = /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nh
 
 export const MOVE_EXPLANATIONS = [
     {
+        // Using a negation as an implication (see refuseNegation in blocks/moves.js).
+        pattern: /^easylean: (forward|backward) by a negation: ([^\n]+)/,
+        explain: ([, direction, negation]) => (direction === 'forward'
+            ? `ההנחה ${formula(negation)} היא שלילה, ולא גרירה. כדי להגיע לסתירה משלילה ומהטענה שהיא שוללת, משתמשים בבלוק "יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."`
+            : `ההנחה ${formula(negation)} היא שלילה, ולא גרירה. כדי להגיע לסתירה בעזרת שלילה, משתמשים בבלוק "לפי השלילה ? שיש לנו ביד".`),
+    },
+    {
         // Assuming the condition of a goal that is a negation (see the move assume).
         pattern: /^easylean: the goal is a negation[\s\S]*⊢ ([^\n]+)\s*$/,
         explain: ([, goal]) => (goal.trim().startsWith('¬') || / → False$/.test(goal.trim())

@@ -68,8 +68,8 @@ describe('the moves', () => {
             '  easylean_assume',
             '  easylean_assume',
             '  easylean_assume',
-            '  have := easylean_mp ‹P → Q› ‹P›',
-            '  have := easylean_mp ‹Q → R› ‹Q›',
+            '  (first | fail_if_success have : ¬ _ := ‹P → Q› | fail "easylean: forward by a negation: P → Q"); have := easylean_mp ‹P → Q› ‹P›',
+            '  (first | fail_if_success have : ¬ _ := ‹Q → R› | fail "easylean: forward by a negation: Q → R"); have := easylean_mp ‹Q → R› ‹Q›',
             '  assumption',
         ].join('\n'));
     });
@@ -327,6 +327,12 @@ describe('the explanations of the moves', () => {
     const explain = (message) => withoutIsolates(explainLeanMessage(message));
 
     it.each([
+        ['going forward from a negation as from an implication',
+            'easylean: forward by a negation: ¬Q\nQ : Prop\n⊢ False',
+            'ההנחה ¬Q היא שלילה, ולא גרירה. כדי להגיע לסתירה משלילה ומהטענה שהיא שוללת, משתמשים בבלוק "יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."'],
+        ['going back by a negation as by an implication',
+            'easylean: backward by a negation: ¬Q\nQ : Prop\n⊢ False',
+            'ההנחה ¬Q היא שלילה, ולא גרירה. כדי להגיע לסתירה בעזרת שלילה, משתמשים בבלוק "לפי השלילה ? שיש לנו ביד".'],
         ['assuming the condition of a goal that is a negation',
             'easylean: the goal is a negation\nP : Prop\n⊢ ¬P',
             'המטרה ¬P היא שלילה, ולא גרירה. כדי להוכיח שלילה משתמשים בבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה".'],

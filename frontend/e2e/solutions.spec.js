@@ -49,6 +49,14 @@ test('assuming the condition does not prove a negation, which has its own move',
     await expect(page.getByText('היא שלילה, ולא גרירה').first()).toBeVisible();
 });
 
+test('a negation is not used as an implication, since it has its own moves', async ({ page }) => {
+    await openLevel(page, UNITS[3].world, 2);
+    await clearProof(page);
+    await buildProof(page, [['not_intro'], ['forward', { RULE: 'P → Q', PREMISE: 'P' }], ['forward', { RULE: '¬Q', PREMISE: 'Q' }]]);
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    await expect(page.getByText('היא שלילה, ולא גרירה. כדי להגיע לסתירה משלילה').first()).toBeVisible();
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);

@@ -167,13 +167,6 @@ export const phraseOf = (block, prefix = 'PHRASE') => Array.from({ length: PHRAS
 
 const filled = (value) => value && value !== PLACEHOLDER;
 
-// An implication's condition and conclusion; a negation ¬P is the implication
-// P → ⊥ (as Lean defines it).
-const asImplication = (formula) => {
-    const denied = negatedStatement(formula);
-    return splitImplication(formula) || (denied ? [denied, 'False'] : null);
-};
-
 const negation = (formula) => `¬(${formula})`;
 
 // The element taken to prove an inclusion: a set when the sets are of sets
@@ -247,9 +240,8 @@ export const defineMoveBlocks = () => {
         ...followState,
         updateText() {
             const rule = this.getFieldValue('RULE');
-            const parts = filled(rule) && asImplication(rule);
+            const parts = filled(rule) && splitImplication(rule);
             if (!parts) setPhrase(this, ['כדי להוכיח את המסקנה שלה, די להוכיח את התנאי שלה']);
-            else if (parts[1] === 'False') setPhrase(this, ['כדי להגיע לסתירה די להוכיח', { formula: parts[0] }]);
             else setPhrase(this, ['כדי להוכיח', { formula: parts[1] }, 'די להוכיח', { formula: parts[0] }]);
         },
     };
@@ -269,7 +261,7 @@ export const defineMoveBlocks = () => {
         ...followState,
         updateText() {
             const rule = this.getFieldValue('RULE');
-            const parts = filled(rule) && asImplication(rule);
+            const parts = filled(rule) && splitImplication(rule);
             setPhrase(this, parts ? ['נובע', { formula: parts[1] }] : ['נובעת המסקנה של הגרירה']);
         },
     };
@@ -767,10 +759,20 @@ leanGenerator.forBlock['exact'] = () => '  assumption\n';
 // Refuses a negation, which has its own move (see LEAN_PRELUDE).
 leanGenerator.forBlock['assume'] = () => '  easylean_assume\n';
 
-leanGenerator.forBlock['apply_rule'] = (block) => `  refine easylean_mp ‹${block.getFieldValue('RULE')}› ?_\n`;
+// A negation ¬A is A → ⊥ in Lean, but it is used with its own moves
+// (contradiction, not_elim), as in the textbooks; so the moves of an
+// implication refuse it, naming it for the explanation (moveExplanations.js).
+const refuseNegation = (rule, direction) => `(first | fail_if_success have : ¬ _ := ‹${rule}› | fail "easylean: ${direction} by a negation: ${rule.replace(/["\\]/g, '')}"); `;
 
-leanGenerator.forBlock['forward'] = (block) =>
-    `  have := easylean_mp ‹${block.getFieldValue('RULE')}› ‹${block.getFieldValue('PREMISE')}›\n`;
+leanGenerator.forBlock['apply_rule'] = (block) => {
+    const rule = block.getFieldValue('RULE');
+    return `  ${refuseNegation(rule, 'backward')}refine easylean_mp ‹${rule}› ?_\n`;
+};
+
+leanGenerator.forBlock['forward'] = (block) => {
+    const rule = block.getFieldValue('RULE');
+    return `  ${refuseNegation(rule, 'forward')}have := easylean_mp ‹${rule}› ‹${block.getFieldValue('PREMISE')}›\n`;
+};
 
 // Unit 2. Each move is the specific rule, so that it fails on a goal or an
 // assumption of the wrong kind; the parts of a move that splits the proof are
