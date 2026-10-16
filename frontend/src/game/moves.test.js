@@ -65,9 +65,9 @@ describe('the moves', () => {
         const level = unit1Levels[4];
         const { workspace } = solved(level, UNITS[1].levels[4][1].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  refine easylean_imp_intro (fun _ => ?_)',
-            '  refine easylean_imp_intro (fun _ => ?_)',
-            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  easylean_assume',
+            '  easylean_assume',
+            '  easylean_assume',
             '  have := easylean_mp ‹P → Q› ‹P›',
             '  have := easylean_mp ‹Q → R› ‹Q›',
             '  assumption',
@@ -108,7 +108,7 @@ describe('the moves of unit 2', () => {
         buildInto(right.getNextBlock(), 'LEFT', [['exact']]);
         buildInto(right.getNextBlock(), 'RIGHT', [['exact']]);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  easylean_assume',
             '  have := And.left ‹P ∧ (Q ∨ R)›',
             '  have := And.right ‹P ∧ (Q ∨ R)›',
             '  cases ‹Q ∨ R› with',
@@ -208,7 +208,7 @@ describe('the moves of unit 4', () => {
         forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
         existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y₀'], goal: '∃ x, R x y₀' });
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  easylean_assume',
             '  refine easylean_forall_intro (fun y₀ => ?_)',
             '  refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x₀ _ => ?_)',
             '  have := easylean_forall_elim ‹∀ y, R x₀ y› (y₀)',
@@ -310,11 +310,11 @@ describe('the proof state before each move', () => {
         const source = buildMoveStatesSource(workspace, level);
         expect(source.code.match(/^theorem unit1_l1_identity_before_\d/gm)).toHaveLength(2);
         expect(source.code.match(/^theorem easylean_mp /gm)).toHaveLength(1);
-        // Lean's output for this code (lines 9-10 and 11-12).
+        // Lean's output for this code (lines 10-11 and 12-13).
         const output = [
-            'proof.lean:10:8: error: don\'t know how to synthesize placeholder', 'context:', 'P : Prop', '⊢ P → P',
-            'proof.lean:9:50: error: unsolved goals', 'P : Prop', '⊢ P → P',
-            'proof.lean:11:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
+            'proof.lean:11:8: error: don\'t know how to synthesize placeholder', 'context:', 'P : Prop', '⊢ P → P',
+            'proof.lean:10:50: error: unsolved goals', 'P : Prop', '⊢ P → P',
+            'proof.lean:12:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
         ].join('\n');
         const states = readMoveStates(output, source);
         expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], sets: [], goal: 'P → P' });
@@ -327,6 +327,12 @@ describe('the explanations of the moves', () => {
     const explain = (message) => withoutIsolates(explainLeanMessage(message));
 
     it.each([
+        ['assuming the condition of a goal that is a negation',
+            'easylean: the goal is a negation\nP : Prop\n⊢ ¬P',
+            'המטרה ¬P היא שלילה, ולא גרירה. כדי להוכיח שלילה משתמשים בבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה".'],
+        ['assuming the condition of a goal that is a negation by a definition',
+            'easylean: the goal is a negation\nA : Set U\nx₀ : U\n⊢ x₀ ∈ Aᶜ',
+            'המטרה x₀ ∈ Aᶜ היא, לפי ההגדרה, שלילה, ולא גרירה. כדי להוכיח שלילה משתמשים בבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה".'],
         ['going back by an implication whose conclusion is not the goal',
             'Application type mismatch: The argument\n  h1\nhas type\n  P → Q\nbut is expected to have type\n  ?m.2 → R\nin the application\n  easylean_mp h1',
             'המסקנה של (P → Q) היא Q, אבל צריך להוכיח R. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה היא בדיוק מה שצריך להוכיח.'],

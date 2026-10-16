@@ -220,17 +220,14 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['assume'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה. כך מוכיחים גם שלילה ¬P, שהיא הגרירה P → ⊥.');
+            move(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const goal = this.stateBefore?.goal;
             const parts = splitImplication(goal);
-            // ¬P is P → ⊥, so a negation is proved the same way.
-            const denied = negatedStatement(goal);
-            if (parts) setPhrase(this, ['כדי להוכיח את הגרירה, נניח', { formula: parts[0] }, 'ונוכיח', { formula: parts[1] }]);
-            else if (denied) setPhrase(this, ['כדי להוכיח', { formula: goal }, 'נניח', { formula: denied }, 'ונגיע לסתירה']);
+            if (parts && parts[1] !== 'False') setPhrase(this, ['כדי להוכיח את הגרירה, נניח', { formula: parts[0] }, 'ונוכיח', { formula: parts[1] }]);
             else setPhrase(this, ['כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה']);
         },
     };
@@ -766,7 +763,8 @@ export const defineMoveBlocks = () => {
 // assumption in hand says it.
 leanGenerator.forBlock['exact'] = () => '  assumption\n';
 
-leanGenerator.forBlock['assume'] = () => '  refine easylean_imp_intro (fun _ => ?_)\n';
+// Refuses a negation, which has its own move (see LEAN_PRELUDE).
+leanGenerator.forBlock['assume'] = () => '  easylean_assume\n';
 
 leanGenerator.forBlock['apply_rule'] = (block) => `  refine easylean_mp ‹${block.getFieldValue('RULE')}› ?_\n`;
 

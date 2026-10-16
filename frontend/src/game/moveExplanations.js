@@ -15,6 +15,13 @@ const APPLICATION = /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nh
 
 export const MOVE_EXPLANATIONS = [
     {
+        // Assuming the condition of a goal that is a negation (see the move assume).
+        pattern: /^easylean: the goal is a negation[\s\S]*⊢ ([^\n]+)\s*$/,
+        explain: ([, goal]) => (goal.trim().startsWith('¬') || / → False$/.test(goal.trim())
+            ? `המטרה ${formula(goal)} היא שלילה, ולא גרירה. כדי להוכיח שלילה משתמשים בבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה".`
+            : `המטרה ${formula(goal)} היא, לפי ההגדרה, שלילה, ולא גרירה. כדי להוכיח שלילה משתמשים בבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה".`),
+    },
+    {
         pattern: APPLICATION,
         explain: ([, , type, expected, args]) => {
             if (args.trim().split(/\s+/).length > 1) {

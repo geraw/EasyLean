@@ -8,7 +8,7 @@ import { goalXml } from './levelXml';
 const level = unit1Levels[0];
 // Every proof starts with the lemmas of LEAN_PRELUDE; P = their number of lines.
 const P = LEAN_PRELUDE.split('\n').length - 1;
-const ASSUME = '  refine easylean_imp_intro (fun _ => ?_)';
+const ASSUME = '  easylean_assume';
 const header = `\n${LEAN_PRELUDE}set_option linter.unusedVariables false\nvariable {P : Prop}\n\ntheorem unit1_l1_identity  : P → P := by\n`;
 const code = (workspace, options) => generateGameLeanCode(workspace, level, '', options);
 

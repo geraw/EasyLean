@@ -6,8 +6,11 @@ export const leanGenerator = new Blockly.Generator('LEAN');
 // (an implication is a ∀ over proofs), so "intro" or applying a hypothesis
 // would accept either. These lemmas tell them apart, so that each move works
 // only on its own kind of formula: a ∀ ranges over the objects of a domain (a
-// Type), an implication over statements (a Prop).
+// Type), an implication over statements (a Prop). A negation is P → ⊥, but
+// it is proved with its own move, as in the textbooks, so easylean_assume
+// refuses it, also when the goal is one only by a definition (x₀ ∈ Aᶜ).
 export const LEAN_PRELUDE = `theorem easylean_imp_intro {p q : Prop} (h : p → q) : p → q := h
+macro "easylean_assume" : tactic => \`(tactic| ((first | fail_if_success show ¬ _ | fail "easylean: the goal is a negation"); refine easylean_imp_intro (fun _ => ?_)))
 theorem easylean_mp {p q : Prop} (h : p → q) (hp : p) : q := h hp
 theorem easylean_forall_intro {α : Type u} {p : α → Prop} (h : ∀ x, p x) : ∀ x, p x := h
 theorem easylean_forall_elim {α : Type u} {p : α → Prop} (h : ∀ x, p x) (a : α) : p a := h a

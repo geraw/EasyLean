@@ -41,6 +41,14 @@ test('the planned error, closing too early, is explained by statements', async (
     await expect(state.getByRole('alert')).toContainText('אין בידינו הנחה שאומרת Q');
 });
 
+test('assuming the condition does not prove a negation, which has its own move', async ({ page }) => {
+    await openLevel(page, UNITS[4].world, 7);
+    await clearProof(page);
+    await buildProof(page, [['assume'], ['forall_intro'], ['assume']]);
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    await expect(page.getByText('היא שלילה, ולא גרירה').first()).toBeVisible();
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);
