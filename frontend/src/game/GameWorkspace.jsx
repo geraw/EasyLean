@@ -3,7 +3,7 @@ import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineGameBlocks } from '../blocks/gameBlocks';
-import { defineMoveBlocks } from '../blocks/moves';
+import { defineMoveBlocks, setLevelLaws } from '../blocks/moves';
 import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveStates';
 import { formatProofGoal } from './formatProofGoal';
 import { findIncompleteMove, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
@@ -147,6 +147,8 @@ const GameWorkspace = ({
     }, []);
 
     const level = levels[levelIdx];
+    // The laws the equivalence move offers in this level (idempotent, so it may run on render).
+    setLevelLaws(level.laws);
 
     const toolboxConfiguration = useMemo(() => {
         const blocks = level.toolboxBlocks || [...new Set(levels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
@@ -570,7 +572,7 @@ const GameWorkspace = ({
                             ))}
                             {level.newDefinitions?.map(d => (
                                 <div key={d.symbol} style={{ marginBottom: '6px' }}>
-                                    <strong>הגדרה חדשה: {d.symbol}</strong>
+                                    <strong>{d.label || 'הגדרה חדשה'}: {d.symbol}</strong>
                                     <div style={{ fontSize: '0.9em' }}>{isolateFormulas(d.doc)}</div>
                                 </div>
                             ))}

@@ -33,5 +33,11 @@ export const isolateFormulas = (text) => text.replace(FORMULA_RUN, (match) => {
     return `${before}${LRI}${formula}${PDI}${after}`;
 });
 
+// A Hebrew text with formulas in one field, as in a menu ("את a ב־b"):
+// a block draws a field left to right, so the whole text is a right-to-left
+// isolate (RLI … PDI), with its formulas left to right inside it.
+const RLI = '\u2067';
+export const isolateHebrew = (text) => `${RLI}${text}${PDI}`;
+
 // For tests: the text as a student reads it, without the invisible isolates.
-export const withoutIsolates = (text) => text.replace(/[⁦⁩]/g, '');
+export const withoutIsolates = (text) => text.replace(/[\u2066\u2067\u2069]/g, '');

@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-7, as their hints describe each level:
+// A student's walk through units 3-8, as their hints describe each level:
 // blocks dragged from the toolbox with the mouse, and fields chosen only
 // among the options their menu shows. (The solutions in solutions.spec.js
 // are built directly, which does not catch a hint that cannot be followed.) SHOTS=<dir> saves a screenshot of each level; WHERE=1
@@ -10,7 +10,7 @@ const SHOTS = process.env.SHOTS;
 // A block's text as shown, row by row.
 const phrase = (page, id) => page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).inputList
     .map((input) => input.fieldRow.filter((f) => f.isVisible()).map((f) => f.getText()).join(' ')).join(' / ')
-    .replace(/[⁦⁩]/g, ''), id);
+    .replace(/[\u2066\u2067\u2069]/g, ''), id);
 
 const openToolbox = async (page) => {
     await page.evaluate(() => {
@@ -21,12 +21,20 @@ const openToolbox = async (page) => {
 };
 
 // Screen point of a connection: where a dragged block's top must land. The
-// block it belongs to is scrolled into view first, as a student would.
+// place around it is scrolled into view first, as a student would (in a long
+// proof, the part of a block where it lands can be below the window).
 const target = async (page, where) => {
     await page.evaluate((where) => {
         const ws = window.__easyleanWorkspace;
         const id = where.goal ? ws.getTopBlocks(true).find((b) => b.type === 'game_goal').id : (where.after || where.into);
-        ws.scrollBoundsIntoView?.(ws.getBlockById(id).getBoundingRectangle());
+        const block = ws.getBlockById(id);
+        const connection = where.goal ? block.getInput('PROOF').connection
+            : where.after ? block.nextConnection : block.getInput(where.input).connection;
+        ws.scrollBoundsIntoView?.(block.getBoundingRectangle());
+        // Then the place itself to the middle of the window, away from its edges.
+        const svg = ws.getParentSvg().getBoundingClientRect();
+        const y = svg.top + ws.getOriginOffsetInPixels().y + connection.y * ws.scale;
+        if (y > svg.bottom - 200 || y < svg.top + 100) ws.scroll(ws.scrollX, ws.scrollY - (y - (svg.top + svg.height / 2)));
     }, where);
     await page.waitForTimeout(300);
     return targetPoint(page, where);
@@ -64,7 +72,7 @@ const drag = async (page, type, where) => {
             const area = flyout.getWorkspace().getParentSvg().getBoundingClientRect();
             const rect = block?.getSvgRoot().getBoundingClientRect();
             if (!rect) return null;
-            return { below: rect.top + 20 > area.bottom, above: rect.top < area.top, x: area.left + area.width / 2, y: area.top + area.height / 2 };
+            return { below: rect.bottom + 20 > area.bottom, above: rect.top < area.top, x: area.left + area.width / 2, y: area.top + area.height / 2 };
         }, type);
         if (!where || (!where.below && !where.above)) break;
         await page.mouse.move(where.x, where.y);
@@ -126,7 +134,7 @@ const drag = async (page, type, where) => {
 // Chooses a value only if the field's menu offers it (by its shown label).
 const choose = async (page, id, field, label) => {
     const options = await page.evaluate(([id, field]) => window.__easyleanWorkspace.getBlockById(id).getField(field)
-        .getOptions(false).map(([text, value]) => [String(text).replace(/[⁦⁩]/g, ''), value]), [id, field]);
+        .getOptions(false).map(([text, value]) => [String(text).replace(/[\u2066\u2067\u2069]/g, ''), value]), [id, field]);
     const option = options.find(([text]) => text === label);
     if (!option) throw new Error(`menu of ${field} offers ${options.map(([t]) => t).join(' | ')}, not ${label}`);
     await page.evaluate(([id, field, value]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue(value), [id, field, option[1]]);
@@ -283,13 +291,104 @@ const UNIT4 = [
 ];
 
 // Each level of unit 5, as its hints describe it.
+const replace = async (page, where, law, direction, target, log) => {
+    const r = await drag(page, 'replace', where);
+    await choose(page, r, 'LAW', law);
+    await choose(page, r, 'DIRECTION', direction);
+    await choose(page, r, 'TARGET', target);
+    log(await phrase(page, r));
+    return r;
+};
+const IMP_OR = '(A → B) ↔ (¬A ∨ B)';
+const NOT_OR = '¬(A ∨ B) ↔ (¬A ∧ ¬B)';
+const UNIT5 = [
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const d = await drag(page, 'and_elim', { after: a }); await choose(page, d, 'AND', '(¬P ∧ ¬Q)'); log(await phrase(page, d));
+        const n = await drag(page, 'not_intro', { after: d }); log(await phrase(page, n));
+        const k = await drag(page, 'or_elim', { after: n }); await choose(page, k, 'OR', '(P ∨ Q)'); log(await phrase(page, k));
+        const c1 = await drag(page, 'contradiction', { into: k, input: 'LEFT' }); await choose(page, c1, 'FACT', 'P');
+        const c2 = await drag(page, 'contradiction', { into: k, input: 'RIGHT' }); await choose(page, c2, 'FACT', 'Q');
+    },
+    async (page, log) => {
+        const a1 = await drag(page, 'assume', { goal: true });
+        const a2 = await drag(page, 'assume', { after: a1 }); log(await phrase(page, a2));
+        const n = await drag(page, 'not_intro', { after: a2 }); log(await phrase(page, n));
+        const f = await drag(page, 'forward', { after: n }); await choose(page, f, 'RULE', '(P → Q)'); await choose(page, f, 'PREMISE', 'P'); log(await phrase(page, f));
+        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'Q');
+    },
+    async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' }); log(await phrase(page, a));
+        const b = await drag(page, 'by_contradiction', { after: a }); log(await phrase(page, b));
+        const e1 = await drag(page, 'not_elim', { after: b }); await choose(page, e1, 'NEGATION', '¬(¬P ∨ Q)');
+        const o1 = await drag(page, 'or_intro', { after: e1 }); await choose(page, o1, 'SIDE', '¬P');
+        const n = await drag(page, 'not_intro', { after: o1 }); log(await phrase(page, n));
+        const e2 = await drag(page, 'not_elim', { after: n }); await choose(page, e2, 'NEGATION', '¬(¬P ∨ Q)');
+        const o2 = await drag(page, 'or_intro', { after: e2 }); await choose(page, o2, 'SIDE', 'Q');
+        const r = await drag(page, 'apply_rule', { after: o2 }); await choose(page, r, 'RULE', '(P → Q)'); log(await phrase(page, r));
+        await drag(page, 'exact', { after: r });
+        const a1 = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
+        const a2 = await drag(page, 'assume', { after: a1 }); log(await phrase(page, a2));
+        const c = await drag(page, 'or_elim', { after: a2 }); await choose(page, c, 'OR', '(¬P ∨ Q)'); log(await phrase(page, c));
+        const x = await drag(page, 'exfalso', { into: c, input: 'LEFT' }); log(await phrase(page, x));
+        const t = await drag(page, 'contradiction', { after: x }); await choose(page, t, 'FACT', 'P');
+        await drag(page, 'exact', { into: c, input: 'RIGHT' });
+    },
+    ...[['∃x P(x)', '∀x ¬P(x)'], ['∃x ¬P(x)', '∀x P(x)']].map(([exists, forall]) => async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const n = await drag(page, 'not_intro', { after: a }); log(await phrase(page, n));
+        const e = await drag(page, 'exists_elim', { after: n }); await choose(page, e, 'EXISTS', exists); log(await phrase(page, e));
+        const f = await drag(page, 'forall_elim', { after: e }); await choose(page, f, 'FORALL', forall); await choose(page, f, 'TERM', 'x₀'); log(await phrase(page, f));
+        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'P(x₀)');
+    }),
+    async (page, log) => {
+        const r = await replace(page, { goal: true }, IMP_OR, 'את (A → B) ב־(¬A ∨ B)', 'המטרה', log); log(await state(page));
+        const o = await drag(page, 'or_intro', { after: r }); await choose(page, o, 'SIDE', '¬P'); log(await phrase(page, o));
+        await drag(page, 'exact', { after: o });
+    },
+    async (page, log) => {
+        const r = await replace(page, { goal: true }, NOT_OR, 'את ¬(A ∨ B) ב־(¬A ∧ ¬B)', '¬(P ∨ Q)', log);
+        const d = await drag(page, 'and_elim', { after: r }); await choose(page, d, 'AND', '(¬P ∧ ¬Q)'); log(await phrase(page, d));
+        await drag(page, 'exact', { after: d });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const r = await replace(page, { after: a }, '(A → B) ↔ (¬B → ¬A)', 'את (A → B) ב־(¬B → ¬A)', 'המטרה', log);
+        await drag(page, 'exact', { after: r });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const r1 = await replace(page, { after: a }, NOT_OR, 'את ¬(A ∨ B) ב־(¬A ∧ ¬B)', '¬(P ∨ ¬Q)', log);
+        const r2 = await replace(page, { after: r1 }, '¬¬A ↔ A', 'את ¬¬A ב־A', '(¬P ∧ ¬¬Q)', log);
+        await drag(page, 'exact', { after: r2 });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const r1 = await replace(page, { after: a }, '¬∀x P(x) ↔ ∃x ¬P(x)', 'את ¬∀x P(x) ב־∃x ¬P(x)', '¬∀x ∃y R(x,y)', log);
+        const r2 = await replace(page, { after: r1 }, '¬∃x P(x) ↔ ∀x ¬P(x)', 'את ¬∃x P(x) ב־∀x ¬P(x)', '∃x ¬∃y R(x,y)', log); log(await state(page));
+        await drag(page, 'exact', { after: r2 });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const r = await replace(page, { after: a }, IMP_OR, 'את (¬A ∨ B) ב־(A → B)', 'המטרה', log);
+        const a2 = await drag(page, 'assume', { after: r }); log(await phrase(page, a2));
+        const n = await drag(page, 'not_intro', { after: a2 }); log(await phrase(page, n));
+        const e = await drag(page, 'not_elim', { after: n }); await choose(page, e, 'NEGATION', '¬(P ∧ Q)'); log(await phrase(page, e));
+        const s = await drag(page, 'and_intro', { after: e }); log(await phrase(page, s));
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        await drag(page, 'exact', { into: s, input: 'RIGHT' });
+    },
+];
+
+// Each level of unit 6, as its hints describe it.
 const unfold = async (page, after, statement, log) => {
     const u = await drag(page, 'unfold', after);
     await choose(page, u, 'STATEMENT', statement);
     log(await phrase(page, u));
     return u;
 };
-const UNIT5 = [
+const UNIT6 = [
     async (page, log) => {
         const e = await drag(page, 'subset_elim', { goal: true });
         await choose(page, e, 'SUBSET', 'A ⊆ B'); await choose(page, e, 'MEMBER', 'x₀ ∈ A'); log(await phrase(page, e));
@@ -406,8 +505,8 @@ const UNIT5 = [
     },
 ];
 
-// Each level of unit 6, as its hints describe it.
-const UNIT6 = [
+// Each level of unit 7, as its hints describe it.
+const UNIT7 = [
     async (page, log) => {
         const u = await unfold(page, { goal: true }, 'A ∈ 𝒫(A ∪ B)', log);
         const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
@@ -460,7 +559,7 @@ const UNIT6 = [
     },
 ];
 
-// Each level of unit 7, as its hints describe it.
+// Each level of unit 8, as its hints describe it.
 const rewrite = async (page, where, equation, direction, target, log) => {
     const r = await drag(page, 'rewrite', where);
     await choose(page, r, 'EQUATION', equation);
@@ -480,7 +579,7 @@ const induction = async (page, log) => {
     log(await phrase(page, i));
     return i;
 };
-const UNIT7 = [
+const UNIT8 = [
     async (page) => { await drag(page, 'rfl', { goal: true }); },
     async (page, log) => {
         const r = await rewrite(page, { goal: true }, 'y = x + 7', 'את y ב־x + 7', 'המטרה', log);
@@ -554,9 +653,10 @@ const UNIT7 = [
 const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
-    { unit: 5, world: 'יחידה 5 - קבוצות', walks: UNIT5 },
-    { unit: 6, world: 'יחידה 6 - קבוצות של קבוצות', walks: UNIT6 },
-    { unit: 7, world: 'יחידה 7 - שוויון ואינדוקציה', walks: UNIT7 },
+    { unit: 5, world: 'יחידה 5 - שקילויות לוגיות', walks: UNIT5 },
+    { unit: 6, world: 'יחידה 6 - קבוצות', walks: UNIT6 },
+    { unit: 7, world: 'יחידה 7 - קבוצות של קבוצות', walks: UNIT7 },
+    { unit: 8, world: 'יחידה 8 - שוויון ואינדוקציה', walks: UNIT8 },
 ];
 
 for (const { unit, world, walks } of UNITS) {

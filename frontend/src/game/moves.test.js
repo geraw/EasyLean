@@ -5,7 +5,7 @@ import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
 import { generateGameLeanCode } from './gameLeanCode';
 import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
-import { defineMoveBlocks, phraseOf } from '../blocks/moves';
+import { defineMoveBlocks, phraseOf, setLevelLaws } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
@@ -15,11 +15,12 @@ import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
 import { unit7Levels } from './unit7World';
+import { unit8Levels } from './unit8World';
 import { UNITS } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels];
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -233,8 +234,41 @@ describe('the moves of unit 4', () => {
 });
 
 describe('the moves of unit 5', () => {
+    const options = (block, field) => block.getField(field).getOptions(false).map(([label, value]) => [withoutIsolates(label), value]);
+
+    it('replace by a law, in the goal or in a statement in hand', () => {
+        const level = unit5Levels[5];
+        const { workspace } = solved(level, UNITS[5].levels[5][0].steps);
+        const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
+        expect(code).toContain('theorem easylean_imp_or ');
+        expect(code).toContain('  (first | rewrite [easylean_imp_or] | simp only [easylean_imp_or] | fail "easylean: no part of the form (A → B)")\n');
+        const inHand = solved(unit5Levels[6], UNITS[5].levels[6][0].steps).workspace;
+        expect(generateGameLeanCode(inHand, unit5Levels[6], '', { includeFallback: false }))
+            .toContain('  have := ‹¬(P ∨ Q)›; (first | rewrite [easylean_not_or] at this | simp only [easylean_not_or] at this | fail "easylean: no part of the form ¬(A ∨ B)")\n');
+    });
+
+    it('keep the bound variables of the formula when a law is about a quantifier', () => {
+        const level = unit5Levels[9];
+        const { workspace } = solved(level, UNITS[5].levels[9][0].steps);
+        const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
+        expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∀ x, p x) ↔ ∃ x, ¬p x := fun _ _ => easylean_not_forall;');
+        expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∃ y, p y) ↔ ∀ y, ¬p y := fun _ _ => easylean_not_exists;');
+    });
+
+    it("offer the level's laws, and the directions of the chosen one", () => {
+        setLevelLaws(unit5Levels[8].laws);
+        const { blocks: [, first, second] } = solved(unit5Levels[8], UNITS[5].levels[8][0].steps);
+        expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ↔ A', 'easylean_not_not']]);
+        expect(options(first, 'DIRECTION')).toEqual([['את ¬(A ∨ B) ב־(¬A ∧ ¬B)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);
+        // Double negation only removes one: backward, A fits any statement.
+        expect(options(second, 'DIRECTION')).toEqual([['את ¬¬A ב־A', 'FORWARD']]);
+        setLevelLaws([]);
+    });
+});
+
+describe('the moves of unit 6', () => {
     it('read like a written proof, and name the definition they use', () => {
-        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit5Levels[6], [
+        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit6Levels[6], [
             ['subset_intro'], ['subset_elim', { SUBSET: 'A ⊆ B', MEMBER: 'x₀ ∈ A' }], ['set_eq'],
             ['unfold', { STATEMENT: 'x₀ ∈ A ∩ (B ∪ C)' }], ['unfold', { STATEMENT: 'x₀ ∈ (A ∪ B)ᶜ' }],
         ]);
@@ -252,8 +286,8 @@ describe('the moves of unit 5', () => {
     });
 
     it('use a definition on the goal or on an assumption without waiting for the proof state', () => {
-        const level = unit5Levels[2];
-        const { workspace } = solved(level, UNITS[5].levels[2][0].steps);
+        const level = unit6Levels[2];
+        const { workspace } = solved(level, UNITS[6].levels[2][0].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  refine easylean_subset_intro (fun x₀ _ => ?_)',
             '  first',
@@ -264,16 +298,16 @@ describe('the moves of unit 5', () => {
     });
 
     it('name an element of a power set as a set', () => {
-        const { blocks: [subsetIntro] } = solved(unit6Levels[1], [['subset_intro']]);
+        const { blocks: [subsetIntro] } = solved(unit7Levels[1], [['subset_intro']]);
         subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
         expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X₀ ∈ 𝒫(A) ונוכיח X₀ ∈ 𝒫(B)');
     });
 });
 
-describe('the moves of unit 7', () => {
+describe('the moves of unit 8', () => {
     it('substitute by an equality, shown as the replacement it makes', () => {
-        const level = unit7Levels[2];
-        const { workspace, blocks: [rewrite] } = solved(level, UNITS[7].levels[2][0].steps);
+        const level = unit8Levels[2];
+        const { workspace, blocks: [rewrite] } = solved(level, UNITS[8].levels[2][0].steps);
         expect(rewrite.getField('DIRECTION').getOptions(false).map(([label, value]) => [withoutIsolates(label), value]))
             .toEqual([['את a ב־b', 'FORWARD'], ['את b ב־a', 'BACKWARD']]);
         expect(withoutIsolates(rewrite.getField('DIRECTION').getText())).toBe('את b ב־a');
@@ -285,8 +319,8 @@ describe('the moves of unit 7', () => {
     });
 
     it('head the parts of an induction by what is proved in them, keeping the variable', () => {
-        const level = unit7Levels[4];
-        const { workspace, blocks: [induction] } = solved(level, UNITS[7].levels[4][0].steps);
+        const level = unit8Levels[4];
+        const { workspace, blocks: [induction] } = solved(level, UNITS[8].levels[4][0].steps);
         induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
         expect([phraseOf(induction, 'BASE_TEXT'), phraseOf(induction, 'STEP_TEXT')])
             .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);
@@ -327,6 +361,9 @@ describe('the explanations of the moves', () => {
     const explain = (message) => withoutIsolates(explainLeanMessage(message));
 
     it.each([
+        ['replacing by a law a side that is not there',
+            'easylean: no part of the form ¬(A ∨ B)\nP Q : Prop\n⊢ Q',
+            'במקום שבחרתם אין חלק מהצורה ¬(A ∨ B), ולכן אין מה להחליף. בדקו את המקום ואת כיוון ההחלפה.'],
         ['going forward from a negation as from an implication',
             'easylean: forward by a negation: ¬Q\nQ : Prop\n⊢ False',
             'ההנחה ¬Q היא שלילה, ולא גרירה. כדי להגיע לסתירה משלילה ומהטענה שהיא שוללת, משתמשים בבלוק "יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."'],

@@ -24,7 +24,7 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
     return code + nextCode;
 };
 
-// Units 5 and 6: a small set theory, placed before the proofs of the levels
+// Units 6 and 7: a small set theory, placed before the proofs of the levels
 // that use sets (level.usesSets). A set is a property of objects, and each
 // operation is defined through membership, so that using its definition (the
 // easylean_mem_* lemmas, see the definition move in blocks/moves.js) leaves a
@@ -59,7 +59,20 @@ theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B �
   funext (fun x => propext ⟨hab x, hba x⟩)
 `;
 
-// Unit 7: functions on the natural numbers defined by recursion, placed
+// Unit 5 and after: the laws of logical equivalence (LAWS in
+// blocks/moves.js), placed before the proofs of the levels that offer them
+// (level.laws). Each law is proved by the students, in both directions, in
+// earlier levels; here it is proved again, so that Lean can use it.
+export const EQUIV_PRELUDE = `theorem easylean_not_not {a : Prop} : ¬¬a ↔ a := ⟨fun h => Classical.byContradiction h, fun h n => n h⟩
+theorem easylean_not_or {a b : Prop} : ¬(a ∨ b) ↔ (¬a ∧ ¬b) := ⟨fun h => ⟨fun x => h (Or.inl x), fun x => h (Or.inr x)⟩, fun h x => x.elim h.1 h.2⟩
+theorem easylean_not_and {a b : Prop} : ¬(a ∧ b) ↔ (¬a ∨ ¬b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr fun y => h ⟨x, y⟩) Or.inl, fun h ⟨x, y⟩ => h.elim (· x) (· y)⟩
+theorem easylean_imp_or {a b : Prop} : (a → b) ↔ (¬a ∨ b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr (h x)) Or.inl, fun h x => h.elim (fun n => (n x).elim) id⟩
+theorem easylean_contrapositive {a b : Prop} : (a → b) ↔ (¬b → ¬a) := ⟨fun h nb x => nb (h x), fun h x => Classical.byContradiction fun nb => h nb x⟩
+theorem easylean_not_exists {α : Type u} {p : α → Prop} : (¬∃ x, p x) ↔ ∀ x, ¬p x := ⟨fun h x hx => h ⟨x, hx⟩, fun h ⟨x, hx⟩ => h x hx⟩
+theorem easylean_not_forall {α : Type u} {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x := ⟨fun h => Classical.byContradiction fun h' => h fun x => Classical.byContradiction fun hx => h' ⟨x, hx⟩, fun ⟨x, hx⟩ h => hx (h x)⟩
+`;
+
+// Unit 8: functions on the natural numbers defined by recursion, placed
 // before the proofs of the levels that use them (level.usesNat), and the
 // definition of addition on its second argument. Unfolding them is a move
 // of its own: the calculation moves (omega, grind) do not look inside them.

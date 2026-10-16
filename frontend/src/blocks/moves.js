@@ -2,7 +2,7 @@ import * as Blockly from 'blockly/core';
 import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
 import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, substitute, unfoldMembership } from '../game/formatProofGoal';
-import { isolateFormulas } from '../game/bidi';
+import { isolateFormulas, isolateHebrew } from '../game/bidi';
 
 // The moves of the course: they read like a proof written by hand ("נניח P
 // ונוכיח Q"), and assumptions have no names. A move points to
@@ -92,7 +92,7 @@ class FieldDirection extends Blockly.FieldDropdown {
         super(function () {
             const sides = splitRelation(filled(this.getSourceBlock()?.getFieldValue('EQUATION')) && this.getSourceBlock().getFieldValue('EQUATION'), '=');
             return sides
-                ? [[`את ${shown(sides[0])} ב־${shown(sides[1])}`, 'FORWARD'], [`את ${shown(sides[1])} ב־${shown(sides[0])}`, 'BACKWARD']]
+                ? [[isolateHebrew(`את ${shown(sides[0])} ב־${shown(sides[1])}`), 'FORWARD'], [isolateHebrew(`את ${shown(sides[1])} ב־${shown(sides[0])}`), 'BACKWARD']]
                 : [['משמאל לימין', 'FORWARD'], ['מימין לשמאל', 'BACKWARD']];
         });
     }
@@ -106,7 +106,82 @@ class FieldDirection extends Blockly.FieldDropdown {
     }
 }
 
-// The functions of unit 7 defined by recursion, and the definitions of
+// Unit 5. The laws of logical equivalence, each proved in both directions in
+// earlier levels, as students read them (with schematic letters A, B, as the
+// moves of unit 3 do) and as Lean's lemmas (EQUIV_PRELUDE). A law about a
+// quantifier is restated with the bound variable of the formula it is used in
+// (see variable), so that a substitution keeps the formula's names. Double
+// negation is used only to remove one: backward, its side A fits any statement.
+export const LAWS = [
+    { value: 'easylean_not_not', left: '¬¬A', right: 'A', backward: false },
+    { value: 'easylean_not_or', left: '¬(A ∨ B)', right: '(¬A ∧ ¬B)' },
+    { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)' },
+    { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)' },
+    { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)' },
+    {
+        value: 'easylean_not_exists', left: '¬∃x P(x)', right: '∀x ¬P(x)',
+        statement: (x) => `(¬∃ ${x}, p ${x}) ↔ ∀ ${x}, ¬p ${x}`,
+        variable: [/¬\s*∃\s*\(?\s*([^\s,:()]+)/, /∀\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
+    },
+    {
+        value: 'easylean_not_forall', left: '¬∀x P(x)', right: '∃x ¬P(x)',
+        statement: (x) => `(¬∀ ${x}, p ${x}) ↔ ∃ ${x}, ¬p ${x}`,
+        variable: [/¬\s*∀\s*\(?\s*([^\s,:()]+)/, /∃\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
+    },
+];
+
+const lawOf = (value) => LAWS.find((law) => law.value === value);
+const lawLabel = (law) => `${law.left} ↔ ${law.right}`;
+
+// The laws a level offers (level.laws), set when the level is loaded, as its
+// toolbox offers only the moves of its solutions.
+let levelLaws = [];
+export const setLevelLaws = (laws = []) => { levelLaws = laws; };
+
+// The law of an equivalence move: a menu of the level's laws.
+class FieldLaw extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const values = [...new Set([...levelLaws, this.getValue()])].filter((value) => lawOf(value));
+            return [[PLACEHOLDER, PLACEHOLDER], ...values.map((value) => [isolateFormulas(lawLabel(lawOf(value))), value])];
+        });
+    }
+
+    // Any law, also one set before the level's laws are (a test, a saved proof).
+    doClassValidation_(value) {
+        return value === PLACEHOLDER || lawOf(value) ? value : null;
+    }
+}
+
+// Which side of the chosen law to replace by the other, shown by the law.
+class FieldLawDirection extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const law = lawOf(this.getSourceBlock()?.getFieldValue('LAW'));
+            if (!law) return [['משמאל לימין', 'FORWARD'], ['מימין לשמאל', 'BACKWARD']];
+            const forward = [isolateHebrew(`את ${isolateFormulas(law.left)} ב־${isolateFormulas(law.right)}`), 'FORWARD'];
+            const backward = [isolateHebrew(`את ${isolateFormulas(law.right)} ב־${isolateFormulas(law.left)}`), 'BACKWARD'];
+            return law.backward === false ? [forward] : [forward, backward];
+        });
+    }
+
+    doClassValidation_(value) {
+        return ['FORWARD', 'BACKWARD'].includes(value) ? value : null;
+    }
+
+    refreshText() {
+        const options = this.getOptions(false);
+        const option = options.find(([, value]) => value === this.getValue());
+        if (!option) {
+            this.setValue(options[0][1]);
+            return;
+        }
+        this.selectedOption = option;
+        this.forceRerender();
+    }
+}
+
+// The functions of unit 8 defined by recursion, and the definitions of
 // addition and power: their names, and the equation that unfolds them.
 const FUNCTIONS = [
     ['double', 'double', 'double'],
@@ -669,11 +744,32 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Unit 7. An equality whose two sides are the same by the definitions.
+    // Unit 8. An equality whose two sides are the same by the definitions.
     Blockly.Blocks['rfl'] = {
         init() {
             this.appendDummyInput().appendField('שני הצדדים שווים לפי ההגדרה.');
             move(this, 'סוגר מטרה a = b כששני הצדדים שווים לפי ההגדרות, בלי חשבון.');
+        },
+    };
+
+    // Unit 5. Replacing a statement by an equivalent one, by a law proved
+    // before, in the goal or in a statement in hand (whose result joins it).
+    Blockly.Blocks['replace'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('לפי השקילות')
+                .appendField(new FieldLaw(), 'LAW');
+            this.appendDummyInput()
+                .appendField('נחליף')
+                .appendField(new FieldLawDirection(), 'DIRECTION');
+            this.appendDummyInput()
+                .appendField('בתוך')
+                .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
+            move(this, 'מותר להחליף טענה בטענה ששקולה לה, גם בתוך טענה גדולה יותר: במטרה, או בטענה שבידינו, ואז התוצאה מצטרפת להנחות.');
+        },
+        ...followState,
+        updateText() {
+            this.getField('DIRECTION')?.refreshText();
         },
     };
 
@@ -837,7 +933,7 @@ leanGenerator.forBlock['exists_elim'] = (block) => {
     return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
-// Units 5 and 6. The rules and definitions of SET_PRELUDE.
+// Units 6 and 7. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
     return `  refine easylean_subset_intro (fun ${sets ? elementName(block, sets[0]) : 'x₀'} _ => ?_)\n`;
@@ -861,7 +957,34 @@ leanGenerator.forBlock['unfold'] = (block) => {
     return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr)\n  | have := ${definition.lemma}.mp ‹${statement}›\n`;
 };
 
-// Unit 7. `rewrite`, not `rw`, which would also try to close the goal; in a
+// Unit 5. `rewrite` replaces the first instance of the law's side (and every
+// copy of it); inside a quantifier, which `rewrite` cannot reach, `simp only`
+// replaces all of them. A law about a quantifier is restated, for this move
+// only, with the formula's bound variable, so that the result keeps its names.
+leanGenerator.forBlock['replace'] = (block) => {
+    const law = lawOf(block.getFieldValue('LAW'));
+    if (!law) return '  skip\n';
+    const backward = block.getFieldValue('DIRECTION') === 'BACKWARD';
+    const target = block.getFieldValue('TARGET');
+    const onGoal = target === GOAL;
+    const text = onGoal ? block.stateBefore?.goal || '' : target;
+    const copy = onGoal ? '' : `have := ‹${target}›; `;
+    const at = onGoal ? '' : ' at this';
+    let name = law.value;
+    let restated = '';
+    let cleanup = '';
+    if (law.statement) {
+        const variable = text.match(law.variable[backward ? 1 : 0])?.[1] || 'x';
+        restated = `have easylean_law : ∀ (α : Type) (p : α → Prop), ${law.statement(variable)} := fun _ _ => ${law.value}; `;
+        name = 'easylean_law';
+        cleanup = '; clear easylean_law';
+    }
+    const rule = `${backward ? '← ' : ''}${name}`;
+    const side = backward ? law.right : law.left;
+    return `  ${copy}${restated}(first | rewrite [${rule}]${at} | simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
+};
+
+// Unit 8. `rewrite`, not `rw`, which would also try to close the goal; in a
 // statement in hand, a copy of it is rewritten.
 leanGenerator.forBlock['rfl'] = () => '  rfl\n';
 

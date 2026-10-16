@@ -16,10 +16,10 @@ const UNIT1 = UNITS[1].world;
 // A move's text and the options of one of its fields, as students read them.
 const moveText = (page, blockId) => page.evaluate((id) => {
     const block = window.__easyleanWorkspace.getBlockById(id);
-    return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`PHRASE${index}`)).filter(Boolean).join(' ').replace(/[⁦⁩]/g, '');
+    return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`PHRASE${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069]/g, '');
 }, blockId);
 const fieldOptions = (page, blockId, field) => page.evaluate(([id, name]) => window.__easyleanWorkspace.getBlockById(id).getField(name)
-    .getOptions(false).map(([label]) => label.replace(/[⁦⁩]/g, '')), [blockId, field]);
+    .getOptions(false).map(([label]) => label.replace(/[\u2066\u2067\u2069]/g, '')), [blockId, field]);
 
 for (const { unit, world, levels } of UNITS) {
     levels.forEach((solutions, index) => {
@@ -90,7 +90,7 @@ test('a move that splits the proof heads each part by the proof state', async ({
     const [andIntro] = await buildProof(page, [['and_intro']]);
     const heading = (part) => page.evaluate(([id, prefix]) => {
         const block = window.__easyleanWorkspace.getBlockById(id);
-        return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[⁦⁩]/g, '');
+        return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069]/g, '');
     }, [andIntro, `${part}_TEXT`]);
     await expect.poll(() => moveText(page, andIntro)).toBe('כדי להוכיח (P ∧ Q) נוכיח כל צד לחוד');
     await expect.poll(() => heading('LEFT')).toBe('נוכיח P');

@@ -30,6 +30,8 @@ const calc = ['calc'];
 const algebra = ['algebra'];
 const rewrite = (equation, direction, target = '__goal__') => ['rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
 const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
+const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
+const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
@@ -158,7 +160,38 @@ export const UNITS = [
     },
     {
         unit: 5,
-        world: 'יחידה 5 - קבוצות',
+        world: 'יחידה 5 - שקילויות לוגיות',
+        levels: [
+            [{ label: 'פתרון', steps: [assume, andElim('¬P ∧ ¬Q'), notIntro, orCases('P ∨ Q', [contradiction('P')], [contradiction('Q')])] }],
+            [{ label: 'פתרון', steps: [assume, assume, notIntro, forward('P → Q', 'P'), contradiction('Q')] }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, byContradiction, notElim('¬(¬P ∨ Q)'), orIntro('LEFT'), notIntro, notElim('¬(¬P ∨ Q)'), orIntro('RIGHT'), backward('P → Q'), close],
+                    [assume, assume, orCases('¬P ∨ Q', [exfalso, contradiction('P')], [close])])],
+            }],
+            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, P x'), forallElim('∀ x, ¬P x', 'x₀'), contradiction('P x₀')] }],
+            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, ¬P x'), forallElim('∀ x, P x', 'x₀'), contradiction('P x₀')] }],
+            [{ label: 'פתרון', steps: [replace('easylean_imp_or', 'FORWARD'), orIntro('LEFT'), close] }],
+            [{ label: 'פתרון', steps: [replace('easylean_not_or', 'FORWARD', '¬(P ∨ Q)'), andElim('¬P ∧ ¬Q'), close] }],
+            [
+                { label: 'במטרה', steps: [assume, replace('easylean_contrapositive', 'FORWARD'), close] },
+                { label: 'בהנחה', steps: [assume, replace('easylean_contrapositive', 'BACKWARD', '¬Q → ¬P'), close] },
+            ],
+            [{ label: 'פתרון', steps: [assume, replace('easylean_not_or', 'FORWARD', '¬(P ∨ ¬Q)'), replace('easylean_not_not', 'FORWARD', '¬P ∧ ¬¬Q'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [assume, replace('easylean_not_forall', 'FORWARD', '¬∀ x, ∃ y, R x y'), replace('easylean_not_exists', 'FORWARD', '∃ x, ¬∃ y, R x y'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, replace('easylean_imp_or', 'BACKWARD'), assume, notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
+            }],
+        ],
+    },
+    {
+        unit: 6,
+        world: 'יחידה 6 - קבוצות',
         levels: [
             [{ label: 'פתרון', steps: [subsetElim('A ⊆ B', 'x₀ ∈ A'), close] }],
             [{ label: 'פתרון', steps: [assume, assume, subsetIntro, subsetElim('A ⊆ B', 'x₀ ∈ A'), subsetElim('B ⊆ C', 'x₀ ∈ B'), close] }],
@@ -210,8 +243,8 @@ export const UNITS = [
         ],
     },
     {
-        unit: 6,
-        world: 'יחידה 6 - קבוצות של קבוצות',
+        unit: 7,
+        world: 'יחידה 7 - קבוצות של קבוצות',
         levels: [
             [{ label: 'פתרון', steps: [unfold('A ∈ 𝒫 (A ∪ B)'), subsetIntro, unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close] }],
             [{
@@ -232,8 +265,8 @@ export const UNITS = [
         ],
     },
     {
-        unit: 7,
-        world: 'יחידה 7 - שוויון ואינדוקציה',
+        unit: 8,
+        world: 'יחידה 8 - שוויון ואינדוקציה',
         levels: [
             [{ label: 'פתרון', steps: [rfl] }],
             [{ label: 'פתרון', steps: [rewrite('y = x + 7', 'FORWARD'), rfl] }],

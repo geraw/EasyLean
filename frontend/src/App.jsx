@@ -8,6 +8,7 @@ import { unit4Levels, unit4WorldName } from './game/unit4World';
 import { unit5Levels, unit5WorldName } from './game/unit5World';
 import { unit6Levels, unit6WorldName } from './game/unit6World';
 import { unit7Levels, unit7WorldName } from './game/unit7World';
+import { unit8Levels, unit8WorldName } from './game/unit8World';
 import { BACKEND_URL } from './backendUrl';
 import './App.css';
 
@@ -33,7 +34,8 @@ const UNITS = {
   unit4: { levels: unit4Levels, worldName: unit4WorldName, next: { mode: 'unit5', label: 'ליחידה 5' } },
   unit5: { levels: unit5Levels, worldName: unit5WorldName, next: { mode: 'unit6', label: 'ליחידה 6' } },
   unit6: { levels: unit6Levels, worldName: unit6WorldName, next: { mode: 'unit7', label: 'ליחידה 7' } },
-  unit7: { levels: unit7Levels, worldName: unit7WorldName },
+  unit7: { levels: unit7Levels, worldName: unit7WorldName, next: { mode: 'unit8', label: 'ליחידה 8' } },
+  unit8: { levels: unit8Levels, worldName: unit8WorldName },
 };
 
 function App() {

@@ -15,6 +15,11 @@ const APPLICATION = /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nh
 
 export const MOVE_EXPLANATIONS = [
     {
+        // Replacing by a law a side that is not there (see the move replace).
+        pattern: /^easylean: no part of the form ([^\n]+)/,
+        explain: ([, side]) => `במקום שבחרתם אין חלק מהצורה ${side}, ולכן אין מה להחליף. בדקו את המקום ואת כיוון ההחלפה.`,
+    },
+    {
         // Using a negation as an implication (see refuseNegation in blocks/moves.js).
         pattern: /^easylean: (forward|backward) by a negation: ([^\n]+)/,
         explain: ([, direction, negation]) => (direction === 'forward'

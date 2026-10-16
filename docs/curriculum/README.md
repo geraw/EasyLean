@@ -22,9 +22,10 @@
 | 2 | [02-and-or-iff.md](02-and-or-iff.md) | וגם, או, אם ורק אם |
 | 3 | [03-negation.md](03-negation.md) | שלילה והוכחה בשלילה |
 | 4 | [04-quantifiers.md](04-quantifiers.md) | כמתים |
-| 5 | [05-sets.md](05-sets.md) | קבוצות |
-| 6 | [06-sets-of-sets.md](06-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה ומשפחות |
-| 7 | [07-equality-and-induction.md](07-equality-and-induction.md) | שוויון ואינדוקציה |
+| 5 | [05-equivalences.md](05-equivalences.md) | שקילויות לוגיות: משלימים את החוקים, ומחליפים טענה בטענה ששקולה לה |
+| 6 | [06-sets.md](06-sets.md) | קבוצות |
+| 7 | [07-sets-of-sets.md](07-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה ומשפחות |
+| 8 | [08-equality-and-induction.md](08-equality-and-induction.md) | שוויון ואינדוקציה |
 
 | מסמך כללי | תוכן |
 |---|---|
