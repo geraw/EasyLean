@@ -74,7 +74,7 @@ export const unit4Levels = [
             `P(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `הצבתם את a בטענה "לכל x מתקיים P(x)" וקיבלתם P(a). מטענת "לכל" אפשר להסיק את התכונה לכל עצם שתרצו.`,
-        startXml: goalXml('P(a)', 'העצם a,  ∀x P(x)'),
+        startXml: goalXml('P(a)', '∀x P(x)'),
     },
     {
         id: 'hw-unit4-2',
@@ -107,7 +107,7 @@ export const unit4Levels = [
             `Q(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "מ־∀x (P(x) → Q(x)), עבור העצם a, נובע P(a) → Q(a). מ־P(a) → Q(a) ומ־P(a) נובע Q(a)."`,
-        startXml: goalXml('Q(a)', 'העצם a,  ∀x (P(x) → Q(x)),  P(a)'),
+        startXml: goalXml('Q(a)', '∀x (P(x) → Q(x)),  P(a)'),
     },
     {
         id: 'hw-unit4-3',
@@ -203,7 +203,7 @@ export const unit4Levels = [
             `P(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `בחרתם את a כעד והוכחתם שהוא מתאים. כדי להוכיח "קיים" מספיק עד אחד.`,
-        startXml: goalXml('∃x (P(x) ∨ Q(x))', 'העצם a,  P(a)'),
+        startXml: goalXml('∃x (P(x) ∨ Q(x))', 'P(a)'),
     },
     {
         id: 'hw-unit4-6',
