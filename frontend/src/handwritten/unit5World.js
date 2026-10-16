@@ -197,7 +197,7 @@ export const unit5Levels = [
         params: '',
         proposition: 'A ∩ B = B ∩ A',
         goalLabel: 'A ∩ B = B ∩ A',
-        toolboxBlocks: ['hw_set_eq', 'hw_subset_intro', 'hw_unfold', 'hw_and_elim', 'hw_and_intro', 'hw_exact'],
+        toolboxBlocks: ['hw_set_eq', 'hw_subset_intro', 'hw_unfold', 'hw_and_elim', 'hw_and_intro', 'hw_and_combine', 'hw_exact'],
         introduction: `# שוויון קבוצות
 
 שתי קבוצות *שוות* אם יש להן אותם איברים, כלומר אם כל אחת מוכלת בשנייה.
@@ -211,6 +211,7 @@ export const unit5Levels = [
             `בחלק הראשון: יהי x₀ ∈ A ∩ B. פתחו את ההגדרה בהנחה x₀ ∈ A ∩ B, ובחרו ב${AND_ELIM_BLOCK} את מה שהיא אומרת.`,
             `עכשיו פתחו את ההגדרה במטרה x₀ ∈ B ∩ A, והוכיחו את ה"וגם" ב${AND_INTRO_BLOCK}: בכל צד, מה שמוכיחים כבר בידינו.`,
             'החלק השני זהה, עם A ו־B בתפקידים הפוכים.',
+            'או קדימה, במקום להוכיח את ה"וגם" בשני חלקים: מ־x₀ ∈ B ומ־x₀ ∈ A נובע (x₀ ∈ B ∧ x₀ ∈ A), וזו המטרה.',
         ],
         conclusion: `שתי ההכלות הוכחו, ולכן A ∩ B = B ∩ A: לחיתוך לא משנה הסדר.`,
         startXml: goalXml('A ∩ B = B ∩ A'),
@@ -359,7 +360,7 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
         proposition: '⋂₀ F ⊆ A',
         goalLabel: '⋂₀ F ⊆ A',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['hw_subset_intro', 'hw_unfold', 'hw_forall_elim', 'hw_forward', 'hw_exact'],
+        toolboxBlocks: ['hw_subset_intro', 'hw_unfold', 'hw_forall_elim', 'hw_forward', 'hw_apply_rule', 'hw_exact'],
         introduction: `# חיתוך של משפחה
 
 \`⋂₀ F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋂₀ F\` פירושו שלכל קבוצה S ב־F מתקיים x₀ ∈ S.
@@ -371,6 +372,7 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
             `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ ⋂₀ F. עכשיו כתוב בו: פירושו ∀S (S ∈ F → x₀ ∈ S).`,
             'הוסיפו את הבלוק "לפי ה"לכל" ? עבור העצם ?", ובחרו בו את ה"לכל" ואת A. עכשיו כתוב בו: נובע (A ∈ F → x₀ ∈ A).',
             `הוסיפו את הבלוק "מהגרירה ? ומ־?" עם A ∈ F → x₀ ∈ A ועם A ∈ F. x₀ ∈ A בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+            'או אחורה: לפי הגרירה A ∈ F → x₀ ∈ A, כדי להוכיח x₀ ∈ A די להוכיח A ∈ F, וזה בידינו.',
         ],
         conclusion: `חיתוך של משפחה הוא טענת "לכל", ולכן משתמשים בו בהצבה: כאן הצבתם קבוצה, A.`,
         startXml: goalXml('⋂₀ F ⊆ A', 'A ∈ F'),

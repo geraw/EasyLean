@@ -161,7 +161,7 @@ export const unit4Levels = [
         goalLabel: '((∀x (P(x) → Q(x))) → ((∀x P(x)) → (∀x Q(x))))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['hw_assume', 'hw_forall_intro', 'hw_forall_elim', 'hw_forward', 'hw_exact'],
+        toolboxBlocks: ['hw_assume', 'hw_forall_intro', 'hw_forall_elim', 'hw_forward', 'hw_apply_rule', 'hw_exact'],
         introduction: `# "לכל" וגרירה, בשני הצדדים
 
 אם כל מי שעבר את הבוחן עבר את הקורס, וכולם עברו את הבוחן, אז כולם עברו את הקורס.
@@ -175,6 +175,7 @@ export const unit4Levels = [
             `הוסיפו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו כתוב בו: יהי x₀ עצם שרירותי, ונוכיח Q(x₀).`,
             `הוסיפו פעמיים את הבלוק ${FORALL_ELIM_BLOCK}: פעם עם ∀x (P(x) → Q(x)) ופעם עם ∀x P(x), ובשתיהן את העצם x₀.`,
             `הוסיפו את הבלוק ${FORWARD_BLOCK}, ובחרו בו P(x₀) → Q(x₀) ואת P(x₀). עכשיו Q(x₀) בידינו.`,
+            'או אחורה, כמו בשלב 2: לפי הגרירה P(x₀) → Q(x₀), כדי להוכיח Q(x₀) די להוכיח P(x₀).',
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ∀x (P(x) → Q(x)) ונניח ∀x P(x). יהי x₀ עצם שרירותי. נובע P(x₀) → Q(x₀), ונובע P(x₀), ולכן Q(x₀)."`,
         startXml: goalXml('((∀x (P(x) → Q(x))) → ((∀x P(x)) → (∀x Q(x))))'),
@@ -258,7 +259,7 @@ export const unit4Levels = [
             { name: 'h', prop: '∀x (P(x) → Q(x))' },
             { name: 'he', prop: '∃x P(x)' },
         ],
-        toolboxBlocks: ['hw_exists_elim', 'hw_forall_elim', 'hw_forward', 'hw_exists_intro', 'hw_exact'],
+        toolboxBlocks: ['hw_exists_elim', 'hw_forall_elim', 'hw_forward', 'hw_exists_intro', 'hw_apply_rule', 'hw_exact'],
         introduction: `# "לכל" ו"קיים" יחד
 
 כל מי שעבר את הבוחן עבר את הקורס, ויש מי שעבר את הבוחן. לכן יש מי שעבר את הקורס.
@@ -272,6 +273,7 @@ export const unit4Levels = [
             `גררו את הבלוק ${EXISTS_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו ∃x P(x). עכשיו כתוב בו: יהי x₀ עצם כך ש־P(x₀).`,
             `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀x (P(x) → Q(x)) ואת העצם x₀. אחר כך הוסיפו את הבלוק ${FORWARD_BLOCK} עם P(x₀) → Q(x₀) ועם P(x₀).`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x₀. Q(x₀) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+            'או אחורה: קודם בחרו את x₀ כעד, ואז לפי הגרירה P(x₀) → Q(x₀), כדי להוכיח Q(x₀) די להוכיח P(x₀).',
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ עצם כך ש־P(x₀). לפי ∀x (P(x) → Q(x)), עבור x₀ נובע P(x₀) → Q(x₀), ולכן Q(x₀). נבחר את x₀."`,
         startXml: goalXml('∃x Q(x)', '∀x (P(x) → Q(x)),  ∃x P(x)'),

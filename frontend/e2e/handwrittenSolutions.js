@@ -132,10 +132,16 @@ export const HANDWRITTEN_UNITS = [
                 { label: 'אחורה', steps: [forallElim('∀ x, P x → Q x', 'a'), backward('P a → Q a'), close] },
             ],
             [{ label: 'פתרון', steps: [assume, forallIntro, forallElim('∀ x, P x ∧ Q x', 'x₀'), andElim('P x₀ ∧ Q x₀'), close] }],
-            [{ label: 'פתרון', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), forallElim('∀ x, P x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), close] }],
+            [
+                { label: 'קדימה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), forallElim('∀ x, P x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), close] },
+                { label: 'אחורה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), backward('P x₀ → Q x₀'), forallElim('∀ x, P x', 'x₀'), close] },
+            ],
             [{ label: 'פתרון', steps: [existsIntro('a'), orIntro('LEFT'), close] }],
             [{ label: 'פתרון', steps: [assume, existsElim('∃ x, P x ∧ Q x'), andElim('P x₀ ∧ Q x₀'), existsIntro('x₀'), close] }],
-            [{ label: 'פתרון', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), existsIntro('x₀'), close] }],
+            [
+                { label: 'קדימה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), existsIntro('x₀'), close] },
+                { label: 'אחורה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x₀'), existsIntro('x₀'), backward('P x₀ → Q x₀'), close] },
+            ],
             [{ label: 'פתרון', steps: [assume, forallIntro, notIntro, notElim('¬∃ x, P x'), existsIntro('x₀'), close] }],
             [{ label: 'פתרון', steps: [assume, forallIntro, existsElim('∃ x, ∀ y, R x y'), forallElim('∀ y, R x₀ y', 'y₀'), existsIntro('x₀'), close] }],
             [{
@@ -158,12 +164,20 @@ export const HANDWRITTEN_UNITS = [
                     [subsetElim('A ⊆ C', 'x₀ ∈ A'), close],
                     [subsetElim('B ⊆ C', 'x₀ ∈ B'), close])],
             }],
-            [{
-                label: 'פתרון',
-                steps: [setEq(
-                    [subsetIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), unfold('x₀ ∈ B ∩ A'), andIntro([close], [close])],
-                    [subsetIntro, unfold('x₀ ∈ B ∩ A'), andElim('x₀ ∈ B ∧ x₀ ∈ A'), unfold('x₀ ∈ A ∩ B'), andIntro([close], [close])])],
-            }],
+            [
+                {
+                    label: 'בשני חלקים',
+                    steps: [setEq(
+                        [subsetIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), unfold('x₀ ∈ B ∩ A'), andIntro([close], [close])],
+                        [subsetIntro, unfold('x₀ ∈ B ∩ A'), andElim('x₀ ∈ B ∧ x₀ ∈ A'), unfold('x₀ ∈ A ∩ B'), andIntro([close], [close])])],
+                },
+                {
+                    label: 'קדימה',
+                    steps: [setEq(
+                        [subsetIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), unfold('x₀ ∈ B ∩ A'), combine('x₀ ∈ B', 'x₀ ∈ A'), close],
+                        [subsetIntro, unfold('x₀ ∈ B ∩ A'), andElim('x₀ ∈ B ∧ x₀ ∈ A'), unfold('x₀ ∈ A ∩ B'), combine('x₀ ∈ A', 'x₀ ∈ B'), close])],
+                },
+            ],
             [{
                 label: 'פתרון',
                 steps: [subsetIntro, unfold('x₀ ∈ A ∩ (B ∪ C)'), andElim('x₀ ∈ A ∧ x₀ ∈ B ∪ C'), unfold('x₀ ∈ B ∪ C'), unfold('x₀ ∈ A ∩ B ∪ A ∩ C'),
@@ -183,10 +197,10 @@ export const HANDWRITTEN_UNITS = [
                 steps: [assume, subsetIntro, unfold('X₀ ∈ 𝒫 A'), unfold('X₀ ∈ 𝒫 B'), subsetIntro, subsetElim('X₀ ⊆ A', 'x₀ ∈ X₀'), subsetElim('A ⊆ B', 'x₀ ∈ A'), close],
             }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsIntro('A'), andIntro([close], [close])] }],
-            [{
-                label: 'פתרון',
-                steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), forward('A ∈ F → x₀ ∈ A', 'A ∈ F'), close],
-            }],
+            [
+                { label: 'קדימה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), forward('A ∈ F → x₀ ∈ A', 'A ∈ F'), close] },
+                { label: 'אחורה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), backward('A ∈ F → x₀ ∈ A'), close] },
+            ],
             [{
                 label: 'פתרון',
                 steps: [setEq(
