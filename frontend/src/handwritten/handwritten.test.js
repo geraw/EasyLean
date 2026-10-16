@@ -147,33 +147,34 @@ describe('the moves of unit 2', () => {
 });
 
 describe('the moves of unit 3', () => {
-    it('prove and use a negation as the implication to ⊥, with the moves of unit 1', () => {
-        const level = unit3Levels[1];
-        const { workspace, blocks: [assume, backward] } = solved(level, [['hw_assume'], ['hw_apply_rule', { RULE: '¬Q' }], ['hw_apply_rule', { RULE: 'P → Q' }], ['hw_exact']]);
-        assume.setStateBefore({ assumptions: ['P → Q', '¬Q'], goal: '¬P' });
-        expect(phraseOf(assume)).toBe('כדי להוכיח ¬P נניח P ונגיע לסתירה');
-        expect(phraseOf(backward)).toBe('כדי להגיע לסתירה די להוכיח Q');
+    it('are the rules for negation, and find assumptions by statement', () => {
+        const level = unit3Levels[9];
+        const { workspace } = solved(level, HANDWRITTEN_UNITS[3].levels[9][0].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  refine easylean_imp_intro (fun _ => ?_)',
-            '  refine easylean_mp ‹¬Q› ?_',
-            '  refine easylean_mp ‹P → Q› ?_',
+            '  apply Classical.byContradiction',
+            '  intro _',
+            '  refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
+            '  apply Or.inr',
+            '  refine Not.intro (fun _ => ?_)',
+            '  refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
+            '  apply Or.inl',
             '  assumption',
         ].join('\n'));
     });
 
     it('read like a written proof', () => {
-        const { blocks: [contradiction, exfalso, byContradiction, byCases, forward] } = solved(unit3Levels[9], [
-            ['hw_contradiction', { FACT: 'P ∨ Q' }], ['hw_exfalso'], ['hw_by_contradiction'], ['hw_by_cases', { FORMULA: 'P' }],
-            ['hw_forward', { RULE: '¬P', PREMISE: 'P' }],
+        const { blocks: [contradiction, notIntro, notElim, exfalso, byContradiction] } = solved(unit3Levels[9], [
+            ['hw_contradiction', { FACT: 'P ∨ Q' }], ['hw_not_intro'], ['hw_not_elim', { NEGATION: '¬(P ∨ ¬P)' }], ['hw_exfalso'], ['hw_by_contradiction'],
         ]);
         expect(phraseOf(contradiction)).toBe('ואת ¬(P ∨ Q) וזו סתירה.');
+        expect(phraseOf(notIntro)).toBe('כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה');
+        notIntro.setStateBefore({ assumptions: [], goal: '¬¬P' });
+        expect(phraseOf(notIntro)).toBe('כדי להוכיח ¬¬P נניח ¬P ונגיע לסתירה');
+        expect(phraseOf(notElim)).toBe('כדי להגיע לסתירה די להוכיח (P ∨ ¬P)');
         exfalso.setStateBefore({ assumptions: [], goal: 'Q' });
         expect(phraseOf(exfalso)).toBe('מסתירה נובע הכול, ולכן כדי להוכיח Q די להגיע לסתירה');
-        byContradiction.setStateBefore({ assumptions: [], goal: 'P ∨ Q' });
-        expect(phraseOf(byContradiction)).toBe('נוכיח בשלילה: נניח ¬(P ∨ Q) ונגיע לסתירה');
-        expect([phraseOf(byCases, 'LEFT_TEXT'), phraseOf(byCases, 'RIGHT_TEXT')]).toEqual(['מקרה ראשון: נניח P', 'מקרה שני: נניח ¬P']);
-        // A negation is an implication to ⊥.
-        expect(phraseOf(forward)).toBe('נובע ⊥');
+        byContradiction.setStateBefore({ assumptions: [], goal: 'P ∨ ¬P' });
+        expect(phraseOf(byContradiction)).toBe('נוכיח בשלילה: נניח ¬(P ∨ ¬P) ונגיע לסתירה');
     });
 
     it('reach a contradiction from either a statement or its negation', () => {
@@ -188,12 +189,6 @@ describe('the moves of unit 3', () => {
             '  | exact (absurd ‹¬P› ‹¬(¬P)› : False)',
             '  | exact (absurd ‹P› ‹¬P› : False)',
         ].join('\n'));
-    });
-
-    it('offer the goal too where any statement is asked for', () => {
-        const { blocks: [byCases] } = solved(unit3Levels[8], [['hw_by_cases']]);
-        byCases.setStateBefore({ assumptions: ['P → Q', '¬P → Q'], goal: 'Q' });
-        expect(byCases.getField('FORMULA').getOptions(false).map(([, value]) => value)).toEqual(['?', 'Q', 'P → Q', '¬P → Q', '__write_own__']);
     });
 });
 
@@ -236,6 +231,9 @@ describe('handwritten explanations', () => {
         ['using an "and" that the assumption is not',
             'Application type mismatch: The argument\n  ?m.5\nhas type\n  P\nbut is expected to have type\n  ?m.3 ∧ ?m.4\nin the application\n  And.left ?m.5',
             'ההנחה P היא לא טענת "וגם", ולכן אין לה שני צדדים.'],
+        ['using as a negation an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.7\nhas type\n  Q\nbut is expected to have type\n  ¬?m.4\nin the application\n  absurd ?m.6 ?m.7',
+            'ההנחה Q היא לא שלילה, ולכן אין טענה שהיא שוללת.'],
         ['a letter that is not in the level', 'Unknown identifier `S`',
             'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
         ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',

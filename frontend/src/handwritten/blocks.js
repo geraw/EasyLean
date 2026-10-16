@@ -20,27 +20,23 @@ const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/
 
 // The statement of an assumption: a menu of the assumptions in hand before the
 // move (block.stateBefore, from Lean), and a last item for typing one in.
-// A field for any statement (withGoal, e.g. "a contradiction implies Q") also
-// offers the goal, which is often the statement wanted.
 class FieldAssumption extends Blockly.FieldDropdown {
-    constructor({ withGoal = false, prompt = 'כתבו את הטענה של ההנחה, למשל P → Q' } = {}) {
+    constructor() {
         super(function () {
-            const state = this.getSourceBlock()?.stateBefore;
-            const inHand = [...new Set([...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])];
+            const inHand = this.getSourceBlock()?.stateBefore?.assumptions || [];
             const options = inHand.map((formula) => [shown(formula), formula]);
             // A new field starts as the first option: the placeholder.
             const current = this.getValue() || PLACEHOLDER;
             if (!inHand.includes(current)) options.unshift([current === PLACEHOLDER ? PLACEHOLDER : shown(current), current]);
             return [...options, [WRITE_OWN_LABEL, WRITE_OWN]];
         });
-        this.prompt = prompt;
     }
 
     // Any statement is a value: Lean checks that it is an assumption in hand.
     doClassValidation_(value) {
         if (value === WRITE_OWN) {
             // After the menu closes, ask for the statement.
-            setTimeout(() => Blockly.dialog.prompt(isolateFormulas(this.prompt), this.getValue() === PLACEHOLDER ? '' : this.getValue(), (typed) => {
+            setTimeout(() => Blockly.dialog.prompt(isolateFormulas('כתבו את הטענה של ההנחה, למשל P → Q'), this.getValue() === PLACEHOLDER ? '' : this.getValue(), (typed) => {
                 if (typed && normalizeTyped(typed)) this.setValue(normalizeTyped(typed));
             }));
             return null;
@@ -386,6 +382,45 @@ export const defineHandwrittenBlocks = () => {
         },
     };
 
+    // Negation introduction (¬I): to prove ¬A, assume A and reach a contradiction.
+    Blockly.Blocks['hw_not_intro'] = {
+        init() {
+            appendPhrase(this);
+            move(this, 'כדי להוכיח ¬A מניחים A ומגיעים לסתירה.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            const denied = negatedStatement(goal);
+            setPhrase(this, denied
+                ? ['כדי להוכיח', { formula: goal }, 'נניח', { formula: denied }, 'ונגיע לסתירה']
+                : ['כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה']);
+        },
+    };
+
+    // Negation elimination (¬E), backward: with ¬A in hand, a contradiction
+    // only needs A.
+    Blockly.Blocks['hw_not_elim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('לפי השלילה')
+                .appendField(new FieldAssumption(), 'NEGATION')
+                .appendField('שיש לנו ביד,');
+            appendPhrase(this);
+            move(this, 'אם בידינו ¬A, כדי להגיע לסתירה די להוכיח את A.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const negation = this.getFieldValue('NEGATION');
+            const denied = filled(negation) && negatedStatement(negation);
+            setPhrase(this, denied
+                ? ['כדי להגיע לסתירה די להוכיח', { formula: denied }]
+                : ['כדי להגיע לסתירה די להוכיח את הטענה שהיא שוללת']);
+        },
+    };
+
     // Ex falso: a contradiction implies anything, so any goal follows from ⊥.
     Blockly.Blocks['hw_exfalso'] = {
         init() {
@@ -415,26 +450,6 @@ export const defineHandwrittenBlocks = () => {
             setPhrase(this, goal
                 ? ['נוכיח בשלילה: נניח', { formula: negation(goal) }, 'ונגיע לסתירה']
                 : ['נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה']);
-        },
-    };
-
-    // Both possibilities for a statement: it is true, or it is false.
-    Blockly.Blocks['hw_by_cases'] = {
-        init() {
-            this.appendDummyInput()
-                .appendField('נבדוק את שתי האפשרויות: הטענה')
-                .appendField(new FieldAssumption({ withGoal: true, prompt: 'כתבו טענה, למשל P' }), 'FORMULA')
-                .appendField('נכונה או לא נכונה');
-            appendPart(this, 'LEFT');
-            appendPart(this, 'RIGHT');
-            move(this, 'כל טענה P נכונה או לא נכונה. לכן אפשר להוכיח את המטרה פעם בהנחה P, ופעם בהנחה ¬P.');
-            this.updateText();
-        },
-        ...followState,
-        updateText() {
-            const formula = this.getFieldValue('FORMULA');
-            setPartHeading(this, 'LEFT', filled(formula) ? ['מקרה ראשון: נניח', { formula }] : ['מקרה ראשון: היא נכונה']);
-            setPartHeading(this, 'RIGHT', filled(formula) ? ['מקרה שני: נניח', { formula: negation(formula) }] : ['מקרה שני: היא לא נכונה']);
         },
     };
 };
@@ -488,15 +503,16 @@ leanGenerator.forBlock['hw_contradiction'] = (block) => {
     return `  first\n  | ${withNegation}\n  | exact (absurd ‹${denied}› ‹${fact}› : False)\n`;
 };
 
+leanGenerator.forBlock['hw_not_intro'] = () => '  refine Not.intro (fun _ => ?_)\n';
+
+leanGenerator.forBlock['hw_not_elim'] = (block) => `  refine (absurd ?_ ‹${block.getFieldValue('NEGATION')}› : False)\n`;
+
 leanGenerator.forBlock['hw_exfalso'] = () => '  apply False.elim\n';
 
 leanGenerator.forBlock['hw_by_contradiction'] = () => '  apply Classical.byContradiction\n  intro _\n';
 
-leanGenerator.forBlock['hw_by_cases'] = (block) => `  cases Classical.em (${block.getFieldValue('FORMULA')}) with\n`;
-
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {
-    hw_by_cases: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
     hw_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     hw_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
     hw_or_elim: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
