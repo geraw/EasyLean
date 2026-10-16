@@ -463,7 +463,7 @@ export const defineHandwrittenBlocks = () => {
     Blockly.Blocks['hw_forall_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מ־')
+                .appendField('לפי ה"לכל"')
                 .appendField(new FieldAssumption(), 'FORALL')
                 .appendField('עבור העצם')
                 .appendField(new FieldAssumption({ objects: true }), 'TERM');
@@ -478,7 +478,7 @@ export const defineHandwrittenBlocks = () => {
             const quantified = filled(forall) && splitQuantifier(forall, '∀');
             setPhrase(this, quantified && filled(term)
                 ? ['נובע', { formula: substitute(quantified.body, quantified.variable, term) }]
-                : ['נובע מה שהיא אומרת על העצם']);
+                : ['נובע מה שהוא אומר על העצם']);
         },
     };
 
@@ -526,7 +526,7 @@ export const defineHandwrittenBlocks = () => {
     Blockly.Blocks['hw_exists_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מ־')
+                .appendField('לפי ה"קיים"')
                 .appendField(new FieldAssumption(), 'EXISTS');
             appendPhrase(this);
             move(this, 'מ"קיים x כך ש־P(x)" מקבלים עצם חדש x, שעליו ידוע רק ש־P(x). העצם וההנחה מצטרפים למה שיש בידינו.');
@@ -537,7 +537,7 @@ export const defineHandwrittenBlocks = () => {
             const exists = this.getFieldValue('EXISTS');
             const quantified = filled(exists) && splitQuantifier(exists, '∃');
             if (!quantified) {
-                setPhrase(this, ['יהי עצם חדש שמקיים אותה']);
+                setPhrase(this, ['יהי עצם חדש שמקיים אותו']);
                 return;
             }
             const name = newObjectName(this, quantified.variable);

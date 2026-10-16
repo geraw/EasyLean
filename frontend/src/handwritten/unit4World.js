@@ -14,10 +14,10 @@ export const unit4WorldName = 'יחידה 4 - כמתים';
 const DOMAIN = 'variable {obj : Type} {P Q : obj → Prop}';
 
 // The moves as the toolbox shows them, before they are placed.
-const FORALL_ELIM_BLOCK = '"מ־? עבור העצם ?"';
+const FORALL_ELIM_BLOCK = '"לפי ה"לכל" ? עבור העצם ?"';
 const FORALL_INTRO_BLOCK = '"כדי להוכיח "לכל": יהי עצם שרירותי, ונוכיח שהוא מקיים את התכונה"';
 const EXISTS_INTRO_BLOCK = '"כדי להוכיח "קיים" נבחר את העצם ?"';
-const EXISTS_ELIM_BLOCK = '"מ־? יהי עצם חדש שמקיים אותה"';
+const EXISTS_ELIM_BLOCK = '"לפי ה"קיים" ? יהי עצם חדש שמקיים אותו"';
 const ASSUME_BLOCK = '"כדי להוכיח את הגרירה, נניח..."';
 const FORWARD_BLOCK = '"מהגרירה ? ומ־?"';
 const AND_ELIM_BLOCK = '"מה"וגם" ?"';
@@ -25,7 +25,7 @@ const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רו�
 
 const forallElimInfo = {
     name: 'שימוש ב"לכל"',
-    doc: 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a: מציבים את a במקום x. בכתב יד: "מ־∀x P(x), עבור העצם a, נובע P(a)".',
+    doc: 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a: מציבים את a במקום x. בכתב יד: "לפי ∀x P(x), עבור העצם a נובע P(a)".',
 };
 
 const forallIntroInfo = {
@@ -65,7 +65,7 @@ export const unit4Levels = [
 הטענה \`∀x P(x)\` נקראת "לכל x מתקיים P(x)": כל עצם בתחום מקיים את P. למשל, "כל הסטודנטים עברו את הבוחן".
 
 כאן נתונים העצם a וההנחה \`∀x P(x)\`, והמטרה היא P(a). אם כולם עברו, גם a עבר.
-בכתב יד: "מ־∀x P(x), עבור העצם a, נובע P(a)". הבלוק ${FORALL_ELIM_BLOCK} עושה זאת: בוחרים בו את הטענה ואת העצם.`,
+בכתב יד: "לפי ∀x P(x), עבור העצם a נובע P(a)". הבלוק ${FORALL_ELIM_BLOCK} עושה זאת: בוחרים בו את הטענה ואת העצם.`,
         newTacticsBlocks: ['hw_forall_elim'],
         newTacticsInfo: [forallElimInfo],
         newDefinitions: [],
@@ -106,7 +106,7 @@ export const unit4Levels = [
             `הוסיפו את הבלוק ${FORWARD_BLOCK}, ובחרו בו P(a) → Q(a) ואת P(a). עכשיו כתוב בו: נובע Q(a).`,
             `Q(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "מ־∀x (P(x) → Q(x)), עבור העצם a, נובע P(a) → Q(a). מ־P(a) → Q(a) ומ־P(a) נובע Q(a)."`,
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "לפי ∀x (P(x) → Q(x)), עבור העצם a נובע P(a) → Q(a). מ־P(a) → Q(a) ומ־P(a) נובע Q(a)."`,
         startXml: goalXml('Q(a)', '∀x (P(x) → Q(x)),  P(a)'),
     },
     {
@@ -268,7 +268,7 @@ export const unit4Levels = [
             `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀x (P(x) → Q(x)) ואת העצם x. אחר כך הוסיפו את הבלוק ${FORWARD_BLOCK} עם P(x) → Q(x) ועם P(x).`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x. Q(x) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x עצם כך ש־P(x). מ־∀x (P(x) → Q(x)) נובע P(x) → Q(x), ולכן Q(x). נבחר את x."`,
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x עצם כך ש־P(x). לפי ∀x (P(x) → Q(x)), עבור x נובע P(x) → Q(x), ולכן Q(x). נבחר את x."`,
         startXml: goalXml('∃x Q(x)', '∀x (P(x) → Q(x)),  ∃x P(x)'),
     },
     {
