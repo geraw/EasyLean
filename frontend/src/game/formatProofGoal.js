@@ -130,6 +130,73 @@ export const freshName = (variable, taken = []) => {
     for (let n = 0; ; n += 1) if (!taken.includes(`${variable}${subscript(n)}`)) return `${variable}${subscript(n)}`;
 };
 
+// The two sides of a relation (∈, ⊆, =) written at the top level of a
+// statement that has no logical connective there, or null.
+export const splitRelation = (text, relation) => {
+    const normalized = stripOuterParentheses(text || '');
+    if (normalized.startsWith('¬') || QUANTIFIERS.includes(normalized[0])
+        || CONNECTIVES.some(([, spellings]) => findTopLevel(normalized, spellings))) return null;
+    const found = findTopLevel(normalized, [` ${relation} `]);
+    if (!found) return null;
+    return [normalized.slice(0, found.index).trim(), normalized.slice(found.index + found.length).trim()];
+};
+
+const isAtom = (text) => /^[\p{L}\p{N}_₀-₉']+$/u.test(text);
+const wrap = (text) => {
+    const set = stripOuterParentheses(text);
+    return isAtom(set) ? set : `(${set})`;
+};
+
+// The last top-level occurrence of one of the operations (they group to the left).
+const findLastTopLevel = (text, operations) => {
+    let depth = 0;
+    let found = null;
+    for (let index = 0; index < text.length; index += 1) {
+        if (text[index] === '(') depth += 1;
+        if (text[index] === ')') depth -= 1;
+        if (depth !== 0) continue;
+        const operation = operations.find((candidate) => text.startsWith(` ${candidate} `, index));
+        if (operation) found = { index, operation, length: operation.length + 2 };
+    }
+    return found;
+};
+
+// The set operations, from the loosest: what membership in each means, the
+// lemma stating it (see SET_PRELUDE), and its name in Hebrew.
+const SET_OPERATIONS = {
+    '∪': { lemma: 'easylean_mem_union', name: 'האיחוד', means: (t, [a, b]) => `${t} ∈ ${a} ∨ ${t} ∈ ${b}` },
+    '∩': { lemma: 'easylean_mem_inter', name: 'החיתוך', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ${t} ∈ ${b}` },
+    '\\': { lemma: 'easylean_mem_diff', name: 'ההפרש', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ¬${t} ∈ ${b}` },
+    'ᶜ': { lemma: 'easylean_mem_compl', name: 'המשלים', means: (t, [a]) => `¬${t} ∈ ${a}` },
+    '∅': { lemma: 'easylean_mem_empty', name: 'הקבוצה הריקה', means: () => 'False' },
+    '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${a}` },
+    '⋃₀': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
+    '⋂₀': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
+};
+
+// The main operation of a set expression and its operands, or null for a set's name.
+const mainSetOperation = (text) => {
+    const set = stripOuterParentheses(text);
+    for (const operations of [['∪'], ['∩', '\\']]) {
+        const found = findLastTopLevel(set, operations);
+        if (found) return { operation: found.operation, operands: [set.slice(0, found.index).trim(), set.slice(found.index + found.length).trim()] };
+    }
+    if (set.endsWith('ᶜ')) return { operation: 'ᶜ', operands: [set.slice(0, -1).trim()] };
+    if (set === '∅') return { operation: '∅', operands: [] };
+    const prefix = ['𝒫', '⋃₀', '⋂₀'].find((operation) => set.startsWith(`${operation} `));
+    return prefix ? { operation: prefix, operands: [set.slice(prefix.length).trim()] } : null;
+};
+
+// What a membership statement `t ∈ S` means by the definition of S's main
+// operation: { name, lemma, means }, or null when it is not one.
+export const unfoldMembership = (text) => {
+    const sides = splitRelation(text, '∈');
+    const main = sides && mainSetOperation(sides[1]);
+    if (!main) return null;
+    const { lemma, name, means } = SET_OPERATIONS[main.operation];
+    return { name, lemma, means: means(wrap(sides[0]), main.operands.map(wrap)) };
+};
+
 // The statement a negation denies (`¬(P ∨ Q)` is `P ∨ Q`), or null when the
 // formula is not a negation (`¬P ∨ Q` is an "or").
 export const negatedStatement = (text) => {

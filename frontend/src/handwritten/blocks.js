@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
 import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
-import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, substitute } from '../game/formatProofGoal';
+import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, substitute, unfoldMembership } from '../game/formatProofGoal';
 import { isolateFormulas } from '../game/bidi';
 
 // The handwritten version of the course: moves read like a proof written by
@@ -20,11 +20,16 @@ const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/
 
 // The statement of an assumption: a menu of the assumptions in hand before the
 // move (block.stateBefore, from Lean), and a last item for typing one in.
-// With objects, the same for an object of the domain, by its name.
+// With objects, the same for an object of the domain or a set, by its name.
+// For a statement that may also be the goal (withGoal), the goal is offered
+// first; only the statements that pass the filter are offered.
 class FieldAssumption extends Blockly.FieldDropdown {
-    constructor({ objects = false } = {}) {
+    constructor({ objects = false, withGoal = false, filter = () => true } = {}) {
         super(function () {
-            const inHand = this.getSourceBlock()?.stateBefore?.[objects ? 'objects' : 'assumptions'] || [];
+            const state = this.getSourceBlock()?.stateBefore;
+            const inHand = objects
+                ? [...(state?.objects || []), ...(state?.sets || [])]
+                : [...new Set([...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])].filter(filter);
             const options = inHand.map((formula) => [shown(formula), formula]);
             // A new field starts as the first option: the placeholder.
             const current = this.getValue() || PLACEHOLDER;
@@ -135,11 +140,18 @@ const asImplication = (formula) => {
 
 const negation = (formula) => `¬(${formula})`;
 
+// The element taken to prove an inclusion: a set when the sets are of sets
+// (a power set), otherwise an object.
+const elementName = (block, smaller) => newObjectName(block, smaller.startsWith('𝒫') ? 'X' : 'x');
+
 // The name of a new object (∀ introduction, ∃ elimination): the quantified
 // variable's with a subscript, x₀ (see freshName).
-const newObjectName = (block, variable) => freshName(variable, block.stateBefore?.objects || []);
+const newObjectName = (block, variable) => freshName(variable, [...(block.stateBefore?.objects || []), ...(block.stateBefore?.sets || [])]);
 
 const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
+
+// Whether a statement chosen in a move is the goal before it.
+const isGoal = (block, statement) => Boolean(block.stateBefore?.goal) && sameStatement(block.stateBefore.goal, statement);
 
 // What contradicts the chosen statement: its negation, or, for a negation
 // ¬Q, the statement Q it denies (unless ¬¬Q is what is in hand).
@@ -544,6 +556,92 @@ export const defineHandwrittenBlocks = () => {
             setPhrase(this, ['יהי', { formula: name }, 'עצם כך ש־', { formula: substitute(quantified.body, quantified.variable, name) }]);
         },
     };
+
+    // ⊆ introduction: for an arbitrary element of the smaller set, prove it
+    // belongs to the larger one.
+    Blockly.Blocks['hw_subset_intro'] = {
+        init() {
+            appendPhrase(this);
+            move(this, 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי x₀ של A, ומוכיחים ש־x₀ ∈ B.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            const sets = splitRelation(goal, '⊆');
+            if (!sets) {
+                setPhrase(this, ['כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה']);
+                return;
+            }
+            const element = elementName(this, sets[0]);
+            setPhrase(this, ['כדי להוכיח', { formula: goal }, 'יהי', { formula: `${element} ∈ ${sets[0]}` }, 'ונוכיח', { formula: `${element} ∈ ${sets[1]}` }]);
+        },
+    };
+
+    // ⊆ elimination: from A ⊆ B and t ∈ A, t ∈ B.
+    Blockly.Blocks['hw_subset_elim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('לפי ההכלה')
+                .appendField(new FieldAssumption(), 'SUBSET')
+                .appendField('ומ־')
+                .appendField(new FieldAssumption(), 'MEMBER');
+            appendPhrase(this);
+            move(this, 'אם A ⊆ B ו־x₀ ∈ A, אז x₀ ∈ B. התוצאה מצטרפת להנחות.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const subset = this.getFieldValue('SUBSET');
+            const member = this.getFieldValue('MEMBER');
+            const sets = filled(subset) && splitRelation(subset, '⊆');
+            const element = filled(member) && splitRelation(member, '∈');
+            setPhrase(this, sets && element
+                ? ['נובע', { formula: `${element[0]} ∈ ${sets[1]}` }]
+                : ['נובע שהאיבר שייך לקבוצה המכילה']);
+        },
+    };
+
+    // Set equality: two inclusions, each in a part of its own.
+    Blockly.Blocks['hw_set_eq'] = {
+        init() {
+            appendPhrase(this);
+            appendPart(this, 'FIRST');
+            appendPart(this, 'SECOND');
+            move(this, 'שתי קבוצות שוות אם כל אחת מוכלת בשנייה: מוכיחים A ⊆ B וגם B ⊆ A.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            const sets = splitRelation(goal, '=');
+            setPhrase(this, sets ? ['כדי להוכיח', { formula: goal }, 'נוכיח שתי הכלות'] : ['כדי להוכיח שוויון קבוצות, נוכיח שתי הכלות']);
+            setPartHeading(this, 'FIRST', sets ? ['נוכיח', { formula: `${sets[0]} ⊆ ${sets[1]}` }] : ['הכלה ראשונה (⊆):']);
+            setPartHeading(this, 'SECOND', sets ? ['נוכיח', { formula: `${sets[1]} ⊆ ${sets[0]}` }] : ['הכלה שנייה (⊇):']);
+        },
+    };
+
+    // A definition: membership in a set built by an operation means a formula.
+    // On an assumption, the formula joins what is in hand; on the goal, it is
+    // what remains to prove.
+    Blockly.Blocks['hw_unfold'] = {
+        init() {
+            appendPhrase(this, this.appendDummyInput('NAMEROW'), 'NAME')
+                .appendField(new FieldAssumption({ withGoal: true, filter: (formula) => Boolean(unfoldMembership(formula)) }), 'STATEMENT');
+            appendPhrase(this);
+            move(this, 'לפי הגדרת הפעולה על קבוצות: למשל x₀ ∈ A ∩ B פירושו x₀ ∈ A ∧ x₀ ∈ B.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const statement = this.getFieldValue('STATEMENT');
+            const definition = filled(statement) && unfoldMembership(statement);
+            setPhrase(this, [definition ? `לפי הגדרת ${definition.name},` : 'לפי ההגדרה,'], 'NAME');
+            if (!definition) setPhrase(this, ['פירושו מה שההגדרה אומרת']);
+            else if (isGoal(this, statement)) setPhrase(this, ['כלומר, נוכיח', { formula: definition.means }]);
+            else setPhrase(this, ['פירושו', { formula: definition.means }]);
+        },
+    };
 };
 
 // Lean finds each assumption by its statement: ‹P› is the assumption saying P,
@@ -621,8 +719,33 @@ leanGenerator.forBlock['hw_exists_elim'] = (block) => {
     return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
+// Unit 5. The rules and definitions are the course's (see SET_PRELUDE).
+leanGenerator.forBlock['hw_subset_intro'] = (block) => {
+    const sets = splitRelation(block.stateBefore?.goal, '⊆');
+    return `  refine easylean_subset_intro (fun ${sets ? elementName(block, sets[0]) : 'x₀'} _ => ?_)\n`;
+};
+
+leanGenerator.forBlock['hw_subset_elim'] = (block) =>
+    `  have := easylean_subset_elim ‹${block.getFieldValue('SUBSET')}› ‹${block.getFieldValue('MEMBER')}›\n`;
+
+leanGenerator.forBlock['hw_set_eq'] = () => '  apply easylean_set_eq\n';
+
+// A definition used on the goal is proved from its meaning; on an assumption,
+// its meaning follows from it. Lean tries the goal first, if it is written
+// exactly as that statement (=ₛ: a statement with the same meaning, such as
+// x ∈ A \\ B for the goal x ∈ A ∩ Bᶜ, is not the goal), so the code does not
+// wait for the proof state; when neither fits, it explains that no
+// assumption says the statement.
+leanGenerator.forBlock['hw_unfold'] = (block) => {
+    const statement = block.getFieldValue('STATEMENT');
+    const definition = unfoldMembership(statement);
+    if (!definition) return `  have := ‹${statement}›\n`;
+    return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr)\n  | have := ${definition.lemma}.mp ‹${statement}›\n`;
+};
+
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {
+    hw_set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
     hw_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     hw_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
     hw_or_elim: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],

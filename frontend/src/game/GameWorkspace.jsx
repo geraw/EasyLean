@@ -281,7 +281,7 @@ const GameWorkspace = ({
     const moveStatesRequestRef = useRef(0);
     const settleMoveStates = async (requestId) => {
         const { moveStates } = version;
-        for (let round = 0, checked = null; round < 3; round += 1) {
+        for (let round = 0, checked = null; round < 5; round += 1) {
             const source = moveStates.build(workspace, level, preamble);
             if (!source || source.code === checked) return;
             checked = source.code;

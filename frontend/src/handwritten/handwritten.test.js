@@ -13,11 +13,12 @@ import { unit1Levels } from './unit1World';
 import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
+import { unit5Levels } from './unit5World';
 import { HANDWRITTEN_UNITS } from '../../e2e/handwrittenSolutions';
 
 defineHandwrittenBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels];
 
 // A level's workspace with one of its solutions in place of the starting moves.
 const solved = (level, steps) => {
@@ -224,6 +225,44 @@ describe('the moves of unit 4', () => {
     });
 });
 
+describe('the moves of unit 5', () => {
+    it('read like a written proof, and name the definition they use', () => {
+        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit5Levels[6], [
+            ['hw_subset_intro'], ['hw_subset_elim', { SUBSET: 'A ⊆ B', MEMBER: 'x₀ ∈ A' }], ['hw_set_eq'],
+            ['hw_unfold', { STATEMENT: 'x₀ ∈ A ∩ (B ∪ C)' }], ['hw_unfold', { STATEMENT: 'x₀ ∈ (A ∪ B)ᶜ' }],
+        ]);
+        subsetIntro.setStateBefore({ assumptions: [], objects: [], sets: ['A', 'B', 'C'], goal: 'A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C יהי x₀ ∈ A ∩ (B ∪ C) ונוכיח x₀ ∈ A ∩ B ∪ A ∩ C');
+        expect(phraseOf(subsetElim)).toBe('נובע x₀ ∈ B');
+        setEq.setStateBefore({ assumptions: [], objects: [], sets: [], goal: 'A ∩ B = B ∩ A' });
+        expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
+        expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x₀ ∈ A ∧ x₀ ∈ (B ∪ C))']);
+        unfoldGoal.setStateBefore({ assumptions: [], objects: ['x₀'], sets: [], goal: 'x₀ ∈ (A ∪ B)ᶜ' });
+        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת המשלים,', 'כלומר, נוכיח ¬x₀ ∈ (A ∪ B)']);
+        // The menu offers only membership statements with a definition to use, the goal first.
+        unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x₀ ∈ A', 'x₀ ∈ A ∪ B'], objects: ['x₀'], sets: [], goal: 'x₀ ∈ Bᶜ' });
+        expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x₀ ∈ (A ∪ B)ᶜ', 'x₀ ∈ Bᶜ', 'x₀ ∈ A ∪ B', '__write_own__']);
+    });
+
+    it('use a definition on the goal or on an assumption without waiting for the proof state', () => {
+        const level = unit5Levels[2];
+        const { workspace } = solved(level, HANDWRITTEN_UNITS[5].levels[2][0].steps);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_subset_intro (fun x₀ _ => ?_)',
+            '  first',
+            '  | (guard_target =ₛ x₀ ∈ A ∩ B; apply easylean_mem_inter.mpr)',
+            '  | have := easylean_mem_inter.mp ‹x₀ ∈ A ∩ B›',
+            '  have := And.left ‹x₀ ∈ A ∧ x₀ ∈ B›',
+        ].join('\n'));
+    });
+
+    it('name an element of a power set as a set', () => {
+        const { blocks: [subsetIntro] } = solved(unit5Levels[10], [['hw_subset_intro']]);
+        subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫 A ⊆ 𝒫 B יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B');
+    });
+});
+
 describe('the proof state before each move', () => {
     it('comes from one check, a theorem per move', () => {
         const level = unit1Levels[0];
@@ -238,8 +277,8 @@ describe('the proof state before each move', () => {
             'proof.lean:11:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
         ].join('\n');
         const states = readMoveStates(output, source);
-        expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], goal: 'P → P' });
-        expect(states.get(blocks[1].id)).toEqual({ assumptions: ['P'], objects: [], goal: 'P' });
+        expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], sets: [], goal: 'P → P' });
+        expect(states.get(blocks[1].id)).toEqual({ assumptions: ['P'], objects: [], sets: [], goal: 'P' });
     });
 });
 
@@ -272,6 +311,9 @@ describe('handwritten explanations', () => {
         ['using as a "there exists" an assumption that is not one',
             'Application type mismatch: The argument\n  ?m.5\nhas type\n  P a\nbut is expected to have type\n  ∃ x, ?m.3 x\nin the application\n  Exists.elim ?m.5',
             'ההנחה P(a) היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.'],
+        ['using an inclusion with a membership in another set',
+            'Application type mismatch: The argument\n  hx\nhas type\n  x₀ ∈ C\nbut is expected to have type\n  ?m.14 ∈ A\nin the application\n  easylean_subset_elim h hx',
+            'ההנחה x₀ ∈ C לא אומרת שהאיבר שייך ל־A, הקבוצה המוכלת בהכלה.'],
         ['a letter that is not in the level', 'Unknown identifier `S`',
             'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
         ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',

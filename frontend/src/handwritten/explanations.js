@@ -45,6 +45,17 @@ export const HANDWRITTEN_EXPLANATIONS = [
             : `ההנחה ${formula(type)} היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.`),
     },
     {
+        // Using an inclusion with an assumption that is not one, or with a
+        // membership in another set (Lean names the given assumptions here).
+        pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort .*)?but is expected to have type\s*\n\s*(.+?)\s*\n(?:of sort .*)?in the application\s*\n\s*easylean_subset_elim /,
+        explain: ([, type, expected]) => {
+            const member = expected.match(/∈ (.+)$/);
+            return member && !expected.includes('⊆')
+                ? `ההנחה ${formula(type)} לא אומרת שהאיבר שייך ל־${formula(member[1])}, הקבוצה המוכלת בהכלה.`
+                : `ההנחה ${formula(type)} היא לא הכלה.`;
+        },
+    },
+    {
         // Using as a negation an assumption that is not one (hw_not_elim).
         pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort .*)?but is expected to have type\s*\n\s*¬[\s\S]*?in the application\s*\n\s*absurd /,
         explain: ([, type]) => `ההנחה ${formula(type)} היא לא שלילה, ולכן אין טענה שהיא שוללת.`,

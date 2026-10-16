@@ -41,17 +41,18 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
     .map(({ line, severity, text }) => `proof.lean:${line - offset}:0: ${severity}: ${text}`)
     .join('\n');
 
-// The objects of the domain in hand (a : α, where α : Type is declared), by
-// name, apart from the assumptions: they are things we have, not claims.
+// The objects of the domain in hand (a : α, where α : Type is declared) and
+// the sets (A : Set α, or a family F : Set (Set α)), by name, apart from the
+// assumptions: they are things we have, not claims.
 const objectsOf = (assumptions) => {
     const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
-    return {
-        objects: assumptions.filter(({ prop }) => domains.has(prop.trim())).flatMap(({ name }) => name.split(/\s+/)),
-        isObject: ({ prop }) => domains.has(prop.trim()),
-    };
+    const isObject = ({ prop }) => domains.has(prop.trim());
+    const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
+    const names = (test) => assumptions.filter(test).flatMap(({ name }) => name.split(/\s+/));
+    return { objects: names(isObject), sets: names(isSet), isThing: (a) => isObject(a) || isSet(a) };
 };
 
-// blockId → { assumptions, objects, goal } before that move, for the moves Lean got to.
+// blockId → { assumptions, objects, sets, goal } before that move, for the moves Lean got to.
 export const readMoveStates = (output, { segments }) => {
     const messages = parseLeanMessages(output);
     const states = new Map();
@@ -60,10 +61,11 @@ export const readMoveStates = (output, { segments }) => {
         if (findLeanProblem(own)) return;
         const goal = openGoals(own, segment.stateLine).at(-1);
         if (!goal) return;
-        const { objects, isObject } = objectsOf(goal.assumptions);
+        const { objects, sets, isThing } = objectsOf(goal.assumptions);
         states.set(segment.blockId, {
-            assumptions: [...new Set(goal.assumptions.filter((a) => !isDeclaration(a.prop) && !isObject(a)).map(({ prop }) => prop))],
+            assumptions: [...new Set(goal.assumptions.filter((a) => !isDeclaration(a.prop) && !isThing(a)).map(({ prop }) => prop))],
             objects,
+            sets,
             goal: goal.goal,
         });
     });

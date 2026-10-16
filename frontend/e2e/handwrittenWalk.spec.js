@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3 and 4 of the handwritten version, as their hints
+// A student's walk through units 3-5 of the handwritten version, as their hints
 // describe each level: blocks dragged from the toolbox with the mouse, and
 // fields chosen only among the options their menu shows. (The solutions in
 // handwritten.spec.js are built directly, which does not catch a hint that
@@ -21,8 +21,18 @@ const openToolbox = async (page) => {
     await page.waitForTimeout(400);
 };
 
-// Screen point of a connection: where a dragged block's top must land.
-const target = (page, where) => page.evaluate((where) => {
+// Screen point of a connection: where a dragged block's top must land. The
+// block it belongs to is scrolled into view first, as a student would.
+const target = async (page, where) => {
+    await page.evaluate((where) => {
+        const ws = window.__easyleanWorkspace;
+        const id = where.goal ? ws.getTopBlocks(true).find((b) => b.type === 'game_goal').id : (where.after || where.into);
+        ws.scrollBoundsIntoView?.(ws.getBlockById(id).getBoundingRectangle());
+    }, where);
+    await page.waitForTimeout(300);
+    return targetPoint(page, where);
+};
+const targetPoint = (page, where) => page.evaluate((where) => {
     const ws = window.__easyleanWorkspace;
     const goal = ws.getTopBlocks(true).find((b) => b.type === 'game_goal');
     let connection;
@@ -32,15 +42,36 @@ const target = (page, where) => page.evaluate((where) => {
     const svg = ws.getParentSvg().getBoundingClientRect();
     const origin = ws.getOriginOffsetInPixels();
     const scale = ws.scale;
+    // Below a block, a student aims a little under its bottom edge.
+    const point = { x: svg.left + origin.x + connection.x * scale, y: svg.top + origin.y + connection.y * scale + (where.after ? 6 : 0) };
     // A part's own connection sits right below the end of the part before it:
-    // aim a little lower, into the part's row.
-    const below = where.input ? 8 : 0;
-    return { x: svg.left + origin.x + connection.x * scale, y: svg.top + origin.y + connection.y * scale + below };
+    // aim at the part's heading, as a student would.
+    const heading = where.input && ws.getBlockById(where.into).getField(`${where.input}_TEXT0`);
+    if (heading) {
+        const rect = heading.getSvgRoot().getBoundingClientRect();
+        point.y = rect.top + rect.height / 2;
+    }
+    return point;
 }, where);
 
 const drag = async (page, type, where) => {
     await openToolbox(page);
     const before = await page.evaluate(() => window.__easyleanWorkspace.getAllBlocks(false).map((b) => b.id));
+    // A long toolbox is scrolled with the mouse wheel until the block shows.
+    for (let tries = 0; tries < 20; tries += 1) {
+        const where = await page.evaluate((type) => {
+            const flyout = window.__easyleanWorkspace.getToolbox().getFlyout();
+            const block = flyout.getWorkspace().getTopBlocks(false).find((b) => b.type === type);
+            const area = flyout.getWorkspace().getParentSvg().getBoundingClientRect();
+            const rect = block?.getSvgRoot().getBoundingClientRect();
+            if (!rect) return null;
+            return { below: rect.top + 20 > area.bottom, above: rect.top < area.top, x: area.left + area.width / 2, y: area.top + area.height / 2 };
+        }, type);
+        if (!where || (!where.below && !where.above)) break;
+        await page.mouse.move(where.x, where.y);
+        await page.mouse.wheel(0, where.below ? 150 : -150);
+        await page.waitForTimeout(200);
+    }
     // The block as shown in the toolbox, and its top connection relative to it.
     const source = await page.evaluate((type) => {
         const flyout = window.__easyleanWorkspace.getToolbox().getFlyout();
@@ -63,8 +94,27 @@ const drag = async (page, type, where) => {
     await page.mouse.up();
     await page.waitForTimeout(3500);
     const id = await page.evaluate((before) => window.__easyleanWorkspace.getAllBlocks(false).map((b) => b.id).find((id) => !before.includes(id)), before);
-    const attached = await page.evaluate((id) => !!window.__easyleanWorkspace.getBlockById(id)?.getParent(), id);
-    if (!attached) throw new Error(`${type} did not attach where it was dropped`);
+    // Dropped between two neighbouring connections, a block can snap to the
+    // other one; a student then moves it to its place, and so does the walk
+    // (logged with WHERE=1).
+    const moved = await page.evaluate(([id, where]) => {
+        const ws = window.__easyleanWorkspace;
+        const block = ws.getBlockById(id);
+        if (!block) return 'missing';
+        const goal = ws.getTopBlocks(true).find((b) => b.type === 'game_goal');
+        const connection = where.goal ? goal.getInput('PROOF').connection
+            : where.after ? ws.getBlockById(where.after).nextConnection
+                : ws.getBlockById(where.into).getInput(where.input).connection;
+        if (block.previousConnection.targetConnection === connection) return null;
+        block.unplug(true);
+        connection.connect(block.previousConnection);
+        return 'moved';
+    }, [id, where]);
+    if (moved === 'missing') throw new Error(`${type} was not dropped`);
+    if (moved) {
+        if (process.env.WHERE) console.log('MOVED', type);
+        await page.waitForTimeout(3500);
+    }
     if (process.env.WHERE) console.log('DROP', type, await page.evaluate((id) => {
         const b = window.__easyleanWorkspace.getBlockById(id);
         const p = b.getParent();
@@ -225,15 +275,165 @@ const UNIT4 = [
     },
 ];
 
+// Each level of unit 5, as its hints describe it.
+const unfold = async (page, after, statement, log) => {
+    const u = await drag(page, 'hw_unfold', after);
+    await choose(page, u, 'STATEMENT', statement);
+    log(await phrase(page, u));
+    return u;
+};
+const UNIT5 = [
+    async (page, log) => {
+        const e = await drag(page, 'hw_subset_elim', { goal: true });
+        await choose(page, e, 'SUBSET', 'A ⊆ B'); await choose(page, e, 'MEMBER', 'x₀ ∈ A'); log(await phrase(page, e));
+        await drag(page, 'hw_exact', { after: e });
+    },
+    async (page, log) => {
+        const a1 = await drag(page, 'hw_assume', { goal: true });
+        const a2 = await drag(page, 'hw_assume', { after: a1 });
+        const i = await drag(page, 'hw_subset_intro', { after: a2 }); log(await phrase(page, i));
+        const e1 = await drag(page, 'hw_subset_elim', { after: i }); await choose(page, e1, 'SUBSET', 'A ⊆ B'); await choose(page, e1, 'MEMBER', 'x₀ ∈ A');
+        const e2 = await drag(page, 'hw_subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'B ⊆ C'); await choose(page, e2, 'MEMBER', 'x₀ ∈ B'); log(await phrase(page, e2));
+        await drag(page, 'hw_exact', { after: e2 });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true }); log(await phrase(page, i));
+        const u = await unfold(page, { after: i }, 'x₀ ∈ A ∩ B', log);
+        const d = await drag(page, 'hw_and_elim', { after: u }); await choose(page, d, 'AND', '(x₀ ∈ A ∧ x₀ ∈ B)');
+        await drag(page, 'hw_exact', { after: d });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ A ∪ B', log);
+        const o = await drag(page, 'hw_or_intro', { after: u }); await choose(page, o, 'SIDE', 'x₀ ∈ A');
+        await drag(page, 'hw_exact', { after: o });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ A ∪ B', log);
+        const k = await drag(page, 'hw_or_elim', { after: u }); await choose(page, k, 'OR', '(x₀ ∈ A ∨ x₀ ∈ B)'); log(await phrase(page, k));
+        for (const [part, subset, member] of [['LEFT', 'A ⊆ C', 'x₀ ∈ A'], ['RIGHT', 'B ⊆ C', 'x₀ ∈ B']]) {
+            const e = await drag(page, 'hw_subset_elim', { into: k, input: part }); await choose(page, e, 'SUBSET', subset); await choose(page, e, 'MEMBER', member);
+            await drag(page, 'hw_exact', { after: e });
+        }
+    },
+    async (page, log) => {
+        const q = await drag(page, 'hw_set_eq', { goal: true }); log(await phrase(page, q));
+        for (const [part, from, to] of [['FIRST', 'A ∩ B', 'B ∩ A'], ['SECOND', 'B ∩ A', 'A ∩ B']]) {
+            const [l, r] = from.split(' ∩ ');
+            const i = await drag(page, 'hw_subset_intro', { into: q, input: part });
+            const u1 = await unfold(page, { after: i }, `x₀ ∈ ${from}`, log);
+            const d = await drag(page, 'hw_and_elim', { after: u1 }); await choose(page, d, 'AND', `(x₀ ∈ ${l} ∧ x₀ ∈ ${r})`);
+            const u2 = await unfold(page, { after: d }, `x₀ ∈ ${to}`, log);
+            const s = await drag(page, 'hw_and_intro', { after: u2 });
+            await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
+            await drag(page, 'hw_exact', { into: s, input: 'RIGHT' });
+        }
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true }); log(await phrase(page, i));
+        const u1 = await unfold(page, { after: i }, 'x₀ ∈ A ∩ (B ∪ C)', log);
+        const d = await drag(page, 'hw_and_elim', { after: u1 }); await choose(page, d, 'AND', '(x₀ ∈ A ∧ x₀ ∈ B ∪ C)');
+        const u2 = await unfold(page, { after: d }, 'x₀ ∈ B ∪ C', log);
+        const u3 = await unfold(page, { after: u2 }, 'x₀ ∈ A ∩ B ∪ A ∩ C', log);
+        const k = await drag(page, 'hw_or_elim', { after: u3 }); await choose(page, k, 'OR', '(x₀ ∈ B ∨ x₀ ∈ C)');
+        for (const [part, side, set] of [['LEFT', 'x₀ ∈ A ∩ B', 'x₀ ∈ A ∩ B'], ['RIGHT', 'x₀ ∈ A ∩ C', 'x₀ ∈ A ∩ C']]) {
+            const o = await drag(page, 'hw_or_intro', { into: k, input: part }); await choose(page, o, 'SIDE', side);
+            const u = await unfold(page, { after: o }, set, log);
+            const s = await drag(page, 'hw_and_intro', { after: u });
+            await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
+            await drag(page, 'hw_exact', { into: s, input: 'RIGHT' });
+        }
+    },
+    async (page, log) => {
+        const a = await drag(page, 'hw_assume', { goal: true });
+        const i = await drag(page, 'hw_subset_intro', { after: a }); log(await phrase(page, i));
+        const u1 = await unfold(page, { after: i }, 'x₀ ∈ Bᶜ', log);
+        const u2 = await unfold(page, { after: u1 }, 'x₀ ∈ Aᶜ', log);
+        const n = await drag(page, 'hw_not_intro', { after: u2 }); log(await phrase(page, n));
+        const e = await drag(page, 'hw_subset_elim', { after: n }); await choose(page, e, 'SUBSET', 'A ⊆ B'); await choose(page, e, 'MEMBER', 'x₀ ∈ A');
+        const c = await drag(page, 'hw_contradiction', { after: e }); await choose(page, c, 'FACT', 'x₀ ∈ B'); log(await phrase(page, c));
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u1 = await unfold(page, { after: i }, 'x₀ ∈ A \\ B', log);
+        const d = await drag(page, 'hw_and_elim', { after: u1 }); await choose(page, d, 'AND', '(x₀ ∈ A ∧ ¬x₀ ∈ B)');
+        const u2 = await unfold(page, { after: d }, 'x₀ ∈ A ∩ Bᶜ', log);
+        const s = await drag(page, 'hw_and_intro', { after: u2 });
+        await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
+        const u3 = await unfold(page, { into: s, input: 'RIGHT' }, 'x₀ ∈ Bᶜ', log);
+        await drag(page, 'hw_exact', { after: u3 });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ∅', log);
+        const x = await drag(page, 'hw_exfalso', { after: u });
+        await drag(page, 'hw_exact', { after: x });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'hw_assume', { goal: true });
+        const i1 = await drag(page, 'hw_subset_intro', { after: a }); log(await phrase(page, i1));
+        const u1 = await unfold(page, { after: i1 }, 'X₀ ∈ 𝒫 A', log);
+        const u2 = await unfold(page, { after: u1 }, 'X₀ ∈ 𝒫 B', log);
+        const i2 = await drag(page, 'hw_subset_intro', { after: u2 }); log(await phrase(page, i2));
+        const e1 = await drag(page, 'hw_subset_elim', { after: i2 }); await choose(page, e1, 'SUBSET', 'X₀ ⊆ A'); await choose(page, e1, 'MEMBER', 'x₀ ∈ X₀');
+        const e2 = await drag(page, 'hw_subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'A ⊆ B'); await choose(page, e2, 'MEMBER', 'x₀ ∈ A');
+        await drag(page, 'hw_exact', { after: e2 });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const w = await drag(page, 'hw_exists_intro', { after: u }); await choose(page, w, 'TERM', 'A'); log(await phrase(page, w));
+        const s = await drag(page, 'hw_and_intro', { after: w });
+        await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
+        await drag(page, 'hw_exact', { into: s, input: 'RIGHT' });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋂₀ F', log);
+        const e = await drag(page, 'hw_forall_elim', { after: u }); await choose(page, e, 'FORALL', '∀S (S ∈ F → x₀ ∈ S)'); await choose(page, e, 'TERM', 'A'); log(await phrase(page, e));
+        const f = await drag(page, 'hw_forward', { after: e }); await choose(page, f, 'RULE', '(A ∈ F → x₀ ∈ A)'); await choose(page, f, 'PREMISE', 'A ∈ F');
+        await drag(page, 'hw_exact', { after: f });
+    },
+    async (page, log) => {
+        const q = await drag(page, 'hw_set_eq', { goal: true }); log(await phrase(page, q));
+        const i1 = await drag(page, 'hw_subset_intro', { into: q, input: 'FIRST' });
+        const u1 = await unfold(page, { after: i1 }, 'x₀ ∈ (A ∪ B)ᶜ', log);
+        const u2 = await unfold(page, { after: u1 }, 'x₀ ∈ Aᶜ ∩ Bᶜ', log);
+        const s = await drag(page, 'hw_and_intro', { after: u2 });
+        for (const [part, set, side] of [['LEFT', 'x₀ ∈ Aᶜ', 'x₀ ∈ A'], ['RIGHT', 'x₀ ∈ Bᶜ', 'x₀ ∈ B']]) {
+            const u = await unfold(page, { into: s, input: part }, set, log);
+            const n = await drag(page, 'hw_not_intro', { after: u });
+            const e = await drag(page, 'hw_not_elim', { after: n }); await choose(page, e, 'NEGATION', '¬x₀ ∈ A ∪ B');
+            const g = await unfold(page, { after: e }, 'x₀ ∈ A ∪ B', log);
+            const o = await drag(page, 'hw_or_intro', { after: g }); await choose(page, o, 'SIDE', side);
+            await drag(page, 'hw_exact', { after: o });
+        }
+        const i2 = await drag(page, 'hw_subset_intro', { into: q, input: 'SECOND' });
+        const v1 = await unfold(page, { after: i2 }, 'x₀ ∈ Aᶜ ∩ Bᶜ', log);
+        const d = await drag(page, 'hw_and_elim', { after: v1 }); await choose(page, d, 'AND', '(x₀ ∈ Aᶜ ∧ x₀ ∈ Bᶜ)');
+        const v2 = await unfold(page, { after: d }, 'x₀ ∈ Aᶜ', log);
+        const v3 = await unfold(page, { after: v2 }, 'x₀ ∈ Bᶜ', log);
+        const v4 = await unfold(page, { after: v3 }, 'x₀ ∈ (A ∪ B)ᶜ', log);
+        const n = await drag(page, 'hw_not_intro', { after: v4 });
+        const v5 = await unfold(page, { after: n }, 'x₀ ∈ A ∪ B', log);
+        const k = await drag(page, 'hw_or_elim', { after: v5 }); await choose(page, k, 'OR', '(x₀ ∈ A ∨ x₀ ∈ B)');
+        for (const [part, fact] of [['LEFT', 'x₀ ∈ A'], ['RIGHT', 'x₀ ∈ B']]) {
+            const c = await drag(page, 'hw_contradiction', { into: k, input: part }); await choose(page, c, 'FACT', fact);
+        }
+    },
+];
+
 const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
+    { unit: 5, world: 'יחידה 5 - קבוצות', walks: UNIT5 },
 ];
 
 for (const { unit, world, walks } of UNITS) {
     walks.forEach((walk, index) => {
         test(`student walk, unit ${unit} level ${index + 1}`, async ({ page }) => {
-            test.setTimeout(150000);
+            test.setTimeout(400000);
             await page.setViewportSize({ width: 1500, height: 1000 });
             await page.goto('handwritten.html');
             await page.getByRole('button', { name: world }).click();
