@@ -127,7 +127,10 @@ export const HANDWRITTEN_UNITS = [
         world: 'יחידה 4 - כמתים',
         levels: [
             [{ label: 'פתרון', steps: [forallElim('∀ x, P x', 'a'), close] }],
-            [{ label: 'פתרון', steps: [forallElim('∀ x, P x → Q x', 'a'), forward('P a → Q a', 'P a'), close] }],
+            [
+                { label: 'קדימה', steps: [forallElim('∀ x, P x → Q x', 'a'), forward('P a → Q a', 'P a'), close] },
+                { label: 'אחורה', steps: [forallElim('∀ x, P x → Q x', 'a'), backward('P a → Q a'), close] },
+            ],
             [{ label: 'פתרון', steps: [assume, forallIntro, forallElim('∀ x, P x ∧ Q x', 'x₀'), andElim('P x₀ ∧ Q x₀'), close] }],
             [{ label: 'פתרון', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), forallElim('∀ x, P x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), close] }],
             [{ label: 'פתרון', steps: [existsIntro('a'), orIntro('LEFT'), close] }],
