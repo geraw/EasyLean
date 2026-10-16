@@ -112,23 +112,103 @@ class FieldDirection extends Blockly.FieldDropdown {
 // quantifier is restated with the bound variable of the formula it is used in
 // (see variable), so that a substitution keeps the formula's names. Double
 // negation is used only to remove one: backward, its side A fits any statement.
+// Each side of a law: when a formula has its form (match, giving the parts),
+// and the formula it is for given parts (text, in Lean's spelling).
+const both = (symbol, negatedLeft, negatedRight) => ({
+    match: (formula) => {
+        const sides = splitConnective(formula, symbol);
+        if (!sides) return null;
+        const a = negatedLeft ? negatedStatement(sides[0]) : sides[0];
+        const b = negatedRight ? negatedStatement(sides[1]) : sides[1];
+        return a && b ? { a, b } : null;
+    },
+    text: ({ a, b }) => `(${negatedLeft ? '¬' : ''}(${a})) ${symbol} (${negatedRight ? '¬' : ''}(${b}))`,
+});
+const negated = (symbol) => ({
+    match: (formula) => {
+        const sides = splitConnective(negatedStatement(formula), symbol);
+        return sides ? { a: sides[0], b: sides[1] } : null;
+    },
+    text: ({ a, b }) => `¬((${a}) ${symbol} (${b}))`,
+});
+const quantified = (symbol, negatedOutside) => ({
+    match: (formula) => {
+        const quantifier = splitQuantifier(negatedOutside ? negatedStatement(formula) : formula, symbol);
+        if (!quantifier) return null;
+        const body = negatedOutside ? quantifier.body : negatedStatement(quantifier.body);
+        return body ? { x: quantifier.variable, body } : null;
+    },
+    text: ({ x, body }) => (negatedOutside ? `¬${symbol} ${x}, ${body}` : `${symbol} ${x}, ¬(${body})`),
+});
+const negatedTwice = {
+    match: (formula) => {
+        const denied = negatedStatement(negatedStatement(formula));
+        return denied ? { a: denied } : null;
+    },
+    text: ({ a }) => `¬¬(${a})`,
+};
+const any = { match: (formula) => ({ a: formula }), text: ({ a }) => a };
+// Contraposition: ¬B → ¬A has the parts in the other order.
+const contraposed = {
+    match: (formula) => {
+        const parts = both('→', true, true).match(formula);
+        return parts && { a: parts.b, b: parts.a };
+    },
+    text: ({ a, b }) => `(¬(${b})) → (¬(${a}))`,
+};
+
+// Unit 5. The laws of logical equivalence, each proved in both directions in
+// earlier levels, as students read them (with schematic letters A, B, as the
+// moves of unit 3 do), as Lean's lemmas (EQUIV_PRELUDE), and as the forms of
+// their two sides, to show what a replacement replaces. A law about a
+// quantifier is restated with the bound variable of the formula it is used in
+// (see variable), so that a substitution keeps the formula's names. Double
+// negation is used only to remove one: backward, its side A fits any statement.
 export const LAWS = [
-    { value: 'easylean_not_not', left: '¬¬A', right: 'A', backward: false },
-    { value: 'easylean_not_or', left: '¬(A ∨ B)', right: '(¬A ∧ ¬B)' },
-    { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)' },
-    { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)' },
-    { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)' },
+    { value: 'easylean_not_not', left: '¬¬A', right: 'A', backward: false, sides: [negatedTwice, any] },
+    { value: 'easylean_not_or', left: '¬(A ∨ B)', right: '(¬A ∧ ¬B)', sides: [negated('∨'), both('∧', true, true)] },
+    { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)', sides: [negated('∧'), both('∨', true, true)] },
+    { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)', sides: [both('→', false, false), both('∨', true, false)] },
+    // Replacing every implication by its contrapositive would never end.
+    { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed], all: false },
     {
-        value: 'easylean_not_exists', left: '¬∃x P(x)', right: '∀x ¬P(x)',
+        value: 'easylean_not_exists', left: '¬∃x P(x)', right: '∀x ¬P(x)', sides: [quantified('∃', true), quantified('∀', false)],
         statement: (x) => `(¬∃ ${x}, p ${x}) ↔ ∀ ${x}, ¬p ${x}`,
         variable: [/¬\s*∃\s*\(?\s*([^\s,:()]+)/, /∀\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
     },
     {
-        value: 'easylean_not_forall', left: '¬∀x P(x)', right: '∃x ¬P(x)',
+        value: 'easylean_not_forall', left: '¬∀x P(x)', right: '∃x ¬P(x)', sides: [quantified('∀', true), quantified('∃', false)],
         statement: (x) => `(¬∀ ${x}, p ${x}) ↔ ∃ ${x}, ¬p ${x}`,
         variable: [/¬\s*∀\s*\(?\s*([^\s,:()]+)/, /∃\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
     },
 ];
+
+// The parts of a formula, in the order Lean's rewrite looks at them: a
+// formula before its parts, and the left part before the right one.
+const formulaParts = (formula) => {
+    for (const symbol of ['↔', '→', '∨', '∧']) {
+        const sides = splitConnective(formula, symbol);
+        if (sides) return sides;
+    }
+    const denied = negatedStatement(formula);
+    if (denied) return [denied];
+    const quantifier = splitQuantifier(formula, '∀') || splitQuantifier(formula, '∃');
+    return quantifier ? [quantifier.body] : [];
+};
+
+// The parts of a formula of the given side's form, in that order, each as the
+// replacement it makes: [what is replaced, by what].
+const lawInstances = (law, backward, formula) => {
+    const [from, to] = backward ? [law.sides[1], law.sides[0]] : law.sides;
+    const found = [];
+    const search = (part) => {
+        const parts = from.match(part);
+        if (parts) found.push([from.text(parts), to.text(parts)]);
+        formulaParts(part).forEach(search);
+    };
+    if (formula && from !== any) search(formula);
+    return found;
+};
 
 const lawOf = (value) => LAWS.find((law) => law.value === value);
 const lawLabel = (law) => `${law.left} ↔ ${law.right}`;
@@ -157,16 +237,30 @@ class FieldLaw extends Blockly.FieldDropdown {
 class FieldLawDirection extends Blockly.FieldDropdown {
     constructor() {
         super(function () {
-            const law = lawOf(this.getSourceBlock()?.getFieldValue('LAW'));
+            const block = this.getSourceBlock();
+            const law = lawOf(block?.getFieldValue('LAW'));
             if (!law) return [['משמאל לימין', 'FORWARD'], ['מימין לשמאל', 'BACKWARD']];
-            const forward = [isolateHebrew(`את ${isolateFormulas(law.left)} ב־${isolateFormulas(law.right)}`), 'FORWARD'];
-            const backward = [isolateHebrew(`את ${isolateFormulas(law.right)} ב־${isolateFormulas(law.left)}`), 'BACKWARD'];
-            return law.backward === false ? [forward] : [forward, backward];
+            // What it replaces in the chosen place, when that has the side's form;
+            // otherwise the law's sides themselves.
+            const target = block.getFieldValue('TARGET');
+            const formula = target === GOAL ? block.stateBefore?.goal : filled(target) && target;
+            const sides = (backward) => (backward ? [law.right, law.left] : [law.left, law.right]).map(isolateFormulas);
+            // The first part of that form, or, when there are several, all of them.
+            const options = (backward) => {
+                const instances = lawInstances(law, backward, formula);
+                const [from, to] = instances.length ? instances[0].map(shown) : sides(backward);
+                const direction = backward ? 'BACKWARD' : 'FORWARD';
+                const first = [isolateHebrew(`את ${from} ב־${to}`), direction];
+                if (instances.length < 2 || law.all === false) return [first];
+                const [form, replacement] = sides(backward);
+                return [first, [isolateHebrew(`את כל הביטויים מהצורה ${form} ב־${replacement}`), `${direction}_ALL`]];
+            };
+            return law.backward === false ? options(false) : [...options(false), ...options(true)];
         });
     }
 
     doClassValidation_(value) {
-        return ['FORWARD', 'BACKWARD'].includes(value) ? value : null;
+        return ['FORWARD', 'BACKWARD', 'FORWARD_ALL', 'BACKWARD_ALL'].includes(value) ? value : null;
     }
 
     refreshText() {
@@ -957,14 +1051,16 @@ leanGenerator.forBlock['unfold'] = (block) => {
     return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr)\n  | have := ${definition.lemma}.mp ‹${statement}›\n`;
 };
 
-// Unit 5. `rewrite` replaces the first instance of the law's side (and every
-// copy of it); inside a quantifier, which `rewrite` cannot reach, `simp only`
-// replaces all of them. A law about a quantifier is restated, for this move
-// only, with the formula's bound variable, so that the result keeps its names.
+// Unit 5. `rewrite` replaces the first part of the form of the law's side;
+// inside a quantifier, which `rewrite` cannot reach, `simp only` does, and it
+// replaces all of them, as it does when all are chosen. A law about a
+// quantifier is restated, for this move only, with the formula's bound
+// variable, so that the result keeps its names.
 leanGenerator.forBlock['replace'] = (block) => {
     const law = lawOf(block.getFieldValue('LAW'));
     if (!law) return '  skip\n';
-    const backward = block.getFieldValue('DIRECTION') === 'BACKWARD';
+    const direction = block.getFieldValue('DIRECTION');
+    const backward = direction.startsWith('BACKWARD');
     const target = block.getFieldValue('TARGET');
     const onGoal = target === GOAL;
     const text = onGoal ? block.stateBefore?.goal || '' : target;
@@ -981,7 +1077,8 @@ leanGenerator.forBlock['replace'] = (block) => {
     }
     const rule = `${backward ? '← ' : ''}${name}`;
     const side = backward ? law.right : law.left;
-    return `  ${copy}${restated}(first | rewrite [${rule}]${at} | simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
+    const first = direction.endsWith('_ALL') ? '' : `rewrite (occs := .pos [1]) [${rule}]${at} | `;
+    return `  ${copy}${restated}(first | ${first}simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
 };
 
 // Unit 8. `rewrite`, not `rw`, which would also try to close the goal; in a

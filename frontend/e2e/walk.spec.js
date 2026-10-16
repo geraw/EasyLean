@@ -293,9 +293,10 @@ const UNIT4 = [
 // Each level of unit 5, as its hints describe it.
 const replace = async (page, where, law, direction, target, log) => {
     const r = await drag(page, 'replace', where);
+    // The place first: the direction shows what is replaced there.
     await choose(page, r, 'LAW', law);
-    await choose(page, r, 'DIRECTION', direction);
     await choose(page, r, 'TARGET', target);
+    await choose(page, r, 'DIRECTION', direction);
     log(await phrase(page, r));
     return r;
 };
@@ -343,35 +344,35 @@ const UNIT5 = [
         const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'P(x₀)');
     }),
     async (page, log) => {
-        const r = await replace(page, { goal: true }, IMP_OR, 'את (A → B) ב־(¬A ∨ B)', 'המטרה', log); log(await state(page));
+        const r = await replace(page, { goal: true }, IMP_OR, 'את (P → Q) ב־(¬P ∨ Q)', 'המטרה', log); log(await state(page));
         const o = await drag(page, 'or_intro', { after: r }); await choose(page, o, 'SIDE', '¬P'); log(await phrase(page, o));
         await drag(page, 'exact', { after: o });
     },
     async (page, log) => {
-        const r = await replace(page, { goal: true }, NOT_OR, 'את ¬(A ∨ B) ב־(¬A ∧ ¬B)', '¬(P ∨ Q)', log);
+        const r = await replace(page, { goal: true }, NOT_OR, 'את ¬(P ∨ Q) ב־(¬P ∧ ¬Q)', '¬(P ∨ Q)', log);
         const d = await drag(page, 'and_elim', { after: r }); await choose(page, d, 'AND', '(¬P ∧ ¬Q)'); log(await phrase(page, d));
         await drag(page, 'exact', { after: d });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        const r = await replace(page, { after: a }, '(A → B) ↔ (¬B → ¬A)', 'את (A → B) ב־(¬B → ¬A)', 'המטרה', log);
+        const r = await replace(page, { after: a }, '(A → B) ↔ (¬B → ¬A)', 'את (P → Q) ב־(¬Q → ¬P)', 'המטרה', log);
         await drag(page, 'exact', { after: r });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        const r1 = await replace(page, { after: a }, NOT_OR, 'את ¬(A ∨ B) ב־(¬A ∧ ¬B)', '¬(P ∨ ¬Q)', log);
-        const r2 = await replace(page, { after: r1 }, '¬¬A ↔ A', 'את ¬¬A ב־A', '(¬P ∧ ¬¬Q)', log);
+        const r1 = await replace(page, { after: a }, NOT_OR, 'את ¬(P ∨ ¬Q) ב־(¬P ∧ ¬¬Q)', '¬(P ∨ ¬Q)', log);
+        const r2 = await replace(page, { after: r1 }, '¬¬A ↔ A', 'את ¬¬Q ב־Q', '(¬P ∧ ¬¬Q)', log);
         await drag(page, 'exact', { after: r2 });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        const r1 = await replace(page, { after: a }, '¬∀x P(x) ↔ ∃x ¬P(x)', 'את ¬∀x P(x) ב־∃x ¬P(x)', '¬∀x ∃y R(x,y)', log);
-        const r2 = await replace(page, { after: r1 }, '¬∃x P(x) ↔ ∀x ¬P(x)', 'את ¬∃x P(x) ב־∀x ¬P(x)', '∃x ¬∃y R(x,y)', log); log(await state(page));
+        const r1 = await replace(page, { after: a }, '¬∀x P(x) ↔ ∃x ¬P(x)', 'את ¬∀x ∃y R(x,y) ב־∃x ¬∃y R(x,y)', '¬∀x ∃y R(x,y)', log);
+        const r2 = await replace(page, { after: r1 }, '¬∃x P(x) ↔ ∀x ¬P(x)', 'את ¬∃y R(x,y) ב־∀y ¬R(x,y)', '∃x ¬∃y R(x,y)', log); log(await state(page));
         await drag(page, 'exact', { after: r2 });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        const r = await replace(page, { after: a }, IMP_OR, 'את (¬A ∨ B) ב־(A → B)', 'המטרה', log);
+        const r = await replace(page, { after: a }, IMP_OR, 'את (¬P ∨ ¬Q) ב־(P → ¬Q)', 'המטרה', log);
         const a2 = await drag(page, 'assume', { after: r }); log(await phrase(page, a2));
         const n = await drag(page, 'not_intro', { after: a2 }); log(await phrase(page, n));
         const e = await drag(page, 'not_elim', { after: n }); await choose(page, e, 'NEGATION', '¬(P ∧ Q)'); log(await phrase(page, e));

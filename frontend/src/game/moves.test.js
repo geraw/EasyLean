@@ -241,10 +241,10 @@ describe('the moves of unit 5', () => {
         const { workspace } = solved(level, UNITS[5].levels[5][0].steps);
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('theorem easylean_imp_or ');
-        expect(code).toContain('  (first | rewrite [easylean_imp_or] | simp only [easylean_imp_or] | fail "easylean: no part of the form (A → B)")\n');
+        expect(code).toContain('  (first | rewrite (occs := .pos [1]) [easylean_imp_or] | simp only [easylean_imp_or] | fail "easylean: no part of the form (A → B)")\n');
         const inHand = solved(unit5Levels[6], UNITS[5].levels[6][0].steps).workspace;
         expect(generateGameLeanCode(inHand, unit5Levels[6], '', { includeFallback: false }))
-            .toContain('  have := ‹¬(P ∨ Q)›; (first | rewrite [easylean_not_or] at this | simp only [easylean_not_or] at this | fail "easylean: no part of the form ¬(A ∨ B)")\n');
+            .toContain('  have := ‹¬(P ∨ Q)›; (first | rewrite (occs := .pos [1]) [easylean_not_or] at this | simp only [easylean_not_or] at this | fail "easylean: no part of the form ¬(A ∨ B)")\n');
     });
 
     it('keep the bound variables of the formula when a law is about a quantifier', () => {
@@ -255,14 +255,22 @@ describe('the moves of unit 5', () => {
         expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∃ y, p y) ↔ ∀ y, ¬p y := fun _ _ => easylean_not_exists;');
     });
 
-    it("offer the level's laws, and the directions of the chosen one", () => {
+    it("offer the level's laws, and what the chosen one replaces in the chosen place", () => {
         setLevelLaws(unit5Levels[8].laws);
         const { blocks: [, first, second] } = solved(unit5Levels[8], UNITS[5].levels[8][0].steps);
         expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ↔ A', 'easylean_not_not']]);
-        expect(options(first, 'DIRECTION')).toEqual([['את ¬(A ∨ B) ב־(¬A ∧ ¬B)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);
+        // The place has no part of the other side's form: that direction shows the law.
+        expect(options(first, 'DIRECTION')).toEqual([['את ¬(P ∨ ¬Q) ב־(¬P ∧ ¬¬Q)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);
         // Double negation only removes one: backward, A fits any statement.
-        expect(options(second, 'DIRECTION')).toEqual([['את ¬¬A ב־A', 'FORWARD']]);
+        expect(options(second, 'DIRECTION')).toEqual([['את ¬¬Q ב־Q', 'FORWARD']]);
         setLevelLaws([]);
+    });
+
+    it('offer to replace all the parts of the form, when there are several', () => {
+        const { blocks: [replace] } = solved(unit5Levels[8], [['replace', { LAW: 'easylean_not_not', TARGET: '¬¬P ∧ (Q ∨ ¬¬¬Q)' }]]);
+        expect(options(replace, 'DIRECTION')).toEqual([['את ¬¬P ב־P', 'FORWARD'], ['את כל הביטויים מהצורה ¬¬A ב־A', 'FORWARD_ALL']]);
+        replace.setFieldValue('FORWARD_ALL', 'DIRECTION');
+        expect(leanGenerator.blockToCode(replace)).toBe('  have := ‹¬¬P ∧ (Q ∨ ¬¬¬Q)›; (first | simp only [easylean_not_not] at this | fail "easylean: no part of the form ¬¬A")\n');
     });
 });
 
