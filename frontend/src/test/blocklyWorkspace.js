@@ -1,9 +1,9 @@
 import * as Blockly from 'blockly/core';
-import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
+import { defineMoveBlocks } from '../blocks/moves';
 
-defineBlocks();
 defineGameBlocks();
+defineMoveBlocks();
 
 // Headless (non-rendered) workspace loaded from a level's XML.
 export const loadWorkspace = (xml) => {
@@ -12,7 +12,7 @@ export const loadWorkspace = (xml) => {
     return workspace;
 };
 
-// Appends tactic blocks to the goal's PROOF input. Each step is
+// Appends moves to the goal's PROOF input. Each step is
 // [type, { FIELD: value }]; returns the created blocks in order.
 export const buildProof = (workspace, steps) => {
     const goal = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');

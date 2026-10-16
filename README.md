@@ -119,7 +119,7 @@ There are three layers of tests. CI (`.github/workflows/test.yml`) runs all of t
 | Backend tests (`node:test`): proof-state parser, `/verify` and `/proof-state` | `backend/test/` | `cd backend && npm test` | Node, Lean (the Lean-backed tests are skipped when `lean` is missing) |
 | End-to-end tests (Playwright): the real app in Chromium | `frontend/e2e/` | `cd frontend && npm run test:e2e` | Node, Lean, `npx playwright install chromium` once |
 
-The end-to-end tests start the backend and the Vite dev server themselves, or reuse them if they are already running. They build proofs through `window.__easyleanWorkspace`, which is only set in dev mode, and then click blocks and controls the way a student would. Use `npm run test:watch` in `frontend/` to re-run unit tests on save.
+The end-to-end tests start the backend and the Vite dev server themselves, or reuse them if they are already running. `solutions.spec.js` checks every solution of every level (defined in `e2e/solutions.js`) against Lean, building the proofs through `window.__easyleanWorkspace`, which is only set in dev mode; `walk.spec.js` solves levels the way a student would, dragging moves from the toolbox with the mouse and choosing only what their menus offer. Use `npm run test:watch` in `frontend/` to re-run unit tests on save.
 
 ---
 

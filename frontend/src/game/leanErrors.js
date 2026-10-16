@@ -1,4 +1,5 @@
 import { formatProofGoal } from './formatProofGoal';
+import { MOVE_EXPLANATIONS } from './moveExplanations';
 import { isolateFormulas } from './bidi';
 
 // Turns Lean's error messages into explanations in the terms the units use
@@ -7,7 +8,7 @@ import { isolateFormulas } from './bidi';
 export const GENERIC_PROBLEM = 'המהלך הזה לא מתאים למצב ההוכחה כרגע.';
 
 // A move whose field still holds the placeholder ? (see PLACEHOLDER).
-export const INCOMPLETE_MOVE = 'בבלוק הזה יש שדה מסומן ?. כתבו בו את ההנחה (או הטענה) שהמהלך משתמש בה, או שם להנחה החדשה שהוא מוסיף. במצב ההוכחה רואים מה יש לנו ביד.';
+export { INCOMPLETE_MOVE } from './moveExplanations';
 
 const MESSAGE_HEADER = /^.*?:(\d+):(\d+): (error|warning|info)(?:\([^)]*\))?: ?(.*)$/;
 
@@ -39,44 +40,20 @@ const parseApplicationMismatch = (text) => {
     return { argument, type, expected, application, argumentSort };
 };
 
-// The rule a block generated, by the head of the failed application.
-const explainApplication = ({ argument, type, expected, application, argumentSort }) => {
+// What the moves' own explanations (moveExplanations.js) leave of a failed
+// application: an object given where a statement is needed, or the other way
+// around, or a "for all" used as an implication.
+const explainApplication = ({ argument, type, application, argumentSort }) => {
     const [head, ...args] = application.split(/\s+/);
-    const isObject = argumentSort?.startsWith('Type');
-    const isForall = type.trim().startsWith('∀');
     if (head === 'easylean_mp') {
-        if (args.length === 1) {
-            return isForall
-                ? `${argument} אומרת ${formula(type)}, טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.`
-                : `${argument} אומרת ${formula(type)}, וזו לא גרירה, ולכן אין לה תנאי ומסקנה.`;
-        }
-        const rule = args[0].startsWith('?') ? 'הגרירה' : args[0];
-        const fromRule = args[0].startsWith('?') ? 'מהגרירה' : `מ־${rule}`;
-        return isObject
-            ? `${argument} הוא עצם, לא הנחה. כדי להסיק ${fromRule} צריך הנחה שאומרת את התנאי שלה.`
-            : `${argument} אומרת ${formula(type)}, אבל התנאי של ${rule} הוא ${formula(expected)}, ולכן אי אפשר להסיק ממנה את המסקנה של ${rule}.`;
+        if (argumentSort?.startsWith('Type')) return `${argument} הוא עצם, לא טענה. כדי להסיק מגרירה צריך טענה שאומרת את התנאי שלה.`;
+        if (args.length === 1 && type.trim().startsWith('∀')) return `ההנחה ${formula(type)} היא טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.`;
     }
-    if (head === 'easylean_forall_elim') {
-        return args.length === 1
-            ? `${argument} אומרת ${formula(type)}, וזו לא טענת "לכל", ולכן אי אפשר להציב בה עצם.`
-            : `${argument} היא הנחה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.`;
-    }
-    if (head === 'easylean_subset_elim') {
-        return /⊆/.test(type) || args.length > 1
-            ? `${argument} אומרת ${formula(type)}, אבל ההכלה היא על קבוצה אחרת: צריך שייכות לקבוצה הקטנה שבה.`
-            : `${argument} אומרת ${formula(type)}, וזו לא הכלה.`;
-    }
-    if (head === 'Exists.elim') {
-        return `${argument} אומרת ${formula(type)}, וזו לא טענת "קיים", ולכן אין ממנה עצם לקבל.`;
+    if (head === 'easylean_forall_elim' && args.length > 1) {
+        return `${formula(argument)} היא טענה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.`;
     }
     return null;
 };
-
-// Set operations by the pattern of their definition (see SET_PRELUDE).
-const SET_OPERATIONS = [
-    [/∈ \S+ ∩ /, 'חיתוך'], [/∈ \S+ ∪ /, 'איחוד'], [/∈ \S+ \\ /, 'הפרש'], [/∈ \S+ᶜ/, 'משלים'],
-    [/∈ ∅/, 'הקבוצה הריקה'], [/∈ 𝒫/, 'קבוצת חזקה'], [/∈ ⋃₀/, 'איחוד משפחה'], [/∈ ⋂₀/, 'חיתוך משפחה'],
-];
 
 const EXPLANATIONS = [
     {
@@ -86,13 +63,13 @@ const EXPLANATIONS = [
     },
     {
         // Substituting by something that is not an equality.
-        pattern: /^Invalid rewrite argument: Expected an equality[\s\S]*?but `(.+?)` is a proof of\s*\n\s*(.+?)\s*(?:\n|$)/,
-        explain: ([, name, type]) => `${name} אומרת ${formula(type)}, וזה לא שוויון, ולכן אי אפשר להחליף לפיה.`,
+        pattern: /^Invalid rewrite argument: Expected an equality[\s\S]*?but `.+?` is a proof of\s*\n\s*(.+?)\s*(?:\n|$)/,
+        explain: ([, type]) => `ההנחה ${formula(type)} היא לא שוויון, ולכן אי אפשר להחליף לפיה.`,
     },
     {
         // Unfolding a function definition where it cannot be unfolded.
         pattern: /^Failed to rewrite using equation theorems for `(.+?)`/,
-        explain: ([, name]) => `אין כאן מקום שאפשר לפתוח בו את ההגדרה של ${name}: היא נפתחת רק על 0 או על משהו מהצורה k + 1.`,
+        explain: ([, name]) => `אין כאן מקום שאפשר לפתוח בו את ההגדרה של ${name}: היא נפתחת רק על 0 או על משהו מהצורה n + 1.`,
     },
     {
         pattern: /^omega could not prove the goal/,
@@ -104,18 +81,15 @@ const EXPLANATIONS = [
     },
     {
         pattern: /^Tactic `induction` failed/,
-        explain: () => 'אינדוקציה אפשרית רק על מספר טבעי. כתבו בבלוק את שם המספר שעליו הטענה מדברת.',
+        explain: () => 'אינדוקציה אפשרית רק על מספר טבעי. בחרו בבלוק את המספר שעליו הטענה מדברת.',
     },
     {
-        // Unfolding the definition of a set operation that is not there.
+        // Unfolding a definition that is not there, or substituting a side
+        // of an equality that does not occur.
         pattern: /^Tactic `rewrite` failed: Did not find an occurrence of the pattern\s*\n\s*(.+?)\s*\nin the target expression\s*\n\s*(.+?)\s*(?:\n|$)/,
-        explain: ([, pattern, target]) => {
-            const operation = SET_OPERATIONS.find(([regex]) => regex.test(pattern))?.[1];
-            if (operation) return `ב־${formula(target)} אין שייכות ל${operation}, ולכן אין כאן הגדרה של ${operation} לפתוח.`;
-            if (/\?/.test(pattern)) return `ב־${formula(target)} אין מקום שאפשר לפתוח בו את ההגדרה הזאת.`;
-            // Substitution by an equality (logic_rewrite): its side was not found.
-            return `ב־${formula(target)} לא מופיע ${formula(pattern)}, ולכן אין מה להחליף. אולי צריך להחליף בכיוון השני, או במקום אחר?`;
-        },
+        explain: ([, pattern, target]) => (/\?/.test(pattern)
+            ? `ב־${formula(target)} אין מקום שאפשר לפתוח בו את ההגדרה הזאת.`
+            : `ב־${formula(target)} לא מופיע ${formula(pattern)}, ולכן אין מה להחליף. אולי צריך להחליף בכיוון השני, או במקום אחר?`),
     },
     {
         // Proving an inclusion, when the goal is not one.
@@ -128,7 +102,7 @@ const EXPLANATIONS = [
         explain: ([, goal]) => `המטרה היא ${formula(goal)}, והיא לא שוויון קבוצות.`,
     },
     {
-        // Proving a negation, when the goal is not one (logic_not_intro).
+        // Proving a negation, when the goal is not one.
         pattern: /^type mismatch\s*\n\s*Not\.intro[\s\S]*?but is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
         explain: ([, goal]) => (goal.trim() === 'False'
             ? 'המטרה היא כבר סתירה (⊥), ולא שלילה, ולכן אין טענה להניח. כדי להגיע לסתירה, השתמשו בהנחות שבידיכם, למשל בשלילה ובטענה שהיא שוללת.'
@@ -160,22 +134,9 @@ const EXPLANATIONS = [
         explain: (_, text) => explainApplication(parseApplicationMismatch(text)) || GENERIC_PROBLEM,
     },
     {
-        // A contradiction used on a goal that is not ⊥ (see logic_contradiction / logic_not_elim).
+        // A contradiction used on a goal that is not ⊥.
         pattern: /^type mismatch\s*\n\s*absurd .+?\s*\nhas type\s*\n\s*False\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
-        explain: ([, goal]) => `המטרה היא ${formula(goal)}, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו בגרירה "סתירה גוררת ${formula(goal)}" ועברו להוכיח את התנאי שלה.`,
-    },
-    {
-        // The two assumptions of a contradiction do not contradict each other,
-        // or the assumption used as a negation is not one.
-        pattern: /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*\nin the application\s*\n\s*absurd /,
-        explain: ([, name, type, expected]) => (expected.includes('?')
-            ? `${name} אומרת ${formula(type)}, וזו לא שלילה, ולכן אין טענה שהיא שוללת.`
-            : `${name} אומרת ${formula(type)}, אבל השלילה של ההנחה האחרת בבלוק היא ${formula(expected)}, ולכן הן לא סותרות זו את זו.`),
-    },
-    {
-        // exact h, where h is not the goal
-        pattern: /^type mismatch\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type\s*\n\s*(.+?)\s*(?:\n|$)/i,
-        explain: ([, term, actual, expected]) => `${term.trim()} אומרת ${formula(actual)}, אבל המטרה היא ${formula(expected)}. אפשר לסגור את המטרה רק בעזרת הנחה שאומרת בדיוק את המטרה.`,
+        explain: ([, goal]) => `המטרה היא ${formula(goal)}, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו במהלך "מסתירה נובע הכול, ולכן די להגיע לסתירה".`,
     },
     {
         // A rule for proving a connective, used on a goal of another kind.
@@ -189,30 +150,9 @@ const EXPLANATIONS = [
         })[rule],
     },
     {
-        // A rule for using "and" / "iff", applied to an assumption of another kind.
-        pattern: /^Application type mismatch: The argument\s*\n\s*(.+?)\s*\nhas type\s*\n\s*(.+?)\s*\nbut is expected to have type[\s\S]*?in the application\s*\n\s*(And|Iff)\./,
-        explain: ([, name, type, connective]) => (connective === 'And'
-            ? `${name} אומרת ${formula(type)}, וזו לא טענת "וגם", ולכן אי אפשר להסיק ממנה שני צדדים.`
-            : `${name} אומרת ${formula(type)}, וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.`),
-    },
-    {
         // Splitting into cases by an assumption that is not an "or".
         pattern: /^Invalid alternative name `inl`|^Tactic `cases` failed: major premise type is not an inductive type/,
         explain: () => 'ההנחה שבחרתם היא לא טענת "או", ולכן אי אפשר לחלק לפיה למקרים.',
-    },
-    {
-        // apply h, where the conclusion of h is not the goal
-        pattern: /could not unify the conclusion of `(.+?)`\s*\n\s*(.+?)\s*\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
-        explain: ([, name, conclusion, goal]) => `המסקנה (צד ימין) של ${name} היא ${formula(conclusion)}, אבל המטרה היא ${formula(goal)}. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה זהה למטרה.`,
-    },
-    {
-        // apply h, where h is not an implication at all
-        pattern: /could not unify the type of `(.+?)`\s*\n\s*(.+?)\s*\nwith the goal\s*\n\s*(.+?)\s*(?:\n|$)/,
-        explain: ([, name, type, goal]) => `${name} אומרת ${formula(type)}, וזו לא גרירה שהמסקנה שלה היא המטרה ${formula(goal)}. אם ${name} היא בדיוק המטרה, סגרו את המטרה בעזרתה.`,
-    },
-    {
-        pattern: /unknown identifier [`'‘]?([^`'’\s]+)[`'’]?/i,
-        explain: ([, name]) => `אין הנחה או עצם בשם ${name}. בדקו את השם מול מצב ההוכחה.`,
     },
     {
         // intro, when the goal is not an implication
@@ -233,17 +173,13 @@ const EXPLANATIONS = [
                 : 'ההוכחה עוד לא הושלמה.';
         },
     },
-    {
-        // A field the parser could not read, e.g. an empty name.
-        pattern: /^(unexpected|expected)\b/,
-        explain: () => 'לא הצלחנו לקרוא את מה שכתוב באחד השדות של הבלוק. בדקו שכתבתם בו שם של הנחה.',
-    },
 ];
 
 // Explanations are Hebrew with formulas inside, so negations are isolated (see bidi.js).
-// A version of the course can put its own explanations first (see handwritten/).
-export const explainLeanMessage = (text, explanations = []) => {
-    for (const { pattern, explain } of [...explanations, ...EXPLANATIONS]) {
+// The explanations of the moves (see moveExplanations.js), which speak of an
+// assumption by what it says, come first.
+export const explainLeanMessage = (text) => {
+    for (const { pattern, explain } of [...MOVE_EXPLANATIONS, ...EXPLANATIONS]) {
         const match = text.match(pattern);
         if (match) return isolateFormulas(explain(match, text));
     }
@@ -253,13 +189,13 @@ export const explainLeanMessage = (text, explanations = []) => {
 // The first problem worth showing a student, as { line, message, unsolved }, or null.
 // Holes left on purpose to compute a proof state are not problems, and
 // neither are unsolved goals unless the whole proof is being checked.
-export const findLeanProblem = (output, { includeUnsolvedGoals = false, explanations = [] } = {}) => {
+export const findLeanProblem = (output, { includeUnsolvedGoals = false } = {}) => {
     for (const { line, severity, text } of parseLeanMessages(output)) {
         if (severity !== 'error') continue;
         if (/don't know how to synthesize placeholder/.test(text)) continue;
         const unsolved = /^unsolved goals/.test(text);
         if (!includeUnsolvedGoals && unsolved) continue;
-        return { line, message: explainLeanMessage(text, explanations), unsolved };
+        return { line, message: explainLeanMessage(text), unsolved };
     }
     return null;
 };

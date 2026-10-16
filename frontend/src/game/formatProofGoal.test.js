@@ -88,7 +88,7 @@ describe('formatProofGoal with quantifiers', () => {
     });
 });
 
-describe('formatProofGoal with the functions of unit 6', () => {
+describe('formatProofGoal with the functions of unit 7', () => {
     it('writes their arguments in parentheses', () => {
         expect(formatProofGoal('double (k + 1) = k + 1 + (k + 1)')).toBe('double(k + 1) = k + 1 + (k + 1)');
         expect(formatProofGoal('2 * sumTo n = n * (n + 1)')).toBe('2 · sumTo(n) = n · (n + 1)');

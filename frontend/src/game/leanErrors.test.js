@@ -22,13 +22,6 @@ Note: The full type of \`h1\` is
 P Q R : Prop
 h1 : P → Q
 `;
-const applyNotImplication = `Proof.lean:4:2: error: Tactic \`apply\` failed: could not unify the type of \`h\`
-  P
-with the goal
-  Q
-P Q R : Prop
-h : P
-`;
 const introNotImplication = `Proof.lean:4:8: error: Tactic \`introN\` failed: There are no additional binders or \`let\` bindings in the goal to introduce
 P Q R : Prop
 h : P
@@ -56,20 +49,8 @@ describe('parseLeanMessages', () => {
 describe('explainLeanMessage', () => {
     const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
 
-    it('explains closing the goal with the wrong assumption', () => {
-        expect(explain(typeMismatch)).toBe('h אומרת P, אבל המטרה היא Q. אפשר לסגור את המטרה רק בעזרת הנחה שאומרת בדיוק את המטרה.');
-    });
-
-    it('explains using an implication whose conclusion is not the goal', () => {
-        expect(explain(applyWrongConclusion)).toBe('המסקנה (צד ימין) של h1 היא Q, אבל המטרה היא R. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה זהה למטרה.');
-    });
-
-    it('explains using an assumption that is not an implication', () => {
-        expect(explain(applyNotImplication)).toContain('h אומרת P, וזו לא גרירה');
-    });
-
     it('explains an unknown name', () => {
-        expect(explain(unknownName)).toBe('אין הנחה או עצם בשם hh. בדקו את השם מול מצב ההוכחה.');
+        expect(explain(unknownName)).toBe('hh לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.');
     });
 
     it('explains assuming when the goal is not an implication', () => {
@@ -153,8 +134,8 @@ describe('explainLeanMessage for and, or, iff', () => {
     });
 
     it('explains using an assumption as an "and" or an "iff" when it is not one', () => {
-        expect(explain(andElimOnIff)).toBe('h אומרת (P ↔ Q), וזו לא טענת "וגם", ולכן אי אפשר להסיק ממנה שני צדדים.');
-        expect(explain(iffElimOnAnd)).toBe('h אומרת (P ∧ Q), וזו לא טענת "אם ורק אם", ולכן אי אפשר להסיק ממנה שני כיוונים.');
+        expect(explain(andElimOnIff)).toBe('ההנחה (P ↔ Q) היא לא טענת "וגם", ולכן אין לה שני צדדים.');
+        expect(explain(iffElimOnAnd)).toBe('ההנחה (P ∧ Q) היא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים.');
     });
 
     it('explains splitting into cases by an assumption that is not an "or"', () => {
@@ -171,15 +152,6 @@ has type
   False
 but is expected to have type
   Q
-`;
-const notContradicting = `Proof.lean:5:19: error: Application type mismatch: The argument
-  hn
-has type
-  ¬Q
-but is expected to have type
-  ¬P
-in the application
-  absurd hp hn
 `;
 const notANegation = `Proof.lean:5:20: error: Application type mismatch: The argument
   hn
@@ -203,15 +175,11 @@ describe('explainLeanMessage for negation', () => {
     const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
 
     it('explains reaching a contradiction when the goal is not ⊥', () => {
-        expect(explain(contradictionOnOtherGoal)).toBe('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו בגרירה "סתירה גוררת Q" ועברו להוכיח את התנאי שלה.');
-    });
-
-    it('explains two assumptions that do not contradict each other', () => {
-        expect(explain(notContradicting)).toBe('hn אומרת ¬Q, אבל השלילה של ההנחה האחרת בבלוק היא ¬P, ולכן הן לא סותרות זו את זו.');
+        expect(explain(contradictionOnOtherGoal)).toBe('המטרה היא Q, ולא סתירה. כדי להשתמש בסתירה כאן, קודם השתמשו במהלך "מסתירה נובע הכול, ולכן די להגיע לסתירה".');
     });
 
     it('explains using an assumption as a negation when it is not one', () => {
-        expect(explain(notANegation)).toBe('hn אומרת Q, וזו לא שלילה, ולכן אין טענה שהיא שוללת.');
+        expect(explain(notANegation)).toBe('ההנחה Q היא לא שלילה, ולכן אין טענה שהיא שוללת.');
     });
 
     it('explains proving a goal that is not a negation by assuming what it negates', () => {
@@ -253,19 +221,19 @@ describe('explainLeanMessage for a forward step', () => {
     const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
 
     it('explains an assumption that is not the condition of the implication', () => {
-        expect(explain(notTheCondition)).toBe('hr אומרת P(a), אבל התנאי של h1 הוא R, ולכן אי אפשר להסיק ממנה את המסקנה של h1.');
+        expect(explain(notTheCondition)).toBe('ההנחה P(a) היא לא התנאי של הגרירה: התנאי שלה הוא R.');
     });
 
     it('explains using an assumption that is not an implication', () => {
-        expect(explain(notAnImplication)).toBe('h1 אומרת (R ∧ S), וזו לא גרירה, ולכן אין לה תנאי ומסקנה.');
+        expect(explain(notAnImplication)).toBe('ההנחה (R ∧ S) היא לא גרירה, ולכן אין לה תנאי ומסקנה.');
     });
 
     it('explains using a "for all" as if it were an implication', () => {
-        expect(explain(forallAsImplication)).toBe('h1 אומרת ∀x P(x), טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.');
+        expect(explain(forallAsImplication)).toBe('ההנחה ∀x P(x) היא טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.');
     });
 
     it('explains giving an object where an assumption is needed', () => {
-        expect(explain(objectAsPremise)).toBe('a הוא עצם, לא הנחה. כדי להסיק מהגרירה צריך הנחה שאומרת את התנאי שלה.');
+        expect(explain(objectAsPremise)).toBe('a הוא עצם, לא טענה. כדי להסיק מגרירה צריך טענה שאומרת את התנאי שלה.');
     });
 });
 
@@ -332,8 +300,8 @@ describe('explainLeanMessage for quantifiers', () => {
     });
 
     it('explains substituting into something that is not a "for all", or substituting a statement', () => {
-        expect(explain(substituteIntoImplication)).toBe('h אומרת (R → S), וזו לא טענת "לכל", ולכן אי אפשר להציב בה עצם.');
-        expect(explain(substituteAStatement)).toBe('hr היא הנחה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.');
+        expect(explain(substituteIntoImplication)).toBe('ההנחה (R → S) היא לא טענת "לכל", ולכן אין במה להציב עצם.');
+        expect(explain(substituteAStatement)).toBe('hr היא טענה, לא עצם, ולכן אי אפשר להציב אותה בטענת "לכל". מציבים עצם מהתחום.');
     });
 
     it('explains choosing a witness for a goal that is not a "there exists"', () => {
@@ -341,7 +309,7 @@ describe('explainLeanMessage for quantifiers', () => {
     });
 
     it('explains taking an object from an assumption that is not a "there exists"', () => {
-        expect(explain(obtainFromAnd)).toBe('h אומרת (P(a) ∧ R), וזו לא טענת "קיים", ולכן אין ממנה עצם לקבל.');
+        expect(explain(obtainFromAnd)).toBe('ההנחה (P(a) ∧ R) היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.');
     });
 });
 

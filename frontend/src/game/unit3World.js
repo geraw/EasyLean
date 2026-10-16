@@ -1,40 +1,52 @@
 import { goalXml } from './levelXml';
 
+// Unit 3 (see blocks/moves.js): negation, with the
+// rules of the usual natural-deduction courses (forall x, Huth & Ryan, Logic
+// and Proof, Theorem Proving in Lean, Formalising Mathematics):
+//   ¬E: from A and ¬A, a contradiction ⊥ (and backward: with ¬A in hand,
+//       a contradiction only needs A);
+//   ¬I: to prove ¬A, assume A and reach a contradiction;
+//   explosion: from a contradiction anything follows;
+//   proof by contradiction: to prove A, assume ¬A and reach a contradiction.
+// The derived rules of those courses are the levels: ¬¬-introduction, modus
+// tollens, De Morgan, ruling out a possibility, ¬¬-elimination, the
+// contrapositive and P ∨ ¬P. Each level offers only the moves of its solution.
+
 export const unit3WorldName = 'יחידה 3 - שלילה והוכחה בשלילה';
+
+const CONTRADICTION = 'סתירה (⊥)';
+
+// The moves as the toolbox shows them, before they are placed.
+const CONTRADICTION_BLOCK = '"יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."';
+const NOT_INTRO_BLOCK = '"כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה"';
+const NOT_ELIM_BLOCK = '"לפי השלילה ? שיש לנו ביד"';
+const EXFALSO_BLOCK = '"מסתירה נובע הכול, ולכן די להגיע לסתירה"';
+const BY_CONTRADICTION_BLOCK = '"נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה"';
+const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const contradictionInfo = {
     name: 'סתירה',
-    doc: 'טענה ושלילתה לא יכולות להיות נכונות יחד. אם יש בידינו גם P וגם ¬P, הגענו לסתירה (⊥).',
-};
-
-const falseImpliesInfo = {
-    name: 'סתירה גוררת כל טענה',
-    doc: 'הגרירה ⊥ → Q נכונה לכל טענה Q: מסתירה נובע הכול. כמו בכל גרירה שהמסקנה שלה היא המטרה, אפשר לעבור להוכיח את התנאי שלה, כלומר להגיע לסתירה.',
-};
-
-const nonContradictionInfo = {
-    name: 'עיקרון הסתירה',
-    doc: 'לכל טענה P, הגרירה (P ∧ ¬P) → ⊥ נכונה: טענה ושלילתה יחד הן סתירה. משתמשים בה כמו בכל גרירה, אחורה או קדימה.',
+    doc: 'טענה ושלילתה לא יכולות להיות נכונות יחד: מ־A ומ־¬A נובעת סתירה (⊥). בבלוק בוחרים אחת מהשתיים, והבלוק משלים את השנייה. בהוכחה כתובה: "יש לנו ביד את A ואת השלילה שלה, וזו סתירה".',
 };
 
 const notIntroInfo = {
     name: 'הוכחת שלילה',
-    doc: 'כדי להוכיח ¬P מניחים את P ומגיעים לסתירה: אם P מובילה לסתירה, P לא נכונה.',
+    doc: 'כדי להוכיח ¬A מניחים את A ומגיעים לסתירה: אם A מובילה לסתירה, A לא נכונה. בהוכחה כתובה: "כדי להוכיח ¬A נניח A ונגיע לסתירה".',
 };
 
 const notElimInfo = {
     name: 'שימוש בשלילה',
-    doc: 'אם בידינו ¬P והמטרה היא סתירה, מספיק להוכיח את P: יחד עם ¬P זו סתירה.',
+    doc: 'אם בידינו ¬A, כדי להגיע לסתירה די להוכיח את A: יחד עם ¬A זו סתירה. בהוכחה כתובה: "לפי ¬A, כדי להגיע לסתירה די להוכיח A".',
+};
+
+const exfalsoInfo = {
+    name: 'מסתירה נובע הכול',
+    doc: 'מסתירה אפשר להסיק כל טענה. לכן כדי להוכיח מטרה כלשהי, די להגיע לסתירה. בהוכחה כתובה: "מסתירה נובע הכול, ולכן די להגיע לסתירה".',
 };
 
 const byContradictionInfo = {
     name: 'הוכחה בשלילה',
-    doc: 'כדי להוכיח P מניחים ש־P לא נכונה (¬P) ומגיעים לסתירה. אם ¬P מובילה לסתירה, היא לא נכונה, ולכן P נכונה. הבלוק מתאים לכל מטרה.',
-};
-
-const byCasesInfo = {
-    name: 'בדיקת שתי האפשרויות',
-    doc: 'כל טענה P נכונה או לא נכונה (חוק השלישי מן הנמנע). לכן אפשר להוכיח את המטרה פעם בהנחה P, ופעם בהנחה ¬P.',
+    doc: 'כדי להוכיח A מניחים ש־A לא נכונה (¬A) ומגיעים לסתירה. אם ¬A מובילה לסתירה, היא לא נכונה, ולכן A נכונה. הבלוק מתאים לכל מטרה.',
 };
 
 export const unit3Levels = [
@@ -47,143 +59,69 @@ export const unit3Levels = [
         variableLine: 'variable {P : Prop}',
         params: '(hp : P) (hn : ¬P)',
         proposition: 'False',
-        goalLabel: 'סתירה (⊥)',
+        goalLabel: CONTRADICTION,
         objects: [],
         assumptions: [
             { name: 'hp', prop: 'P' },
             { name: 'hn', prop: '¬P' },
         ],
-        toolboxBlocks: ['logic_contradiction'],
+        toolboxBlocks: ['contradiction'],
         introduction: `# שלילה וסתירה
 
 הטענה \`¬P\` נקראת "לא P", והיא אומרת ש־P לא נכונה.
-
 טענה ושלילתה לא יכולות להיות נכונות יחד. אם יש בידינו גם P וגם ¬P, הגענו ל*סתירה*, שמסמנים \`⊥\`.
 
-כאן נתונות ההנחות \`hp : P\` ו־\`hn : ¬P\`, והמטרה היא להגיע לסתירה.`,
-        newTacticsBlocks: ['logic_contradiction'],
+כאן נתונות ההנחות P ו־¬P, והמטרה היא להגיע לסתירה. בהוכחה כתובה: "יש לנו ביד את P ואת השלילה שלה, וזו סתירה".
+הבלוק ${CONTRADICTION_BLOCK} עושה זאת. בוחרים בו אחת מהשתיים, P או ¬P, והוא משלים את השנייה.`,
+        newTacticsBlocks: ['contradiction'],
         newTacticsInfo: [contradictionInfo],
         newDefinitions: [],
         hints: [
-            'גררו את הבלוק "ההנחה ? היא השלילה של ההנחה ?, ולכן הגענו לסתירה" אל תוך בלוק המטרה, וכתבו בו hn ו־hp.',
+            `גררו את הבלוק ${CONTRADICTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו P.`,
+            'לחצו על "בדוק הוכחה".',
         ],
-        conclusion: `hn אומרת בדיוק ש־hp לא נכונה, ולכן שתיהן יחד הן סתירה.`,
-        startXml: goalXml('סתירה (⊥)', 'hp : P,  hn : ¬P'),
+        conclusion: `P ו־¬P לא יכולות להיות נכונות יחד, ולכן שתיהן יחד הן סתירה.
+בשלבים הבאים נגיע לסתירה מהנחות שנוסיף בעצמנו.`,
+        startXml: goalXml(CONTRADICTION, 'P,  ¬P'),
     },
     {
         id: 'unit3-2',
         levelNumber: 2,
         totalLevels: 10,
-        title: 'עיקרון הסתירה',
-        name: 'unit3_l2_non_contradiction',
-        variableLine: 'variable {P : Prop}',
-        params: '(hp : P) (hn : ¬P)',
-        proposition: 'False',
-        goalLabel: 'סתירה (⊥)',
-        objects: [],
-        assumptions: [
-            { name: 'hp', prop: 'P' },
-            { name: 'hn', prop: '¬P' },
-        ],
-        toolboxBlocks: ['logic_non_contradiction', 'logic_and_combine', 'logic_and_intro', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
-        introduction: `# עיקרון הסתירה
-
-בשלב 1 הגעתם לסתירה בבלוק אחד. כאן נגיע לאותה מסקנה מעיקרון כללי, שנכתוב כגרירה:
-*עיקרון הסתירה* אומר שטענה ושלילתה לא נכונות יחד, כלומר \`(P ∧ ¬P) → ⊥\`.
-
-נוסיף את העיקרון להנחות, ונשתמש בו כמו בכל גרירה, באחת משתי הדרכים:
-אחורה: המסקנה שלו היא המטרה ⊥, ולכן נעבור להוכיח את התנאי שלו, \`P ∧ ¬P\`, בשני חלקים.
-או קדימה: נצרף את hp ואת hn להנחה אחת, \`P ∧ ¬P\` (כמו ביחידה 2, שלב 3), ומהעיקרון ומהתנאי שלו נסיק סתירה.`,
-        // "צירוף ל'וגם'" (logic_and_combine) is introduced in unit 2, level 3.
-        newTacticsBlocks: ['logic_non_contradiction'],
-        newTacticsInfo: [nonContradictionInfo],
-        newDefinitions: [],
-        hints: [
-            'גררו את הבלוק "נשתמש בעיקרון הסתירה: הטענה ? ושלילתה גוררות סתירה", וכתבו בו P ושם לגרירה, למשל hc. יש בידינו hc : (P ∧ ¬P) → ⊥.',
-            'אחורה: המסקנה של hc היא ⊥, ולכן עברו להוכיח את התנאי שלה, P ∧ ¬P, והוכיחו אותו בשני חלקים בעזרת hp ו־hn.',
-            'או קדימה: צרפו את hp ואת hn להנחה אחת (למשל hpn : P ∧ ¬P), הסיקו מ־hc ומ־hpn סתירה, וסגרו בעזרתה.',
-        ],
-        conclusion: `הגעתם לסתירה מעיקרון הסתירה, כמו מכל גרירה אחרת.
-הבלוק "הגענו לסתירה" משלב 1 הוא קיצור של אותו עיקרון: מטענה ושלילתה נובעת סתירה בצעד אחד.`,
-        startXml: goalXml('סתירה (⊥)', 'hp : P,  hn : ¬P'),
-    },
-    {
-        id: 'unit3-3',
-        levelNumber: 3,
-        totalLevels: 10,
-        title: 'מסתירה נובע הכול',
-        name: 'unit3_l2_exfalso',
-        variableLine: 'variable {P Q : Prop}',
-        params: '(hp : P) (hn : ¬P)',
-        proposition: 'Q',
-        goalLabel: 'Q',
-        objects: [],
-        assumptions: [
-            { name: 'hp', prop: 'P' },
-            { name: 'hn', prop: '¬P' },
-        ],
-        toolboxBlocks: ['logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction', 'tactic_exact'],
-        introduction: `# מסתירה נובע הכול
-
-הפעם המטרה היא Q, ואין לנו שום הנחה על Q. אבל ההנחות שלנו סותרות זו את זו.
-
-מסתירה אפשר להסיק כל טענה: הגרירה \`⊥ → Q\` ("סתירה גוררת Q") נכונה תמיד, מה ש־Q לא תהיה.
-נוסיף אותה להנחות. המסקנה שלה היא בדיוק המטרה Q, ולכן, כמו ביחידה 1, אפשר לעבור להוכיח את התנאי שלה: להגיע לסתירה.
-
-אפשר גם ללכת קדימה. שלילה היא בעצם גרירה: ¬P אומרת "אם P, אז סתירה", כלומר \`P → ⊥\`.
-לכן מהגרירה hn ומהתנאי שלה hp נובעת סתירה, ומהסתירה ומהגרירה \`⊥ → Q\` נובעת Q.`,
-        newTacticsBlocks: ['logic_false_implies'],
-        newTacticsInfo: [falseImpliesInfo],
-        newDefinitions: [],
-        hints: [
-            'גררו את הבלוק "נשתמש בגרירה: סתירה גוררת ?, ונקרא לה ?", וכתבו בו Q ושם לגרירה, למשל hf. יש בידינו hf : ⊥ → Q.',
-            'המסקנה של hf היא Q: השתמשו בבלוק המעבר לתנאי של גרירה עם hf. המטרה תהיה ⊥.',
-            'עכשיו המטרה היא סתירה, כמו בשלב 1.',
-            'או קדימה: מ־hn ומ־hp הסיקו סתירה (למשל hb : ⊥), ומ־hf ומ־hb הסיקו את Q, וסגרו בעזרתה.',
-        ],
-        conclusion: `הוכחתם את Q בלי לדעת עליה דבר, רק מפני שההנחות סותרות: סתירה גוררת Q, ומההנחות הגעתם לסתירה.
-הבלוק "הגענו לסתירה" לבדו לא היה מספיק: הוא סוגר רק מטרה שהיא סתירה.`,
-        startXml: goalXml('Q', 'hp : P,  hn : ¬P'),
-    },
-    {
-        id: 'unit3-4',
-        levelNumber: 4,
-        totalLevels: 10,
         title: 'מוכיחים שלילה',
-        name: 'unit3_l3_not_intro',
+        name: 'unit3_l2_not_intro',
         variableLine: 'variable {P : Prop}',
         params: '(hp : P)',
         proposition: '¬¬P',
         goalLabel: '¬¬P',
         objects: [],
         assumptions: [{ name: 'hp', prop: 'P' }],
-        toolboxBlocks: ['logic_not_intro', 'logic_contradiction', 'logic_modus_ponens', 'tactic_exact'],
+        toolboxBlocks: ['not_intro', 'contradiction'],
         introduction: `# מוכיחים שלילה
 
-כדי להוכיח ש־P לא נכונה (\`¬P\`), מניחים ש־P כן נכונה ומגיעים לסתירה. אם ההנחה מובילה לסתירה, היא לא נכונה.
+כדי להוכיח ש־A לא נכונה (\`¬A\`), מניחים ש־A כן נכונה ומגיעים לסתירה. אם ההנחה מובילה לסתירה, היא לא נכונה.
+בהוכחה כתובה: "כדי להוכיח ¬A נניח A ונגיע לסתירה".
 
-כאן המטרה היא \`¬¬P\`: "לא נכון ש־P לא נכונה". זו שלילה של \`¬P\`, ולכן נניח את \`¬P\` וננסה להגיע לסתירה.
-ההנחה hp אומרת P, ולכן זה לא קשה.`,
-        newTacticsBlocks: ['logic_not_intro'],
+כאן נתונה ההנחה P, והמטרה היא \`¬¬P\`: "לא נכון ש־P לא נכונה". זו השלילה של \`¬P\`, ולכן נניח \`¬P\` וננסה להגיע לסתירה.
+הבלוק ${NOT_INTRO_BLOCK} עושה זאת. כשהוא במקומו, כתוב בו מה מניחים.`,
+        newTacticsBlocks: ['not_intro'],
         newTacticsInfo: [notIntroInfo],
         newDefinitions: [],
         hints: [
-            'גררו את הבלוק "נוכיח את השלילה: נניח את הטענה שהיא שוללת" וקראו להנחה hn. יש בידינו hn : ¬P, והמטרה היא סתירה.',
-            'hn היא השלילה של hp: השתמשו בבלוק "הגענו לסתירה".',
+            `גררו את הבלוק ${NOT_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: כדי להוכיח ¬¬P נניח ¬P ונגיע לסתירה.`,
+            'במצב ההוכחה: יש בידינו P ו־¬P, והמטרה היא סתירה.',
+            `הוסיפו אחריו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו P.`,
         ],
-        conclusion: `הנחתם את ¬P, והגעתם לסתירה עם hp, ולכן ¬P לא נכונה: הוכחתם את ¬¬P.
-זו הדרך הישירה להוכיח שלילה: מניחים את הטענה שהיא שוללת ומגיעים לסתירה.
-
-כמו בשלב 3, שלילה היא גם גרירה: ¬P היא P → ⊥.
-לכן גם כאן אפשר להסיק קדימה: מהגרירה hn ומהתנאי שלה hp נובעת סתירה. הבלוק "הגענו לסתירה" עושה את אותו הדבר בצעד אחד.`,
-        startXml: goalXml('¬¬P', 'hp : P'),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "כדי להוכיח ¬¬P נניח ¬P ונגיע לסתירה. יש לנו ביד את P ואת השלילה שלה, וזו סתירה."
+הנחתם את ¬P והגעתם לסתירה, ולכן ¬P לא נכונה: הוכחתם את ¬¬P.`,
+        startXml: goalXml('¬¬P', 'P'),
     },
     {
-        id: 'unit3-5',
-        levelNumber: 5,
+        id: 'unit3-3',
+        levelNumber: 3,
         totalLevels: 10,
-        title: 'משתמשים בשלילה',
-        name: 'unit3_l4_modus_tollens',
+        title: 'שלילה של המסקנה',
+        name: 'unit3_l3_modus_tollens',
         variableLine: 'variable {P Q : Prop}',
         params: '(h : (P → Q)) (hnq : ¬Q)',
         proposition: '¬P',
@@ -193,31 +131,63 @@ export const unit3Levels = [
             { name: 'h', prop: 'P → Q' },
             { name: 'hnq', prop: '¬Q' },
         ],
-        toolboxBlocks: ['logic_not_intro', 'logic_not_elim', 'tactic_apply_rule', 'logic_modus_ponens', 'logic_contradiction', 'tactic_exact'],
+        toolboxBlocks: ['not_intro', 'forward', 'contradiction'],
+        introduction: `# שלילה של המסקנה
+
+נתון ש־P גוררת את Q, ושהמסקנה Q לא נכונה. מכאן נובע שגם P לא נכונה. נוכיח את זה.
+
+המטרה היא \`¬P\`, ולכן, כמו בשלב 2, נניח P וננסה להגיע לסתירה.
+אחרי ההנחה יש בידינו את הגרירה \`P → Q\` ואת התנאי שלה, P, ולכן נובע Q (כמו ביחידה 1). ו־¬Q כבר בידינו.`,
+        newTacticsBlocks: [],
+        newTacticsInfo: [],
+        newDefinitions: [],
+        hints: [
+            `גררו את הבלוק ${NOT_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: כדי להוכיח ¬P נניח P ונגיע לסתירה.`,
+            'הוסיפו את הבלוק "מהגרירה ? ומ־?", ובחרו בו את P → Q ואת P. עכשיו כתוב בו: נובע Q.',
+            `הוסיפו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו Q.`,
+        ],
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "כדי להוכיח ¬P נניח P ונגיע לסתירה. מ־P → Q ומ־P נובע Q. יש לנו ביד את Q ואת השלילה שלה, וזו סתירה."
+לכלל "מ־P → Q ומ־¬Q נובע ¬P" קוראים *modus tollens*.`,
+        startXml: goalXml('¬P', '(P → Q),  ¬Q'),
+    },
+    {
+        id: 'unit3-4',
+        levelNumber: 4,
+        totalLevels: 10,
+        title: 'משתמשים בשלילה',
+        name: 'unit3_l4_not_elim',
+        variableLine: 'variable {P Q : Prop}',
+        params: '(h : ¬(P ∨ Q))',
+        proposition: '¬P',
+        goalLabel: '¬P',
+        objects: [],
+        assumptions: [{ name: 'h', prop: '¬(P ∨ Q)' }],
+        toolboxBlocks: ['not_intro', 'not_elim', 'or_intro', 'exact'],
         introduction: `# משתמשים בשלילה
 
-אם P גוררת את Q, ו־Q לא נכונה, אז גם P לא נכונה. נוכיח את זה.
+נתון שלא נכון ש"P או Q". מכאן נובע ש־P לא נכונה. נוכיח את זה.
 
-המטרה היא \`¬P\`, ולכן נניח את P וננסה להגיע לסתירה. אבל אין בידינו P וגם ¬P, אלא ¬Q.
-כשהמטרה היא סתירה ויש בידינו שלילה \`¬Q\`, מספיק להוכיח את Q: יחד עם ¬Q זו סתירה.
+המטרה היא \`¬P\`, ולכן נניח P וננסה להגיע לסתירה. אבל הפעם אין בידינו טענה ושלילתה: יש לנו P ו־\`¬(P ∨ Q)\`.
 
-אפשר גם ללכת קדימה: מ־h ומ־P מסיקים את Q, ואז Q ו־¬Q הן טענה ושלילתה, כמו בשלב 1.`,
-        newTacticsBlocks: ['logic_not_elim'],
+כשהמטרה היא סתירה ויש בידינו שלילה \`¬A\`, די להוכיח את A: יחד עם ¬A זו סתירה.
+בהוכחה כתובה: "לפי ¬A, כדי להגיע לסתירה די להוכיח A". הבלוק ${NOT_ELIM_BLOCK} עושה זאת.
+כאן השלילה שבידינו היא \`¬(P ∨ Q)\`, ולכן די להוכיח \`P ∨ Q\`, ואת זה כבר אפשר להוכיח, כמו ביחידה 2.`,
+        newTacticsBlocks: ['not_elim'],
         newTacticsInfo: [notElimInfo],
         newDefinitions: [],
         hints: [
-            'הניחו את P (בבלוק הוכחת השלילה) וקראו לה hp.',
-            'השתמשו בבלוק "נגיע לסתירה בעזרת השלילה ?" עם hnq. המטרה תהיה Q.',
-            'המסקנה של h היא Q: עברו להוכיח את התנאי שלה, P, וסגרו בעזרת hp.',
-            'או קדימה: מ־h ומ־hp הסיקו את Q (למשל hq), ואז hnq היא השלילה של hq: הגעתם לסתירה.',
+            `גררו את הבלוק ${NOT_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: כדי להוכיח ¬P נניח P ונגיע לסתירה.`,
+            `הוסיפו את הבלוק ${NOT_ELIM_BLOCK}, ובחרו בו ¬(P ∨ Q). עכשיו כתוב בו: כדי להגיע לסתירה די להוכיח (P ∨ Q).`,
+            'הוסיפו את הבלוק "כדי להוכיח את ה"או" די להוכיח את ?", ובחרו בו P.',
+            `P בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `מ־P → Q ומ־¬Q הסקתם ¬P (modus tollens). אחורה, השתמשתם בשלילה ¬Q: הוכחתם את מה שהיא שוללת.
-קדימה, הסקתם את Q, והיא ו־¬Q סותרות. בשלבים הבאים יופיעו שלילות של טענות שאין דרך להגיע אליהן קדימה, ושם השימוש בשלילה הכרחי.`,
-        startXml: goalXml('¬P', 'h : (P → Q),  hnq : ¬Q'),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "כדי להוכיח ¬P נניח P ונגיע לסתירה. לפי ¬(P ∨ Q), די להוכיח P ∨ Q. כדי להוכיח P ∨ Q די להוכיח P, ויש לנו אותה ביד."
+השתמשתם בשלילה שבידינו כדי להגיע לסתירה: הוכחתם את הטענה שהיא שוללת.`,
+        startXml: goalXml('¬P', '¬(P ∨ Q)'),
     },
     {
-        id: 'unit3-6',
-        levelNumber: 6,
+        id: 'unit3-5',
+        levelNumber: 5,
         totalLevels: 10,
         title: 'שלילה של "או"',
         name: 'unit3_l5_de_morgan_or',
@@ -227,151 +197,188 @@ export const unit3Levels = [
         goalLabel: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_and_intro', 'logic_not_intro', 'logic_not_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['assume', 'and_intro', 'not_intro', 'not_elim', 'or_intro', 'exact'],
         introduction: `# שלילה של "או"
 
-אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מחוקי דה מורגן.
+אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מ*חוקי דה מורגן*.
 
-אחרי הנחת התנאי \`¬(P ∨ Q)\`, המטרה היא "וגם", ולכן מוכיחים אותה בשני חלקים. כל חלק הוא שלילה.
-בכל חלק, כדי להגיע לסתירה, השתמשו בשלילה \`¬(P ∨ Q)\`: הוכיחו את "P או Q".`,
+המטרה היא גרירה, ולכן קודם מניחים את התנאי שלה, \`¬(P ∨ Q)\`. אחר כך המטרה היא \`¬P ∧ ¬Q\`, ומוכיחים אותה בשני חלקים, כמו ביחידה 2.
+החלק "נוכיח ¬P" הוא בדיוק שלב 4. החלק "נוכיח ¬Q" דומה, עם Q.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            'הניחו את התנאי וקראו לו h, והוכיחו את ¬P ∧ ¬Q בשני חלקים.',
-            'בצד שמאל: הניחו את P (hp), והגיעו לסתירה בעזרת השלילה h. המטרה תהיה P ∨ Q.',
-            'כדי להוכיח את P ∨ Q, בחרו בצד שמאל וסגרו בעזרת hp. צד ימין דומה, עם Q.',
+            'גררו את הבלוק "כדי להוכיח את הגרירה, נניח..." אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ¬(P ∨ Q) ונוכיח (¬P ∧ ¬Q).',
+            'הוסיפו את הבלוק "כדי להוכיח את ה"וגם", נוכיח כל צד לחוד". בראש החלקים כתוב: נוכיח ¬P, ונוכיח ¬Q.',
+            'בחלק "נוכיח ¬P" בנו את ההוכחה משלב 4: נניח P, לפי ¬(P ∨ Q) די להוכיח P ∨ Q, די להוכיח P, ויש לנו אותה ביד.',
+            'בחלק "נוכיח ¬Q" אותו דבר, עם Q. ב"או" בחרו הפעם ב־Q.',
         ],
-        conclusion: `"לא (P או Q)" פירושו "לא P וגם לא Q". בכל חלק השתמשתם בשלילה שבהנחה כדי להגיע לסתירה.`,
+        conclusion: `"לא (P או Q)" פירושו "לא P וגם לא Q".`,
         startXml: goalXml('(¬(P ∨ Q) → (¬P ∧ ¬Q))'),
+    },
+    {
+        id: 'unit3-6',
+        levelNumber: 6,
+        totalLevels: 10,
+        title: 'מסתירה נובע הכול',
+        name: 'unit3_l6_exfalso',
+        variableLine: 'variable {P Q : Prop}',
+        params: '(hp : P) (hn : ¬P)',
+        proposition: 'Q',
+        goalLabel: 'Q',
+        objects: [],
+        assumptions: [
+            { name: 'hp', prop: 'P' },
+            { name: 'hn', prop: '¬P' },
+        ],
+        toolboxBlocks: ['exfalso', 'contradiction'],
+        introduction: `# מסתירה נובע הכול
+
+הפעם המטרה היא Q, ואין לנו שום הנחה על Q. אבל ההנחות שלנו, P ו־¬P, סותרות זו את זו.
+
+מסתירה אפשר להסיק כל טענה. לכן, מה שלא תהיה המטרה, די להגיע לסתירה.
+בהוכחה כתובה: "מסתירה נובע הכול, ולכן כדי להוכיח Q די להגיע לסתירה". הבלוק ${EXFALSO_BLOCK} עושה זאת.`,
+        newTacticsBlocks: ['exfalso'],
+        newTacticsInfo: [exfalsoInfo],
+        newDefinitions: [],
+        hints: [
+            `גררו את הבלוק ${EXFALSO_BLOCK} אל תוך בלוק המטרה. עכשיו המטרה היא סתירה.`,
+            `הוסיפו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו P.`,
+        ],
+        conclusion: `הוכחתם את Q בלי לדעת עליה דבר, רק מפני שההנחות סותרות.
+הבלוק ${CONTRADICTION_BLOCK} לבדו לא היה מספיק: הוא מסיים רק כשהמטרה היא סתירה.`,
+        startXml: goalXml('Q', 'P,  ¬P'),
     },
     {
         id: 'unit3-7',
         levelNumber: 7,
         totalLevels: 10,
-        title: 'הוכחה בשלילה',
-        name: 'unit3_l6_by_contradiction',
-        variableLine: 'variable {P : Prop}',
-        params: '',
-        proposition: '(¬¬P → P)',
-        goalLabel: '(¬¬P → P)',
+        title: 'מוציאים אפשרות',
+        name: 'unit3_l7_disjunctive_syllogism',
+        variableLine: 'variable {P Q : Prop}',
+        params: '(h : (P ∨ Q)) (hn : ¬P)',
+        proposition: 'Q',
+        goalLabel: 'Q',
         objects: [],
-        assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_contradiction', 'logic_contradiction'],
-        introduction: `# הוכחה בשלילה
+        assumptions: [
+            { name: 'h', prop: 'P ∨ Q' },
+            { name: 'hn', prop: '¬P' },
+        ],
+        toolboxBlocks: ['or_elim', 'exfalso', 'contradiction', 'exact'],
+        introduction: `# מוציאים אפשרות
 
-בשלב 4 הוכחתם \`P → ¬¬P\`. עכשיו הכיוון ההפוך: אם לא נכון ש־P לא נכונה, אז P נכונה.
+נתון ש־P או Q נכונה, ושגם P לא נכונה. לכן Q נכונה.
 
-המטרה אחרי הנחת התנאי היא P, ולא שלילה, ולכן אי אפשר להוכיח אותה כמו בשלב 4.
-*הוכחה בשלילה* עובדת לכל מטרה: מניחים שהמטרה לא נכונה ומגיעים לסתירה.
-
-שימו לב להבדל: כדי להוכיח ¬P מניחים P (שלב 4). בהוכחה בשלילה של P מניחים ¬P.`,
-        newTacticsBlocks: ['logic_by_contradiction'],
-        newTacticsInfo: [byContradictionInfo],
+כדי להשתמש ב־\`P ∨ Q\` מחלקים למקרים, כמו ביחידה 2. במקרה ש־Q נכונה, היא בדיוק המטרה.
+במקרה ש־P נכונה, יש בידינו גם P וגם ¬P. המקרה הזה סותר את ההנחות, ומסתירה נובע הכול, גם Q.`,
+        newTacticsBlocks: [],
+        newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            'הניחו את התנאי וקראו לו h. יש בידינו h : ¬¬P, והמטרה היא P.',
-            'השתמשו בבלוק "נוכיח בשלילה" וקראו להנחה hn. יש בידינו hn : ¬P, והמטרה היא סתירה.',
-            'h היא השלילה של hn: הגיעו לסתירה.',
+            'גררו את הבלוק "נחלק למקרים לפי ה"או" ?" אל תוך בלוק המטרה, ובחרו בו P ∨ Q.',
+            `במקרה הראשון (נניח P): הוסיפו את הבלוק ${EXFALSO_BLOCK}, ואחריו ${CONTRADICTION_BLOCK} עם P.`,
+            `במקרה השני (נניח Q): Q בידינו. הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `הנחתם ש־P לא נכונה, הגעתם לסתירה, והסקתם את P.
-יחד עם שלב 4, ¬¬P ו־P שקולות.`,
-        startXml: goalXml('(¬¬P → P)'),
+        conclusion: `במקרה ש־P נכונה הגעתם לסתירה, ולכן במקרה הזה אפשר להסיק כל דבר.
+כך "מוציאים" אפשרות: מראים שהיא סותרת את ההנחות.`,
+        startXml: goalXml('Q', '(P ∨ Q),  ¬P'),
     },
     {
         id: 'unit3-8',
         levelNumber: 8,
         totalLevels: 10,
-        title: 'שתי אפשרויות',
-        name: 'unit3_l7_by_cases',
-        variableLine: 'variable {P Q : Prop}',
-        params: '(hpq : (P → Q)) (hnpq : (¬P → Q))',
-        proposition: 'Q',
-        goalLabel: 'Q',
+        title: 'הוכחה בשלילה',
+        name: 'unit3_l8_by_contradiction',
+        variableLine: 'variable {P : Prop}',
+        params: '(h : ¬¬P)',
+        proposition: 'P',
+        goalLabel: 'P',
         objects: [],
-        assumptions: [
-            { name: 'hpq', prop: 'P → Q' },
-            { name: 'hnpq', prop: '¬P → Q' },
-        ],
-        toolboxBlocks: ['logic_by_cases', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
-        introduction: `# שתי אפשרויות
+        assumptions: [{ name: 'h', prop: '¬¬P' }],
+        toolboxBlocks: ['by_contradiction', 'contradiction'],
+        introduction: `# הוכחה בשלילה
 
-Q נובעת מ־P, וגם מ־¬P. אבל לא ידוע אם P נכונה או לא.
+בשלב 2 הוכחתם ש־\`¬¬P\` נובעת מ־P. עכשיו הכיוון ההפוך: נתון \`¬¬P\`, והמטרה היא P.
 
-כל טענה נכונה או לא נכונה (*חוק השלישי מן הנמנע*, \`P ∨ ¬P\`). לכן אפשר לבדוק את שתי האפשרויות,
-כמו בחלוקה למקרים של יחידה 2: מוכיחים את Q פעם בהנחה P, ופעם בהנחה ¬P.
-בכל מקרה ההנחה החדשה היא התנאי של אחת הגרירות, ולכן אפשר ללכת אחורה או קדימה.`,
-        newTacticsBlocks: ['logic_by_cases'],
-        newTacticsInfo: [byCasesInfo],
+המטרה P היא לא שלילה, ולכן אי אפשר להוכיח אותה כמו בשלב 2.
+*הוכחה בשלילה* מתאימה לכל מטרה: מניחים שהמטרה לא נכונה ומגיעים לסתירה. אם ההנחה ¬P מובילה לסתירה, היא לא נכונה, ולכן P נכונה.
+בהוכחה כתובה: "נוכיח בשלילה: נניח ¬P ונגיע לסתירה". הבלוק ${BY_CONTRADICTION_BLOCK} עושה זאת.
+
+שימו לב להבדל: כדי להוכיח ¬A מניחים A. בהוכחה בשלילה של A מניחים ¬A.`,
+        newTacticsBlocks: ['by_contradiction'],
+        newTacticsInfo: [byContradictionInfo],
         newDefinitions: [],
         hints: [
-            'גררו את הבלוק "נבדוק את שתי האפשרויות: הטענה ? נכונה או לא נכונה" וכתבו בו P. לשני המקרים תנו שמות, למשל h1 : P ו־h2 : ¬P.',
-            'במקרה הראשון: המסקנה של hpq היא Q, ולכן עברו להוכיח את התנאי שלה, וסגרו בעזרת h1. או קדימה: מ־hpq ומ־h1 הסיקו את Q, וסגרו בעזרתה.',
-            'במקרה השני: באותו אופן, בעזרת hnpq ו־h2.',
+            `גררו את הבלוק ${BY_CONTRADICTION_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נוכיח בשלילה: נניח ¬P ונגיע לסתירה.`,
+            'במצב ההוכחה: יש בידינו ¬¬P ו־¬P, והמטרה היא סתירה. ¬¬P היא בדיוק השלילה של ¬P.',
+            `הוסיפו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו ¬P.`,
         ],
-        conclusion: `לא ידעתם אם P נכונה, אבל בשתי האפשרויות Q נכונה, ולכן Q נכונה.`,
-        startXml: goalXml('Q', 'hpq : (P → Q),  hnpq : (¬P → Q)'),
+        conclusion: `הנחתם ש־P לא נכונה, הגעתם לסתירה, והסקתם את P.
+יחד עם שלב 2, ¬¬P ו־P שקולות: שלילה כפולה מבטלת את עצמה.`,
+        startXml: goalXml('P', '¬¬P'),
     },
     {
         id: 'unit3-9',
         levelNumber: 9,
         totalLevels: 10,
-        title: 'תרגיל מסכם: שלילה של "וגם"',
-        name: 'unit3_l8_de_morgan_and',
+        title: 'קונטרה־פוזיציה',
+        name: 'unit3_l9_contrapositive',
         variableLine: 'variable {P Q : Prop}',
         params: '',
-        proposition: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
-        goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
+        proposition: '((¬Q → ¬P) → (P → Q))',
+        goalLabel: '((¬Q → ¬P) → (P → Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_by_cases', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_and_intro', 'logic_and_combine', 'logic_modus_ponens', 'tactic_exact'],
-        introduction: `# תרגיל מסכם: שלילה של "וגם"
+        toolboxBlocks: ['assume', 'by_contradiction', 'forward', 'contradiction'],
+        introduction: `# קונטרה־פוזיציה
 
-אם לא נכון ש"P וגם Q", אז P לא נכונה או Q לא נכונה. זה חוק דה מורגן השני.
+הגרירה \`¬Q → ¬P\` נקראת *הקונטרה־פוזיציה* של \`P → Q\`. נוכיח שמהקונטרה־פוזיציה נובעת הגרירה עצמה.
+זו דרך נפוצה להוכיח גרירה P → Q: מניחים ש־Q לא נכונה, ומראים ש־P לא נכונה.
 
-המטרה אחרי הנחת התנאי היא "או". כמו ביחידה 2, אל תבחרו צד מוקדם מדי: לא ידוע איזו מהטענות לא נכונה.
-בדקו קודם את שתי האפשרויות לגבי P, ורק בתוך כל מקרה בחרו את הצד שאפשר להוכיח.`,
+אחרי שמניחים את \`¬Q → ¬P\` ואת P, המטרה היא Q, ואין דרך ישירה להגיע אליה. לכן נוכיח אותה בשלילה.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            'הניחו את התנאי וקראו לו h, ובדקו את שתי האפשרויות לגבי P.',
-            'במקרה ש־P לא נכונה (h2 : ¬P), צד שמאל של המטרה הוא בדיוק h2.',
-            'במקרה ש־P נכונה (h1 : P), בחרו בצד ימין, ¬Q: הניחו את Q (hq), והגיעו לסתירה בעזרת השלילה h. נשאר להוכיח P ∧ Q.',
+            'גררו את הבלוק "כדי להוכיח את הגרירה, נניח..." אל תוך בלוק המטרה, והוסיפו אחריו עוד אחד כזה. עכשיו יש בידינו ¬Q → ¬P ו־P, והמטרה היא Q.',
+            `הוסיפו את הבלוק ${BY_CONTRADICTION_BLOCK}. עכשיו כתוב בו: נוכיח בשלילה: נניח ¬Q ונגיע לסתירה.`,
+            'הוסיפו את הבלוק "מהגרירה ? ומ־?", ובחרו בו את ¬Q → ¬P ואת ¬Q. עכשיו כתוב בו: נובע ¬P.',
+            `הוסיפו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו P.`,
         ],
-        conclusion: `מ"לא (P וגם Q)" הסקתם "לא P או לא Q", בבדיקת שתי האפשרויות לגבי P.
-יחד עם שלב 6 אלה חוקי דה מורגן: שלילה הופכת "וגם" ל"או", ו"או" ל"וגם".`,
-        startXml: goalXml('(¬(P ∧ Q) → (¬P ∨ ¬Q))'),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ¬Q → ¬P, ונניח P. נוכיח בשלילה: נניח ¬Q. מ־¬Q → ¬P ומ־¬Q נובע ¬P. יש לנו ביד את P ואת השלילה שלה, וזו סתירה."`,
+        startXml: goalXml('((¬Q → ¬P) → (P → Q))'),
     },
     {
         id: 'unit3-10',
         levelNumber: 10,
         totalLevels: 10,
-        title: 'שלב בונוס: שלילה של גרירה',
-        name: 'unit3_l9_not_imp',
-        variableLine: 'variable {P Q : Prop}',
+        title: 'שלב בונוס: P או לא P',
+        name: 'unit3_l10_excluded_middle',
+        variableLine: 'variable {P : Prop}',
         params: '',
-        proposition: '(¬(P → Q) → ¬¬P)',
-        goalLabel: '(¬(P → Q) → ¬¬P)',
+        proposition: '(P ∨ ¬P)',
+        goalLabel: '(P ∨ ¬P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['tactic_intro', 'logic_not_intro', 'logic_not_elim', 'logic_false_implies', 'tactic_apply_rule', 'logic_contradiction'],
-        introduction: `# בונוס: שלילה של גרירה
+        toolboxBlocks: ['by_contradiction', 'not_elim', 'or_intro', 'not_intro', 'exact'],
+        introduction: `# בונוס: P או לא P
 
-אם הגרירה \`P → Q\` לא נכונה, אז לא נכון ש־P לא נכונה.
-(למה? אם P לא הייתה נכונה, הגרירה הייתה נכונה: מטענה לא נכונה נובע הכול.)
+כל טענה נכונה או לא נכונה: \`P ∨ ¬P\`. לטענה הזאת קוראים *חוק השלישי מן הנמנע*. נוכיח אותה בלי שום הנחה.
 
-בכל צעד בדקו במצב ההוכחה מה בידכם ומה המטרה.`,
+אי אפשר לבחור צד מיד: לא ידוע אם P נכונה. לכן נוכיח בשלילה: נניח \`¬(P ∨ ¬P)\` ונגיע לסתירה.
+כדי להגיע לסתירה, השתמשו בשלילה הזאת כמו בשלב 4: די להוכיח \`P ∨ ¬P\`. עכשיו כבר אפשר לבחור צד, כי יש בידינו הנחה חדשה.
+שימו לב: בהוכחה משתמשים בשלילה \`¬(P ∨ ¬P)\` פעמיים.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            'הניחו את התנאי (h), והוכיחו את ¬¬P: הניחו את ¬P (hnp) והגיעו לסתירה.',
-            'הגיעו לסתירה בעזרת השלילה h. המטרה תהיה P → Q.',
-            'הניחו את P (hp). המטרה היא Q, ואין עליה הנחות, אבל hp ו־hnp סותרות: השתמשו בגרירה "סתירה גוררת Q" ועברו להוכיח את התנאי שלה.',
+            `גררו את הבלוק ${BY_CONTRADICTION_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ¬(P ∨ ¬P).`,
+            `הוסיפו את הבלוק ${NOT_ELIM_BLOCK} עם ¬(P ∨ ¬P): די להוכיח (P ∨ ¬P). בחרו להוכיח ¬P.`,
+            'כדי להוכיח ¬P, נניח P ונגיע לסתירה. שוב לפי ¬(P ∨ ¬P), די להוכיח (P ∨ ¬P).',
+            `הפעם בחרו להוכיח P. P בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `סיימתם את יחידה 3, כולל שלב הבונוס! אתם יודעים להגיע לסתירה, להוכיח שלילה ולהשתמש בה,
-להוכיח בשלילה ולבדוק את שתי האפשרויות.`,
-        startXml: goalXml('(¬(P → Q) → ¬¬P)'),
+        conclusion: `סיימתם את יחידה 3, כולל שלב הבונוס! הוכחתם את חוק השלישי מן הנמנע בעזרת הוכחה בשלילה.
+אתם יודעים להגיע לסתירה, להוכיח שלילה ולהשתמש בה, להסיק מסתירה כל טענה, ולהוכיח בשלילה.`,
+        startXml: goalXml('(P ∨ ¬P)'),
     },
 ];

@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import axios from 'axios';
-import { defineBlocks } from '../blocks/logic';
 import { defineGameBlocks } from '../blocks/gameBlocks';
+import { defineMoveBlocks } from '../blocks/moves';
+import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveStates';
 import { formatProofGoal } from './formatProofGoal';
 import { findIncompleteMove, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
 import { findLeanProblem, GENERIC_PROBLEM, INCOMPLETE_MOVE } from './leanErrors';
@@ -11,13 +12,13 @@ import { goalLabel, openGoals } from './proofState';
 import { isolateFormulas } from './bidi';
 import { BACKEND_URL } from '../backendUrl';
 
-// Same compatibility patch as the sandbox workspace (safe to re-apply).
+// Compatibility patch for Blockly variables (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
     return this.getVariableMap().getAllVariables();
 };
 
-defineBlocks();
 defineGameBlocks();
+defineMoveBlocks();
 
 // Very small markdown-ish renderer: blank-line-separated paragraphs,
 // "# " headings, `code` spans and *emphasis*.
@@ -48,12 +49,6 @@ const renderMarkdownLite = (text) => {
     });
 };
 
-// A version of the course can change how the game reads (see handwritten/):
-// hideAssumptionNames shows assumptions by what they say only; explanations
-// and incompleteMessage replace the usual texts; moveStates computes, after
-// every change, the proof state before each move ({ build, read, apply }).
-const DEFAULT_VERSION = {};
-
 const GameWorkspace = ({
     levels,
     worldName,
@@ -65,9 +60,8 @@ const GameWorkspace = ({
     // After the last level, offers moving on to the next unit (e.g. "ליחידה 1").
     nextWorldLabel = null,
     onNextWorld = null,
-    version = DEFAULT_VERSION,
 }) => {
-    const incompleteMessage = version.incompleteMessage || INCOMPLETE_MOVE;
+    const incompleteMessage = INCOMPLETE_MOVE;
     const [levelIdx, setLevelIdx] = useState(0);
     const [workspace, setWorkspace] = useState(null);
     const [workspaceRevision, setWorkspaceRevision] = useState(0);
@@ -197,7 +191,7 @@ const GameWorkspace = ({
     // Where a failed check went wrong: the block whose code Lean complained
     // about (falling back to the evaluated or last move) and an explanation.
     const locateProblem = (output, source, options) => {
-        const problem = findLeanProblem(output, { ...options, explanations: version.explanations });
+        const problem = findLeanProblem(output, { ...options, });
         return {
             blockId: (problem && ((problem.unsolved && source.partLastBlockIds.get(problem.line)) || source.lineBlockIds.get(problem.line)))
                 || evaluatedBlockId || getLastProofBlockId(workspace),
@@ -273,35 +267,34 @@ const GameWorkspace = ({
         return () => clearTimeout(timeout);
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
-    // The proof state before each move, for versions whose moves follow it.
-    // A move's Lean may follow the state before it (e.g. the name of a new
-    // object), so when the states change the code, it is checked again. Gives
-    // up quietly if a newer request starts: without the states the moves keep
-    // their general wording.
+    // The proof state before each move, which the moves follow (their text,
+    // and their menus). A move's Lean may follow the state before it (e.g. the
+    // name of a new object), so when the states change the code, it is
+    // checked again. Gives up quietly if a newer request starts: without the
+    // states the moves keep their general wording.
     const moveStatesRequestRef = useRef(0);
     const settleMoveStates = async (requestId) => {
-        const { moveStates } = version;
         for (let round = 0, checked = null; round < 5; round += 1) {
-            const source = moveStates.build(workspace, level, preamble);
+            const source = buildMoveStatesSource(workspace, level, preamble);
             if (!source || source.code === checked) return;
             checked = source.code;
             try {
                 const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code });
                 if (moveStatesRequestRef.current !== requestId) return;
-                moveStates.apply(workspace, moveStates.read(data.output || '', source));
+                applyMoveStates(workspace, readMoveStates(data.output || '', source));
             } catch {
                 return;
             }
         }
     };
     useEffect(() => {
-        if (!version.moveStates || !proofStateEndpoint || !workspace) return undefined;
+        if (!proofStateEndpoint || !workspace) return undefined;
         const requestId = moveStatesRequestRef.current + 1;
         moveStatesRequestRef.current = requestId;
         const timeout = setTimeout(() => settleMoveStates(requestId), 180);
         return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint, version]);
+    }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint]);
 
     const runProof = async () => {
         const incomplete = findIncompleteMove(workspace);
@@ -314,7 +307,7 @@ const GameWorkspace = ({
         setStatus('running');
         setOutput('מריץ בדיקה...');
         // The moves' Lean may follow the states before them: bring those up to date first.
-        if (version.moveStates && proofStateEndpoint) {
+        if (proofStateEndpoint) {
             moveStatesRequestRef.current += 1;
             await settleMoveStates(moveStatesRequestRef.current);
         }
@@ -403,7 +396,7 @@ const GameWorkspace = ({
             {assumptions.map((assumption, index) => (
                 <div key={index} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
                     {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
-                    {!version.hideAssumptionNames && `${assumption.name} : `}{formatProofGoal(assumption.prop)}
+                    {formatProofGoal(assumption.prop)}
                 </div>
             ))}
             {objects.length === 0 && numbers.length === 0 && sets.length === 0 && assumptions.length === 0 && (
@@ -561,7 +554,7 @@ const GameWorkspace = ({
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
                         {level.assumptions.map(a => (
-                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{!version.hideAssumptionNames && `${a.name} : `}{a.prop}</div>
+                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{a.prop}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
                         <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>{level.goalLabel}</div>

@@ -13,7 +13,7 @@
 
 בכל מסמך יחידה, כל שלב מתואר בנפרד: מה לומדים בו, למה הוא בנוי כך (השיקול הדידקטי), איך אנחנו רוצים שסטודנטים יפתרו אותו (צילום מסך לכל פתרון, ולפעמים כמה פתרונות), ושיקולים ושאלות שעוד צריך להכריע. שאלות שנוגעות ליחידה כולה מרוכזות בסופה.
 
-הפתרונות מוגדרים ב־`frontend/e2e/solutions.js`. בדיקה אוטומטית (`solutions.spec.js`) מוודאת שכל פתרון מתקבל ובנוי רק מהבלוקים שבארגז של השלב. את הצילומים (בתיקייה `images/`) מחדשים בפקודה `npm run docs:screenshots` בתיקייה `frontend`, כשהשרתים המקומיים רצים.
+הפתרונות מוגדרים ב־`frontend/e2e/solutions.js`. בדיקה אוטומטית (`solutions.spec.js`) מוודאת שכל פתרון מתקבל ובנוי רק מהבלוקים שבארגז של השלב, ו־`walk.spec.js` עובר על השלבים כמו סטודנט, לפי הרמזים. את הצילומים (בתיקייה `images/`) מחדשים בפקודה `npm run docs:screenshots` בתיקייה `frontend`, כשהשרתים המקומיים רצים.
 
 | יחידה | קובץ | נושא |
 |---|---|---|
@@ -23,16 +23,17 @@
 | 3 | [03-negation.md](03-negation.md) | שלילה והוכחה בשלילה |
 | 4 | [04-quantifiers.md](04-quantifiers.md) | כמתים |
 | 5 | [05-sets.md](05-sets.md) | קבוצות |
-| 6 | [06-equality-and-induction.md](06-equality-and-induction.md) | שוויון ואינדוקציה |
+| 6 | [06-sets-of-sets.md](06-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה ומשפחות |
+| 7 | [07-equality-and-induction.md](07-equality-and-induction.md) | שוויון ואינדוקציה |
 
 | מסמך כללי | תוכן |
 |---|---|
 | [design/principles.md](design/principles.md) | עקרונות עיצוב לבלוקים |
+| [design/moves.md](design/moves.md) | מהלכי ההוכחה: בלי שמות להנחות, בחירה לפי הטענה, ואיך זה עובד |
 | [design/general-blocks.md](design/general-blocks.md) | בלוקים כלליים, מיחידה 2 ואילך |
 | [design/architecture-and-tools.md](design/architecture-and-tools.md) | ארכיטקטורה וכלים נדרשים |
 | [design/prototype-gap.md](design/prototype-gap.md) | הפער בין האב-טיפוס הקיים לדרישות |
 | [design/open-decisions.md](design/open-decisions.md) | החלטות פתוחות |
-| [design/handwritten-version.md](design/handwritten-version.md) | גרסה ניסיונית: הוכחה בכתב יד, בלי שמות להנחות |
 
 ## סטטוס
 

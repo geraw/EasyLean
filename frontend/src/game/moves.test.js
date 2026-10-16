@@ -1,0 +1,367 @@
+import { describe, expect, it } from 'vitest';
+import * as Blockly from 'blockly/core';
+import { leanGenerator } from '../generator/lean';
+import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
+import { generateGameLeanCode } from './gameLeanCode';
+import { explainLeanMessage } from './leanErrors';
+import { withoutIsolates } from './bidi';
+import { defineMoveBlocks, phraseOf } from '../blocks/moves';
+import { buildMoveStatesSource, readMoveStates } from './moveStates';
+import { unit0Levels } from './unit0World';
+import { unit1Levels } from './unit1World';
+import { unit2Levels } from './unit2World';
+import { unit3Levels } from './unit3World';
+import { unit4Levels } from './unit4World';
+import { unit5Levels } from './unit5World';
+import { unit6Levels } from './unit6World';
+import { unit7Levels } from './unit7World';
+import { UNITS } from '../../e2e/solutions';
+
+defineMoveBlocks();
+
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels];
+
+// Builds the parts of the moves that split the proof ([type, fields, parts]).
+const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
+    .forEach(([input, partSteps]) => buildParts(buildInto(block, input, partSteps), partSteps)));
+
+// A level's workspace with one of its solutions in place of the starting moves.
+const solved = (level, steps) => {
+    const workspace = loadWorkspace(level.startXml);
+    workspace.getTopBlocks(true).find((b) => b.type === 'game_goal').getInputTargetBlock('PROOF')?.dispose(false);
+    const blocks = buildProof(workspace, steps);
+    buildParts(blocks, steps);
+    return { workspace, blocks };
+};
+
+// The blocks of a solution, including those inside the parts of a move.
+const usedBlocks = (steps) => new Set(steps.flatMap(([type, , parts = {}]) => [type, ...Object.values(parts).flatMap((part) => [...usedBlocks(part)])]));
+
+describe.each(UNITS.map(({ unit, levels }) => [unit, levels]))('unit %i', (unit, solutions) => {
+    const levels = worlds[unit];
+
+    it('has a solution for every level', () => {
+        expect(solutions).toHaveLength(levels.length);
+    });
+
+    it.each(levels.map((level, i) => [level.id, level, solutions[i]]))('%s offers only blocks that exist, generate Lean and a solution uses', (_, level, levelSolutions) => {
+        const used = new Set(levelSolutions.flatMap(({ steps }) => [...usedBlocks(steps)]));
+        level.toolboxBlocks.forEach((type) => {
+            expect(Blockly.Blocks[type], type).toBeDefined();
+            expect(leanGenerator.forBlock[type], type).toBeTypeOf('function');
+        });
+        expect(level.toolboxBlocks.filter((type) => !used.has(type))).toEqual([]);
+        levelSolutions.forEach(({ steps }) => usedBlocks(steps).forEach((type) => expect(level.toolboxBlocks).toContain(type)));
+    });
+
+    it.each(levels.map((level) => [level.id, level]))('%s never shows an assumption name', (_, level) => {
+        const shown = [level.introduction, level.conclusion, ...level.hints, level.startXml].join('\n');
+        expect(shown).not.toMatch(/\bh\d*\b|\bh[pq]\b/);
+    });
+});
+
+describe('the moves', () => {
+    it('find each assumption by its statement', () => {
+        const level = unit1Levels[4];
+        const { workspace } = solved(level, UNITS[1].levels[4][1].steps);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  have := easylean_mp ‹P → Q› ‹P›',
+            '  have := easylean_mp ‹Q → R› ‹Q›',
+            '  assumption',
+        ].join('\n'));
+    });
+
+    it('read like a written proof, following the proof state and their fields', () => {
+        const { blocks: [assume, forward, backward] } = solved(unit1Levels[4], [
+            ['assume'], ['forward', { RULE: 'P → Q', PREMISE: 'P' }], ['apply_rule', { RULE: 'Q → R' }],
+        ]);
+        expect(phraseOf(assume)).toBe('כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה');
+        assume.setStateBefore({ assumptions: [], goal: '(P → Q) → (Q → R) → P → R' });
+        expect(phraseOf(assume)).toBe('כדי להוכיח את הגרירה, נניח (P → Q) ונוכיח ((Q → R) → (P → R))');
+        expect(phraseOf(forward)).toBe('נובע Q');
+        expect(phraseOf(backward)).toBe('כדי להוכיח R די להוכיח Q');
+    });
+
+    it('offer the assumptions in hand before them, and typing one in', () => {
+        const { blocks: [backward] } = solved(unit1Levels[1], [['apply_rule']]);
+        const field = backward.getField('RULE');
+        expect(field.getValue()).toBe('?');
+        backward.setStateBefore({ assumptions: ['P', 'P → Q'], goal: 'Q' });
+        expect(field.getOptions(false).map(([label, value]) => [withoutIsolates(label), value])).toEqual([
+            ['?', '?'], ['P', 'P'], ['(P → Q)', 'P → Q'], ['✎ כתיבה ידנית...', '__write_own__'],
+        ]);
+        // A typed statement is kept even when it is not in hand: Lean will explain.
+        field.setValue('R');
+        expect(withoutIsolates(field.getText())).toBe('R');
+    });
+});
+
+describe('the moves of unit 2', () => {
+    it('open each part of the proof, finding assumptions by statement', () => {
+        const level = unit2Levels[8];
+        const { workspace, blocks: [, , cases] } = solved(level, [['assume'], ['and_elim', { AND: 'P ∧ (Q ∨ R)' }], ['or_elim', { OR: 'Q ∨ R' }]]);
+        buildInto(cases, 'LEFT', [['or_intro', { SIDE: 'LEFT' }], ['and_combine', { LEFT: 'P', RIGHT: 'Q' }], ['exact']]);
+        const [right] = buildInto(cases, 'RIGHT', [['or_intro', { SIDE: 'RIGHT' }], ['and_intro']]);
+        buildInto(right.getNextBlock(), 'LEFT', [['exact']]);
+        buildInto(right.getNextBlock(), 'RIGHT', [['exact']]);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  have := And.left ‹P ∧ (Q ∨ R)›',
+            '  have := And.right ‹P ∧ (Q ∨ R)›',
+            '  cases ‹Q ∨ R› with',
+            '  | inl _ =>',
+            '    apply Or.inl',
+            '    have := And.intro ‹P› ‹Q›',
+            '    assumption',
+            '  | inr _ =>',
+            '    apply Or.inr',
+            '    apply And.intro',
+            '    ·',
+            '      assumption',
+            '    ·',
+            '      assumption',
+        ].join('\n'));
+    });
+
+    it('read like a written proof, and head each part with what is proved in it', () => {
+        const { blocks: [and, or, combine, andIntro, orIntro, iffElim, iffIntro] } = solved(unit2Levels[8], [
+            ['and_elim', { AND: 'P ∧ (Q ∨ R)' }], ['or_elim', { OR: 'Q ∨ R' }], ['and_combine', { LEFT: 'P', RIGHT: 'Q' }],
+            ['and_intro'], ['or_intro'], ['iff_elim', { IFF: 'P ↔ Q' }], ['iff_intro'],
+        ]);
+        expect(phraseOf(and)).toBe('נובע P ונובע (Q ∨ R)');
+        expect([phraseOf(or, 'LEFT_TEXT'), phraseOf(or, 'RIGHT_TEXT')]).toEqual(['מקרה ראשון: נניח Q', 'מקרה שני: נניח R']);
+        expect(phraseOf(combine)).toBe('נובע (P ∧ Q)');
+        expect(phraseOf(iffElim)).toBe('נובע (P → Q) ונובע (Q → P)');
+
+        expect([phraseOf(andIntro), phraseOf(andIntro, 'LEFT_TEXT')]).toEqual(['כדי להוכיח את ה"וגם", נוכיח כל צד לחוד', 'צד שמאל:']);
+        andIntro.setStateBefore({ assumptions: [], goal: 'P ∧ (Q ∨ R)' });
+        expect([phraseOf(andIntro), phraseOf(andIntro, 'LEFT_TEXT'), phraseOf(andIntro, 'RIGHT_TEXT')])
+            .toEqual(['כדי להוכיח (P ∧ (Q ∨ R)) נוכיח כל צד לחוד', 'נוכיח P', 'נוכיח (Q ∨ R)']);
+        iffIntro.setStateBefore({ assumptions: [], goal: 'P ∧ Q ↔ Q ∧ P' });
+        expect([phraseOf(iffIntro, 'FORWARD_TEXT'), phraseOf(iffIntro, 'BACKWARD_TEXT')])
+            .toEqual(['נוכיח ((P ∧ Q) → (Q ∧ P))', 'נוכיח ((Q ∧ P) → (P ∧ Q))']);
+
+        // The side of an "or" is chosen by what it says, once the goal is known.
+        const side = orIntro.getField('SIDE');
+        expect(side.getValue()).toBe('?');
+        orIntro.setStateBefore({ assumptions: [], goal: 'Q ∨ P' });
+        expect(phraseOf(orIntro)).toBe('כדי להוכיח (Q ∨ P) די להוכיח');
+        expect(side.getOptions(false).map(([label, value]) => [withoutIsolates(label), value])).toEqual([['?', '?'], ['Q', 'LEFT'], ['P', 'RIGHT']]);
+        side.setValue('RIGHT');
+        expect(withoutIsolates(side.getText())).toBe('P');
+    });
+});
+
+describe('the moves of unit 3', () => {
+    it('are the rules for negation, and find assumptions by statement', () => {
+        const level = unit3Levels[9];
+        const { workspace } = solved(level, UNITS[3].levels[9][0].steps);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  apply Classical.byContradiction',
+            '  intro _',
+            '  refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
+            '  apply Or.inr',
+            '  refine Not.intro (fun _ => ?_)',
+            '  refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
+            '  apply Or.inl',
+            '  assumption',
+        ].join('\n'));
+    });
+
+    it('read like a written proof', () => {
+        const { blocks: [contradiction, notIntro, notElim, exfalso, byContradiction] } = solved(unit3Levels[9], [
+            ['contradiction', { FACT: 'P ∨ Q' }], ['not_intro'], ['not_elim', { NEGATION: '¬(P ∨ ¬P)' }], ['exfalso'], ['by_contradiction'],
+        ]);
+        expect(phraseOf(contradiction)).toBe('ואת ¬(P ∨ Q) וזו סתירה.');
+        expect(phraseOf(notIntro)).toBe('כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה');
+        notIntro.setStateBefore({ assumptions: [], goal: '¬¬P' });
+        expect(phraseOf(notIntro)).toBe('כדי להוכיח ¬¬P נניח ¬P ונגיע לסתירה');
+        expect(phraseOf(notElim)).toBe('כדי להגיע לסתירה די להוכיח (P ∨ ¬P)');
+        exfalso.setStateBefore({ assumptions: [], goal: 'Q' });
+        expect(phraseOf(exfalso)).toBe('מסתירה נובע הכול, ולכן כדי להוכיח Q די להגיע לסתירה');
+        byContradiction.setStateBefore({ assumptions: [], goal: 'P ∨ ¬P' });
+        expect(phraseOf(byContradiction)).toBe('נוכיח בשלילה: נניח ¬(P ∨ ¬P) ונגיע לסתירה');
+    });
+
+    it('reach a contradiction from either a statement or its negation', () => {
+        const level = unit3Levels[0];
+        const { workspace, blocks: [contradiction] } = solved(level, [['contradiction', { FACT: '¬P' }]]);
+        // ¬P contradicts P, unless ¬¬P is in hand.
+        expect(phraseOf(contradiction)).toBe('ואת P וזו סתירה.');
+        contradiction.setStateBefore({ assumptions: ['¬¬P', '¬P'], goal: 'False' });
+        expect(phraseOf(contradiction)).toBe('ואת ¬¬P וזו סתירה.');
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  first',
+            '  | exact (absurd ‹¬P› ‹¬(¬P)› : False)',
+            '  | exact (absurd ‹P› ‹¬P› : False)',
+        ].join('\n'));
+    });
+});
+
+describe('the moves of unit 4', () => {
+    it('name new objects after the quantified variable with a subscript, and find assumptions by statement', () => {
+        const level = unit4Levels[8];
+        const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, UNITS[4].levels[8][0].steps);
+        forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
+        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y₀'], goal: '∃ x, R x y₀' });
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  refine easylean_forall_intro (fun y₀ => ?_)',
+            '  refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x₀ _ => ?_)',
+            '  have := easylean_forall_elim ‹∀ y, R x₀ y› (y₀)',
+            '  apply Exists.intro (x₀)',
+            '  assumption',
+        ].join('\n'));
+        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y ∃x R(x,y) יהי y₀ עצם שרירותי, ונוכיח ∃x R(x,y₀)');
+        expect(phraseOf(existsElim)).toBe('יהי x₀ עצם כך ש־ ∀y R(x₀,y)');
+    });
+
+    it('substitute the chosen object, and pick the next subscript when a name is taken', () => {
+        const { blocks: [forallElim, existsIntro, existsElim] } = solved(unit4Levels[6], [
+            ['forall_elim', { FORALL: '∀ (x : obj), P x → Q x', TERM: 'a' }], ['exists_intro', { TERM: 'a' }], ['exists_elim', { EXISTS: '∃ x, P x' }],
+        ]);
+        expect(phraseOf(forallElim)).toBe('נובע (P(a) → Q(a))');
+        existsIntro.setStateBefore({ assumptions: [], objects: ['a'], goal: '∃ x, Q x' });
+        expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER')]).toEqual(['כדי להוכיח ∃x Q(x) נבחר את העצם', 'ונוכיח Q(a)']);
+        expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
+        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
+        expect(phraseOf(existsElim)).toBe('יהי x₁ עצם כך ש־ P(x₁)');
+    });
+});
+
+describe('the moves of unit 5', () => {
+    it('read like a written proof, and name the definition they use', () => {
+        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit5Levels[6], [
+            ['subset_intro'], ['subset_elim', { SUBSET: 'A ⊆ B', MEMBER: 'x₀ ∈ A' }], ['set_eq'],
+            ['unfold', { STATEMENT: 'x₀ ∈ A ∩ (B ∪ C)' }], ['unfold', { STATEMENT: 'x₀ ∈ (A ∪ B)ᶜ' }],
+        ]);
+        subsetIntro.setStateBefore({ assumptions: [], objects: [], sets: ['A', 'B', 'C'], goal: 'A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C יהי x₀ ∈ A ∩ (B ∪ C) ונוכיח x₀ ∈ A ∩ B ∪ A ∩ C');
+        expect(phraseOf(subsetElim)).toBe('נובע x₀ ∈ B');
+        setEq.setStateBefore({ assumptions: [], objects: [], sets: [], goal: 'A ∩ B = B ∩ A' });
+        expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
+        expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x₀ ∈ A ∧ x₀ ∈ (B ∪ C))']);
+        unfoldGoal.setStateBefore({ assumptions: [], objects: ['x₀'], sets: [], goal: 'x₀ ∈ (A ∪ B)ᶜ' });
+        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת המשלים,', 'כלומר, נוכיח ¬x₀ ∈ (A ∪ B)']);
+        // The menu offers only membership statements with a definition to use, the goal first.
+        unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x₀ ∈ A', 'x₀ ∈ A ∪ B'], objects: ['x₀'], sets: [], goal: 'x₀ ∈ Bᶜ' });
+        expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x₀ ∈ (A ∪ B)ᶜ', 'x₀ ∈ Bᶜ', 'x₀ ∈ A ∪ B', '__write_own__']);
+    });
+
+    it('use a definition on the goal or on an assumption without waiting for the proof state', () => {
+        const level = unit5Levels[2];
+        const { workspace } = solved(level, UNITS[5].levels[2][0].steps);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_subset_intro (fun x₀ _ => ?_)',
+            '  first',
+            '  | (guard_target =ₛ x₀ ∈ A ∩ B; apply easylean_mem_inter.mpr)',
+            '  | have := easylean_mem_inter.mp ‹x₀ ∈ A ∩ B›',
+            '  have := And.left ‹x₀ ∈ A ∧ x₀ ∈ B›',
+        ].join('\n'));
+    });
+
+    it('name an element of a power set as a set', () => {
+        const { blocks: [subsetIntro] } = solved(unit6Levels[1], [['subset_intro']]);
+        subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫 A ⊆ 𝒫 B יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B');
+    });
+});
+
+describe('the moves of unit 7', () => {
+    it('substitute by an equality, shown as the replacement it makes', () => {
+        const level = unit7Levels[2];
+        const { workspace, blocks: [rewrite] } = solved(level, UNITS[7].levels[2][0].steps);
+        expect(rewrite.getField('DIRECTION').getOptions(false).map(([label, value]) => [withoutIsolates(label), value]))
+            .toEqual([['את a ב־b', 'FORWARD'], ['את b ב־a', 'BACKWARD']]);
+        expect(withoutIsolates(rewrite.getField('DIRECTION').getText())).toBe('את b ב־a');
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  have := ‹P b›',
+            '  rewrite [← ‹a = b›] at this',
+            '  assumption',
+        ].join('\n'));
+    });
+
+    it('head the parts of an induction by what is proved in them, keeping the variable', () => {
+        const level = unit7Levels[4];
+        const { workspace, blocks: [induction] } = solved(level, UNITS[7].levels[4][0].steps);
+        induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
+        expect([phraseOf(induction, 'BASE_TEXT'), phraseOf(induction, 'STEP_TEXT')])
+            .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  induction n with',
+            '  | zero =>',
+            '    rewrite [double]',
+            '    rfl',
+            '  | succ n _ =>',
+            '    rewrite [double]',
+            '    rewrite [‹double n = n + n›]',
+            '    omega',
+        ].join('\n'));
+    });
+});
+
+describe('the proof state before each move', () => {
+    it('comes from one check, a theorem per move', () => {
+        const level = unit1Levels[0];
+        const { workspace, blocks } = solved(level, UNITS[1].levels[0][0].steps);
+        const source = buildMoveStatesSource(workspace, level);
+        expect(source.code.match(/^theorem unit1_l1_identity_before_\d/gm)).toHaveLength(2);
+        expect(source.code.match(/^theorem easylean_mp /gm)).toHaveLength(1);
+        // Lean's output for this code (lines 9-10 and 11-12).
+        const output = [
+            'proof.lean:10:8: error: don\'t know how to synthesize placeholder', 'context:', 'P : Prop', '⊢ P → P',
+            'proof.lean:9:50: error: unsolved goals', 'P : Prop', '⊢ P → P',
+            'proof.lean:11:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
+        ].join('\n');
+        const states = readMoveStates(output, source);
+        expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], sets: [], goal: 'P → P' });
+        expect(states.get(blocks[1].id)).toEqual({ assumptions: ['P'], objects: [], sets: [], goal: 'P' });
+    });
+});
+
+describe('the explanations of the moves', () => {
+    // Lean's messages for wrong moves, as the moves generate them.
+    const explain = (message) => withoutIsolates(explainLeanMessage(message));
+
+    it.each([
+        ['going back by an implication whose conclusion is not the goal',
+            'Application type mismatch: The argument\n  h1\nhas type\n  P → Q\nbut is expected to have type\n  ?m.2 → R\nin the application\n  easylean_mp h1',
+            'המסקנה של (P → Q) היא Q, אבל צריך להוכיח R. אפשר לעבור לתנאי של גרירה רק כשהמסקנה שלה היא בדיוק מה שצריך להוכיח.'],
+        ['going forward from an assumption that is not the condition',
+            'Application type mismatch: The argument\n  ?m.6\nhas type\n  P\nbut is expected to have type\n  Q\nin the application\n  easylean_mp ?m.5 ?m.6',
+            'ההנחה P היא לא התנאי של הגרירה: התנאי שלה הוא Q.'],
+        ['using an assumption that is not an implication as one',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P\nbut is expected to have type\n  ?m.3 → ?m.4\nin the application\n  easylean_mp ?m.5',
+            'ההנחה P היא לא גרירה, ולכן אין לה תנאי ומסקנה.'],
+        ['closing before the goal is in hand, or a statement that is not in hand',
+            'Tactic `assumption` failed\n\nP Q : Prop\nh1 : P → Q\nhp : P\n⊢ Q',
+            'אין בידינו הנחה שאומרת Q. במצב ההוכחה רואים מה יש לנו ביד.'],
+        ['using an "and" that the assumption is not',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P\nbut is expected to have type\n  ?m.3 ∧ ?m.4\nin the application\n  And.left ?m.5',
+            'ההנחה P היא לא טענת "וגם", ולכן אין לה שני צדדים.'],
+        ['using as a negation an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.7\nhas type\n  Q\nbut is expected to have type\n  ¬?m.4\nin the application\n  absurd ?m.6 ?m.7',
+            'ההנחה Q היא לא שלילה, ולכן אין טענה שהיא שוללת.'],
+        ['using as a "for all" an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P a\nbut is expected to have type\n  ∀ (x : ?m.3), ?m.4 x\nin the application\n  easylean_forall_elim ?m.5',
+            'ההנחה P(a) היא לא טענת "לכל", ולכן אין במה להציב עצם.'],
+        ['using as a "there exists" an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P a\nbut is expected to have type\n  ∃ x, ?m.3 x\nin the application\n  Exists.elim ?m.5',
+            'ההנחה P(a) היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.'],
+        ['using an inclusion with a membership in another set',
+            'Application type mismatch: The argument\n  hx\nhas type\n  x₀ ∈ C\nbut is expected to have type\n  ?m.14 ∈ A\nin the application\n  easylean_subset_elim h hx',
+            'ההנחה x₀ ∈ C לא אומרת שהאיבר שייך ל־A, הקבוצה המוכלת בהכלה.'],
+        ['a letter that is not in the level', 'Unknown identifier `S`',
+            'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
+        ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',
+            'לא הצלחנו לקרוא את הטענה שכתבתם. כתבו אותה כמו במצב ההוכחה, למשל P → Q.'],
+        ['assuming when the goal is not an implication (the course\'s explanation)',
+            'Type mismatch\n  easylean_imp_intro fun x => ?m.5\nhas type\n  ?m.2 → ?m.3\nbut is expected to have type\n  Q',
+            'המטרה היא Q, והיא לא גרירה, ולכן אין תנאי להניח.'],
+    ])('%s', (_, message, explanation) => {
+        expect(explain(message)).toBe(explanation);
+    });
+});

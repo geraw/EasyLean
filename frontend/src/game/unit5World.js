@@ -1,51 +1,58 @@
 import { goalXml } from './levelXml';
 
+// Unit 5 (see blocks/moves.js): sets of objects, as in
+// Logic and Proof (chapters 11 and 12) and Mathematics in Lean (4.1); sets
+// of sets (power sets, families) are unit 6. An inclusion is
+// proved by taking an arbitrary element ("יהי x₀ ∈ A") and used by its
+// element; an equality is two inclusions; and membership in a set built by an
+// operation is read by its definition ("לפי הגדרת החיתוך, x₀ ∈ A ∩ B פירושו
+// x₀ ∈ A ∧ x₀ ∈ B"), one move for all the operations, which names the
+// definition it used. After that the moves of units 1-4 do the rest. Each
+// level offers only the moves of its solution.
+
 export const unit5WorldName = 'יחידה 5 - קבוצות';
+
+const SETS = 'variable {obj : Type} {A B C : Set obj}';
+
+// The moves as the toolbox shows them, before they are placed.
+const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
+const SUBSET_ELIM_BLOCK = '"לפי ההכלה ? ומ־?"';
+const SET_EQ_BLOCK = '"כדי להוכיח שוויון קבוצות, נוכיח שתי הכלות"';
+const UNFOLD_BLOCK = '"לפי ההגדרה, ?"';
+const ASSUME_BLOCK = '"כדי להוכיח את הגרירה, נניח..."';
+const AND_ELIM_BLOCK = '"מה"וגם" ?"';
+const AND_INTRO_BLOCK = '"כדי להוכיח את ה"וגם", נוכיח כל צד לחוד"';
+const OR_INTRO_BLOCK = '"כדי להוכיח את ה"או" די להוכיח את ?"';
+const OR_ELIM_BLOCK = '"נחלק למקרים לפי ה"או" ?"';
+const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const subsetElimInfo = {
     name: 'שימוש בהכלה',
-    doc: 'A ⊆ B אומרת שכל איבר של A הוא גם איבר של B. לכן אם x0 ∈ A, אז x0 ∈ B.',
+    doc: 'A ⊆ B אומרת שכל איבר של A הוא גם איבר של B. לכן מ־A ⊆ B ומ־x₀ ∈ A נובע x₀ ∈ B. בהוכחה כתובה: "לפי ההכלה A ⊆ B, מ־x₀ ∈ A נובע x₀ ∈ B".',
 };
 const subsetIntroInfo = {
     name: 'הוכחת הכלה',
-    doc: 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי x0 של A, ומוכיחים ש־x0 ∈ B.',
+    doc: 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי x₀ של A, ומוכיחים ש־x₀ ∈ B. בהוכחה כתובה: "יהי x₀ ∈ A; נוכיח x₀ ∈ B".',
 };
-const interInfo = { name: 'הגדרת החיתוך', doc: 'x ∈ A ∩ B פירושו x ∈ A וגם x ∈ B.' };
-const unionInfo = { name: 'הגדרת האיחוד', doc: 'x ∈ A ∪ B פירושו x ∈ A או x ∈ B.' };
-const setEqInfo = { name: 'שוויון קבוצות', doc: 'שתי קבוצות שוות אם כל אחת מוכלת בשנייה: מוכיחים A ⊆ B וגם B ⊆ A.' };
-const complInfo = { name: 'הגדרת המשלים', doc: 'x ∈ Aᶜ פירושו x ∉ A: האיבר לא שייך ל־A.' };
-const diffInfo = { name: 'הגדרת ההפרש', doc: 'x ∈ A \\ B פירושו x ∈ A וגם x ∉ B.' };
-const emptyInfo = { name: 'הגדרת הקבוצה הריקה', doc: 'x ∈ ∅ פירושו סתירה (⊥): אין אף איבר בקבוצה הריקה.' };
-const powersetInfo = { name: 'הגדרת קבוצת החזקה', doc: 'X ∈ 𝒫(A) פירושו X ⊆ A: האיברים של קבוצת החזקה הם תתי־הקבוצות של A.' };
-const sUnionInfo = { name: 'הגדרת איחוד משפחה', doc: 'x ∈ ⋃₀ F פירושו: קיימת קבוצה S במשפחה F כך ש־x ∈ S.' };
-const sInterInfo = { name: 'הגדרת חיתוך משפחה', doc: 'x ∈ ⋂₀ F פירושו: לכל קבוצה S במשפחה F מתקיים x ∈ S.' };
+const unfoldInfo = {
+    name: 'לפי ההגדרה',
+    doc: 'שייכות לקבוצה שנבנתה בפעולה פירושה טענה לוגית, לפי הגדרת הפעולה. בוחרים בבלוק את טענת השייכות, מהמטרה או ממה שבידינו, והבלוק כותב לפי איזו הגדרה ומה היא אומרת.',
+};
+const setEqInfo = {
+    name: 'שוויון קבוצות',
+    doc: 'שתי קבוצות שוות אם כל אחת מוכלת בשנייה: מוכיחים A ⊆ B וגם B ⊆ A, כל הכלה בחלק משלה.',
+};
 
-// The typical mistake of level 3, already placed: using an inclusion before
-// there is an element to use it on.
-const prematureSubsetXml = `
-      <block type="tactic_intro">
-        <field name="HYPOTHESIS">h1</field>
-        <next>
-          <block type="tactic_intro">
-            <field name="HYPOTHESIS">h2</field>
-            <next>
-              <block type="logic_subset_elim">
-                <field name="HYPOTHESIS">h1</field>
-                <field name="MEMBER">hx</field>
-                <field name="NAME">hb</field>
-              </block>
-            </next>
-          </block>
-        </next>
-      </block>`;
-
-const SETS = 'variable {obj : Type} {A B C : Set obj}';
-const FAMILY = 'variable {obj : Type} {A : Set obj} {F : Set (Set obj)}';
+const inter = { symbol: 'חיתוך', doc: 'x₀ ∈ A ∩ B פירושו x₀ ∈ A ∧ x₀ ∈ B.' };
+const union = { symbol: 'איחוד', doc: 'x₀ ∈ A ∪ B פירושו x₀ ∈ A ∨ x₀ ∈ B.' };
+const compl = { symbol: 'משלים', doc: 'x₀ ∈ Aᶜ פירושו ¬x₀ ∈ A: האיבר לא שייך ל־A.' };
+const diff = { symbol: 'הפרש', doc: 'x₀ ∈ A \\ B פירושו x₀ ∈ A ∧ ¬x₀ ∈ B.' };
+const empty = { symbol: 'הקבוצה הריקה', doc: 'x₀ ∈ ∅ פירושו סתירה (⊥): אין אף איבר בקבוצה הריקה.' };
 
 const level = (number, fields) => ({
     id: `unit5-${number}`,
     levelNumber: number,
-    totalLevels: 17,
+    totalLevels: 11,
     usesSets: true,
     objects: [],
     assumptions: [],
@@ -60,376 +67,260 @@ export const unit5Levels = [
         title: 'משתמשים בהכלה',
         name: 'unit5_l1_subset_elim',
         variableLine: SETS,
-        params: '(x0 : obj) (h : A ⊆ B) (hx : x0 ∈ A)',
-        proposition: 'x0 ∈ B',
-        goalLabel: 'x0 ∈ B',
-        objects: [{ name: 'x0', type: 'obj' }],
-        assumptions: [{ name: 'h', prop: 'A ⊆ B' }, { name: 'hx', prop: 'x0 ∈ A' }],
-        toolboxBlocks: ['logic_subset_elim', 'tactic_exact'],
+        params: '(x₀ : obj) (h : A ⊆ B) (hx : x₀ ∈ A)',
+        proposition: 'x₀ ∈ B',
+        goalLabel: 'x₀ ∈ B',
+        objects: [{ name: 'x₀', type: 'obj' }],
+        assumptions: [{ name: 'h', prop: 'A ⊆ B' }, { name: 'hx', prop: 'x₀ ∈ A' }],
+        toolboxBlocks: ['subset_elim', 'exact'],
         introduction: `# קבוצות והכלה
 
-*קבוצה* היא אוסף של עצמים מהתחום, ו־\`x0 ∈ A\` אומרת ש־x0 *שייך* ל־A. למשל: A היא קבוצת הסטודנטים שעברו את הבוחן, ו־B קבוצת הסטודנטים שרשאים לגשת למבחן.
+*קבוצה* היא אוסף של עצמים מהתחום, ו־\`x₀ ∈ A\` אומרת ש־x₀ *שייך* ל־A. למשל: A היא קבוצת הסטודנטים שעברו את הבוחן, ו־B קבוצת הסטודנטים שרשאים לגשת למבחן.
 
-\`A ⊆ B\` נקראת "A מוכלת ב־B": כל איבר של A הוא גם איבר של B. זו בעצם טענת "לכל": לכל x, אם x ∈ A אז x ∈ B.
+\`A ⊆ B\` נקראת "A מוכלת ב־B": כל איבר של A הוא גם איבר של B.
 
-כאן נתון ש־A ⊆ B וש־x0 ∈ A, והמטרה היא x0 ∈ B: מההכלה ומהשייכות ל־A נסיק את השייכות ל־B.`,
-        newTacticsBlocks: ['logic_subset_elim'],
+כאן נתון ש־A ⊆ B וש־x₀ ∈ A, והמטרה היא x₀ ∈ B. בהוכחה כתובה: "לפי ההכלה A ⊆ B, מ־x₀ ∈ A נובע x₀ ∈ B".
+הבלוק ${SUBSET_ELIM_BLOCK} עושה זאת: בוחרים בו את ההכלה ואת השייכות.`,
+        newTacticsBlocks: ['subset_elim'],
         newTacticsInfo: [subsetElimInfo],
         hints: [
-            'גררו את הבלוק "מההכלה ? ומהשייכות ? נסיק שייכות לקבוצה הגדולה", וכתבו בו h ו־hx, ושם לתוצאה, למשל hb.',
-            'עכשיו hb אומרת בדיוק את המטרה.',
+            `גררו את הבלוק ${SUBSET_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו A ⊆ B ואת x₀ ∈ A. עכשיו כתוב בו: נובע x₀ ∈ B.`,
+            `x₀ ∈ B בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `מ־A ⊆ B ומ־x0 ∈ A הסקתם x0 ∈ B. משתמשים בהכלה בדיוק כמו בגרירה: השייכות לקבוצה הקטנה היא התנאי, והשייכות לגדולה היא המסקנה.`,
-        startXml: goalXml('x0 ∈ B', 'x0 : obj,  h : A ⊆ B,  hx : x0 ∈ A'),
+        conclusion: `מההכלה ומהשייכות ל־A הסקתם את השייכות ל־B: מה שנכון לכל איבר של A נכון גם ל־x₀.`,
+        startXml: goalXml('x₀ ∈ B', 'A ⊆ B,  x₀ ∈ A'),
     }),
     level(2, {
-        title: 'שרשרת של הכלות',
-        name: 'unit5_l2_subset_chain',
-        variableLine: SETS,
-        params: '(x0 : obj) (h1 : A ⊆ B) (h2 : B ⊆ C) (hx : x0 ∈ A)',
-        proposition: 'x0 ∈ C',
-        goalLabel: 'x0 ∈ C',
-        objects: [{ name: 'x0', type: 'obj' }],
-        assumptions: [{ name: 'h1', prop: 'A ⊆ B' }, { name: 'h2', prop: 'B ⊆ C' }, { name: 'hx', prop: 'x0 ∈ A' }],
-        toolboxBlocks: ['logic_subset_elim', 'tactic_exact'],
-        introduction: `# שרשרת של הכלות
-
-אם A מוכלת ב־B, ו־B מוכלת ב־C, ו־x0 ∈ A, אז x0 ∈ C. השתמשו בשתי ההכלות זו אחר זו, כמו בשרשרת הגרירות של יחידה 1.`,
-        hints: [
-            'מ־h1 ומ־hx הסיקו x0 ∈ B (למשל hb).',
-            'מ־h2 ומ־hb הסיקו x0 ∈ C, וסגרו בעזרתה.',
-        ],
-        conclusion: `השתמשתם בשתי הכלות ברצף: מ־A ל־B, ומ־B ל־C.`,
-        startXml: goalXml('x0 ∈ C', 'x0 : obj,  h1 : A ⊆ B,  h2 : B ⊆ C,  hx : x0 ∈ A'),
-    }),
-    level(3, {
         title: 'מוכיחים הכלה',
-        name: 'unit5_l3_subset_trans',
+        name: 'unit5_l2_subset_trans',
         variableLine: SETS,
         params: '',
         proposition: '(A ⊆ B) → ((B ⊆ C) → (A ⊆ C))',
         goalLabel: '((A ⊆ B) → ((B ⊆ C) → (A ⊆ C)))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'tactic_exact'],
+        toolboxBlocks: ['assume', 'subset_intro', 'subset_elim', 'exact'],
         introduction: `# מוכיחים הכלה
 
-כדי להוכיח \`A ⊆ C\` לוקחים איבר *שרירותי* של A, למשל x0, ומוכיחים שהוא שייך ל־C, כמו בהוכחת "לכל" ביחידה 4.
+אם A מוכלת ב־B ו־B מוכלת ב־C, אז A מוכלת ב־C.
 
-ההוכחה כבר התחילה: הנחנו את שתי ההכלות, ומיד השתמשנו ב־h1 עם שייכות בשם hx. אבל הבלוק אדום: עוד אין בידינו איבר, ולא שייכות שלו.
-קודם לוקחים איבר של A, ורק אז אפשר להשתמש בהכלות.`,
-        newTacticsBlocks: ['logic_subset_intro'],
+כדי להוכיח \`A ⊆ C\` לוקחים איבר *שרירותי* x₀ של A, ומוכיחים שהוא שייך ל־C. כמו ביחידה 4, מה שהוכח לאיבר שרירותי נכון לכל איבר.
+בהוכחה כתובה: "יהי x₀ ∈ A; נוכיח x₀ ∈ C". הבלוק ${SUBSET_INTRO_BLOCK} עושה זאת: העצם x₀ וההנחה x₀ ∈ A מצטרפים למה שבידינו.
+
+אחרי זה משתמשים בשתי ההכלות, אחת אחרי השנייה, כמו בשלב 1.`,
+        newTacticsBlocks: ['subset_intro'],
         newTacticsInfo: [subsetIntroInfo],
         hints: [
-            'הכניסו לפני הבלוק האדום את הבלוק "כדי להוכיח הכלה: יהי ? איבר של הקבוצה הקטנה", וכתבו בו x0 ו־hx. יש בידינו hx : x0 ∈ A.',
-            'עכשיו הבלוק כבר לא אדום: יש בידינו hb : x0 ∈ B.',
-            'הסיקו מ־h2 ומ־hb את x0 ∈ C, וסגרו בעזרתה.',
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, והוסיפו אחריו עוד אחד כזה. עכשיו המטרה היא A ⊆ C.`,
+            `הוסיפו את הבלוק ${SUBSET_INTRO_BLOCK}. עכשיו כתוב בו: יהי x₀ ∈ A ונוכיח x₀ ∈ C.`,
+            `הוסיפו את הבלוק ${SUBSET_ELIM_BLOCK} עם A ⊆ B ועם x₀ ∈ A, ואחריו עוד אחד כזה עם B ⊆ C ועם x₀ ∈ B.`,
+            `x₀ ∈ C בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `לקחתם איבר שרירותי של A והראיתם שהוא ב־C, ולכן A ⊆ C: ההכלה טרנזיטיבית.
-כמו ב"לכל": קודם לוקחים איבר, ורק אז משתמשים בהכלות עליו.`,
-        startXml: goalXml('((A ⊆ B) → ((B ⊆ C) → (A ⊆ C)))', 'אין הנחות פתיחה', prematureSubsetXml),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח A ⊆ B ונניח B ⊆ C. יהי x₀ ∈ A. לפי A ⊆ B נובע x₀ ∈ B, ולפי B ⊆ C נובע x₀ ∈ C."`,
+        startXml: goalXml('((A ⊆ B) → ((B ⊆ C) → (A ⊆ C)))'),
     }),
-    level(4, {
+    level(3, {
         title: 'חיתוך',
-        name: 'unit5_l4_inter',
+        name: 'unit5_l3_inter_subset',
         variableLine: SETS,
         params: '',
         proposition: 'A ∩ B ⊆ A',
         goalLabel: 'A ∩ B ⊆ A',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'tactic_exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'exact'],
         introduction: `# חיתוך
 
-\`A ∩ B\` היא *החיתוך* של A ו־B: הקבוצה של האיברים ששייכים לשתיהן. למשל: הסטודנטים שעברו גם את הבוחן וגם את התרגיל.
+\`A ∩ B\` הוא *החיתוך* של A ו־B: האיברים ששייכים לשתיהן. לפי ההגדרה, \`x₀ ∈ A ∩ B\` פירושו \`x₀ ∈ A ∧ x₀ ∈ B\`.
 
-לפי ההגדרה, \`x0 ∈ A ∩ B\` פירושו \`x0 ∈ A ∧ x0 ∈ B\`. כדי להשתמש בזה, *פותחים את ההגדרה*: הבלוק "לפי הגדרת החיתוך" הופך שייכות לחיתוך ל"וגם", ומשם ממשיכים כמו ביחידה 2.`,
-        newTacticsBlocks: ['logic_unfold_inter'],
-        newTacticsInfo: [interInfo],
+הבלוק ${UNFOLD_BLOCK} משתמש בהגדרה: בוחרים בו טענת שייכות, והוא כותב לפי איזו הגדרה ומה היא אומרת. מה שהיא אומרת מצטרף למה שבידינו.
+אחרי פתיחת ההגדרה נשארת טענת "וגם", ומשתמשים בה כמו ביחידה 2.`,
+        newTacticsBlocks: ['unfold'],
+        newTacticsInfo: [unfoldInfo],
+        newDefinitions: [inter],
         hints: [
-            'קחו איבר x0 של A ∩ B, עם hx : x0 ∈ A ∩ B.',
-            'גררו את הבלוק "לפי הגדרת החיתוך נפתח את", בחרו בו "ההנחה" וכתבו hx. עכשיו hx : x0 ∈ A ∧ x0 ∈ B.',
-            'הסיקו מ־hx את שני הצדדים, וסגרו בצד שמאל.',
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ∩ B ונוכיח x₀ ∈ A.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ A ∩ B. עכשיו כתוב בו: לפי הגדרת החיתוך, פירושו (x₀ ∈ A ∧ x₀ ∈ B).`,
+            `הוסיפו את הבלוק ${AND_ELIM_BLOCK}, ובחרו בו x₀ ∈ A ∧ x₀ ∈ B. עכשיו x₀ ∈ A בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `החיתוך מוכל בכל אחת מהקבוצות. אחרי פתיחת ההגדרה נשארה טענת "וגם" רגילה.`,
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ ∈ A ∩ B. לפי הגדרת החיתוך, x₀ ∈ A ∧ x₀ ∈ B, ולכן x₀ ∈ A."`,
         startXml: goalXml('A ∩ B ⊆ A'),
     }),
-    level(5, {
-        title: 'שייכות לחיתוך',
-        name: 'unit5_l5_subset_inter',
-        variableLine: SETS,
-        params: '(h1 : A ⊆ B) (h2 : A ⊆ C)',
-        proposition: 'A ⊆ B ∩ C',
-        goalLabel: 'A ⊆ B ∩ C',
-        assumptions: [{ name: 'h1', prop: 'A ⊆ B' }, { name: 'h2', prop: 'A ⊆ C' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_inter', 'logic_and_intro', 'tactic_exact'],
-        introduction: `# שייכות לחיתוך
-
-אם A מוכלת גם ב־B וגם ב־C, אז היא מוכלת בחיתוך שלהן.
-
-הפעם פותחים את הגדרת החיתוך *במטרה*: \`x0 ∈ B ∩ C\` הופכת ל־\`x0 ∈ B ∧ x0 ∈ C\`, ומוכיחים את שני הצדדים.`,
-        hints: [
-            'קחו איבר x0 של A (hx), ופתחו את הגדרת החיתוך במטרה.',
-            'הוכיחו את שני הצדדים בשני חלקים: בכל חלק, השתמשו בהכלה המתאימה ובשייכות hx.',
-        ],
-        conclusion: `פתחתם את ההגדרה במטרה, והוכחתם "וגם" בשני חלקים. פתיחת הגדרה עובדת גם בהנחות וגם במטרה.`,
-        startXml: goalXml('A ⊆ B ∩ C', 'h1 : A ⊆ B,  h2 : A ⊆ C'),
-    }),
-    level(6, {
+    level(4, {
         title: 'איחוד',
-        name: 'unit5_l6_union',
+        name: 'unit5_l4_subset_union',
+        variableLine: SETS,
+        params: '',
+        proposition: 'A ⊆ A ∪ B',
+        goalLabel: 'A ⊆ A ∪ B',
+        toolboxBlocks: ['subset_intro', 'unfold', 'or_intro', 'exact'],
+        introduction: `# איחוד
+
+\`A ∪ B\` הוא *האיחוד* של A ו־B: האיברים ששייכים לפחות לאחת מהן. לפי ההגדרה, \`x₀ ∈ A ∪ B\` פירושו \`x₀ ∈ A ∨ x₀ ∈ B\`.
+
+הפעם משתמשים בהגדרה על *המטרה*: בוחרים בבלוק ${UNFOLD_BLOCK} את המטרה, x₀ ∈ A ∪ B, ומה שהיא אומרת הופך למה שנשאר להוכיח.`,
+        newDefinitions: [union],
+        hints: [
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ונוכיח x₀ ∈ A ∪ B.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו את המטרה x₀ ∈ A ∪ B. עכשיו כתוב בו: לפי הגדרת האיחוד, כלומר, נוכיח (x₀ ∈ A ∨ x₀ ∈ B).`,
+            `הוסיפו את הבלוק ${OR_INTRO_BLOCK}, ובחרו בו x₀ ∈ A. היא בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ ∈ A. לפי הגדרת האיחוד, די להוכיח x₀ ∈ A ∨ x₀ ∈ B, ודי להוכיח x₀ ∈ A."`,
+        startXml: goalXml('A ⊆ A ∪ B'),
+    }),
+    level(5, {
+        title: 'הכלה של איחוד',
+        name: 'unit5_l5_union_subset',
         variableLine: SETS,
         params: '(h1 : A ⊆ C) (h2 : B ⊆ C)',
         proposition: 'A ∪ B ⊆ C',
         goalLabel: 'A ∪ B ⊆ C',
         assumptions: [{ name: 'h1', prop: 'A ⊆ C' }, { name: 'h2', prop: 'B ⊆ C' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_subset_elim', 'logic_unfold_union', 'logic_or_elim', 'tactic_exact'],
-        introduction: `# איחוד
+        toolboxBlocks: ['subset_intro', 'unfold', 'or_elim', 'subset_elim', 'exact'],
+        introduction: `# הכלה של איחוד
 
-\`A ∪ B\` הוא *האיחוד* של A ו־B: האיברים ששייכים לפחות לאחת מהן. לפי ההגדרה, \`x0 ∈ A ∪ B\` פירושו \`x0 ∈ A ∨ x0 ∈ B\`.
+אם A ו־B מוכלות שתיהן ב־C, גם האיחוד שלהן מוכל ב־C.
 
-אם A ו־B מוכלות שתיהן ב־C, גם האיחוד שלהן מוכל ב־C. אחרי פתיחת ההגדרה, חלקו למקרים כמו ביחידה 2.`,
-        newTacticsBlocks: ['logic_unfold_union'],
-        newTacticsInfo: [unionInfo],
+ניקח איבר x₀ של A ∪ B. לפי הגדרת האיחוד, x₀ ∈ A או x₀ ∈ B, ולכן נחלק למקרים, כמו ביחידה 2. בכל מקרה משתמשים בהכלה המתאימה.`,
         hints: [
-            'קחו איבר x0 של A ∪ B (hx), ופתחו את הגדרת האיחוד בהנחה hx.',
-            'חלקו למקרים לפי hx (למשל ha : x0 ∈ A, hb : x0 ∈ B).',
-            'בכל מקרה, השתמשו בהכלה המתאימה וסגרו.',
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ∪ B ונוכיח x₀ ∈ C.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ A ∪ B. עכשיו כתוב בו: פירושו (x₀ ∈ A ∨ x₀ ∈ B).`,
+            `הוסיפו את הבלוק ${OR_ELIM_BLOCK}, ובחרו בו x₀ ∈ A ∨ x₀ ∈ B.`,
+            `במקרה הראשון: ${SUBSET_ELIM_BLOCK} עם A ⊆ C ועם x₀ ∈ A, ואחריו ${CLOSE_BLOCK}. במקרה השני: אותו דבר עם B ⊆ C ועם x₀ ∈ B.`,
         ],
-        conclusion: `שייכות לאיחוד היא "או", ולכן משתמשים בה בחלוקה למקרים.`,
-        startXml: goalXml('A ∪ B ⊆ C', 'h1 : A ⊆ C,  h2 : B ⊆ C'),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ ∈ A ∪ B, כלומר x₀ ∈ A או x₀ ∈ B. במקרה הראשון, לפי A ⊆ C, x₀ ∈ C. במקרה השני, לפי B ⊆ C, x₀ ∈ C."`,
+        startXml: goalXml('A ∪ B ⊆ C', 'A ⊆ C,  B ⊆ C'),
     }),
-    level(7, {
+    level(6, {
         title: 'שוויון קבוצות',
-        name: 'unit5_l7_inter_comm',
+        name: 'unit5_l6_inter_comm',
         variableLine: SETS,
         params: '',
         proposition: 'A ∩ B = B ∩ A',
         goalLabel: 'A ∩ B = B ∩ A',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_and_elim', 'logic_and_intro', 'tactic_exact'],
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'and_combine', 'exact'],
         introduction: `# שוויון קבוצות
 
-שתי קבוצות *שוות* אם יש להן בדיוק אותם איברים, כלומר כל אחת מוכלת בשנייה.
-לכן כדי להוכיח \`A ∩ B = B ∩ A\` מוכיחים שתי הכלות: \`A ∩ B ⊆ B ∩ A\`, וגם \`B ∩ A ⊆ A ∩ B\`.`,
-        newTacticsBlocks: ['logic_set_eq'],
+שתי קבוצות *שוות* אם יש להן אותם איברים, כלומר אם כל אחת מוכלת בשנייה.
+לכן כדי להוכיח \`A ∩ B = B ∩ A\` מוכיחים שתי הכלות, כל אחת בחלק משלה. הבלוק ${SET_EQ_BLOCK} עושה זאת.
+
+בכל הכלה לוקחים איבר, פותחים את הגדרת החיתוך בהנחה ובמטרה, ומשתמשים ב"וגם" כמו ביחידה 2.`,
+        newTacticsBlocks: ['set_eq'],
         newTacticsInfo: [setEqInfo],
         hints: [
-            'גררו את הבלוק "נוכיח שוויון קבוצות בשתי הכלות". בכל חלק יש הכלה להוכיח.',
-            'בכל חלק: קחו איבר, פתחו את הגדרת החיתוך בהנחה ובמטרה, והחליפו את סדר הצדדים.',
+            `גררו את הבלוק ${SET_EQ_BLOCK} אל תוך בלוק המטרה. בראש החלקים כתוב: נוכיח A ∩ B ⊆ B ∩ A, ונוכיח B ∩ A ⊆ A ∩ B.`,
+            `בחלק הראשון: יהי x₀ ∈ A ∩ B. פתחו את ההגדרה בהנחה x₀ ∈ A ∩ B, ובחרו ב${AND_ELIM_BLOCK} את מה שהיא אומרת.`,
+            `עכשיו פתחו את ההגדרה במטרה x₀ ∈ B ∩ A, והוכיחו את ה"וגם" ב${AND_INTRO_BLOCK}: בכל צד, מה שמוכיחים כבר בידינו.`,
+            'החלק השני זהה, עם A ו־B בתפקידים הפוכים.',
+            'או קדימה, במקום להוכיח את ה"וגם" בשני חלקים: מ־x₀ ∈ B ומ־x₀ ∈ A נובע (x₀ ∈ B ∧ x₀ ∈ A), וזו המטרה.',
         ],
-        conclusion: `הוכחתם שוויון בשתי הכלות. זו הדרך הרגילה להוכיח שוויון קבוצות; הכלה אחת לבדה לא מספיקה.`,
+        conclusion: `שתי ההכלות הוכחו, ולכן A ∩ B = B ∩ A: לחיתוך לא משנה הסדר.`,
         startXml: goalXml('A ∩ B = B ∩ A'),
     }),
-    level(8, {
+    level(7, {
         title: 'פילוג',
-        name: 'unit5_l8_distrib',
+        name: 'unit5_l7_distrib',
         variableLine: SETS,
         params: '',
         proposition: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
         goalLabel: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'tactic_exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'or_elim', 'or_intro', 'and_intro', 'exact'],
         introduction: `# פילוג
 
-חיתוך מתפלג על איחוד: אם x0 שייך ל־A וגם ל־B או ל־C, אז הוא שייך ל־A ∩ B או ל־A ∩ C.
-זו הגרסה של שלב 2.9 (פילוג "וגם" על "או") בשפת הקבוצות: אחרי פתיחת ההגדרות, ההוכחה זהה.`,
+החיתוך מתפלג על האיחוד: איבר של A ∩ (B ∪ C) שייך ל־A ∩ B או ל־A ∩ C.
+
+פותחים את ההגדרות שבהנחה עד שמגיעים ל"וגם" ול"או", ואת ההגדרה של המטרה. אחר כך מחלקים למקרים לפי "x₀ ∈ B או x₀ ∈ C", ובכל מקרה בוחרים את הצד המתאים של המטרה.`,
         hints: [
-            'קחו איבר x0, ופתחו את הגדרת החיתוך בהנחה: x0 ∈ A וגם x0 ∈ B ∪ C.',
-            'פתחו את הגדרת האיחוד בהנחה השנייה, וחלקו למקרים.',
-            'בכל מקרה: פתחו את הגדרת האיחוד במטרה, בחרו צד, פתחו את הגדרת החיתוך, והוכיחו "וגם".',
+            `יהי x₀ ∈ A ∩ (B ∪ C). פתחו את הגדרת החיתוך בהנחה, ומה"וגם" נובע x₀ ∈ A ונובע x₀ ∈ B ∪ C. פתחו גם את הגדרת האיחוד ב־x₀ ∈ B ∪ C.`,
+            `פתחו את ההגדרה במטרה, x₀ ∈ (A ∩ B) ∪ (A ∩ C): נשאר להוכיח (x₀ ∈ A ∩ B ∨ x₀ ∈ A ∩ C).`,
+            `חלקו למקרים לפי x₀ ∈ B ∨ x₀ ∈ C. במקרה הראשון בחרו להוכיח x₀ ∈ A ∩ B, פתחו את ההגדרה, והוכיחו את ה"וגם" בשני חלקים.`,
+            'המקרה השני דומה, עם x₀ ∈ A ∩ C.',
         ],
-        conclusion: `אחרי פתיחת ההגדרות נשארה בדיוק הוכחת הפילוג משלב 2.9. כך רוב הטענות על קבוצות: פותחים הגדרות ומשתמשים בלוגיקה.`,
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ ∈ A ∩ (B ∪ C), כלומר x₀ ∈ A, ו־x₀ ∈ B או x₀ ∈ C. במקרה ש־x₀ ∈ B, x₀ ∈ A ∩ B; במקרה ש־x₀ ∈ C, x₀ ∈ A ∩ C."`,
         startXml: goalXml('A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)'),
     }),
-    level(9, {
+    level(8, {
         title: 'משלים',
-        name: 'unit5_l9_compl',
+        name: 'unit5_l8_compl',
         variableLine: SETS,
         params: '',
         proposition: '(A ⊆ B) → (Bᶜ ⊆ Aᶜ)',
         goalLabel: '((A ⊆ B) → (Bᶜ ⊆ Aᶜ))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_compl', 'logic_not_intro', 'logic_contradiction'],
+        toolboxBlocks: ['assume', 'subset_intro', 'unfold', 'not_intro', 'subset_elim', 'contradiction'],
         introduction: `# משלים
 
-\`Aᶜ\` היא *המשלים* של A: כל העצמים בתחום שלא שייכים ל־A. לפי ההגדרה, \`x0 ∈ Aᶜ\` פירושו \`x0 ∉ A\`.
+\`Aᶜ\` הוא *המשלים* של A: האיברים בתחום שלא שייכים ל־A. לפי ההגדרה, \`x₀ ∈ Aᶜ\` פירושו \`¬x₀ ∈ A\`.
 
-אם A מוכלת ב־B, אז המשלים של B מוכל במשלים של A: מי שלא ב־B, בוודאי לא ב־A. אחרי פתיחת ההגדרות, השתמשו בכלים של יחידה 3.`,
-        newTacticsBlocks: ['logic_unfold_compl'],
-        newTacticsInfo: [complInfo],
+אם A ⊆ B, אז מי שלא שייך ל־B גם לא שייך ל־A. אחרי פתיחת ההגדרות המטרה היא שלילה, ולכן מניחים ומגיעים לסתירה, כמו ביחידה 3.`,
+        newDefinitions: [compl],
         hints: [
-            'הניחו את ההכלה (h), קחו איבר x0 של Bᶜ (hx), ופתחו את הגדרת המשלים בהנחה hx ובמטרה.',
-            'המטרה היא x0 ∉ A: הוכיחו שלילה, והניחו ha : x0 ∈ A.',
-            'מ־h ומ־ha הסיקו x0 ∈ B, והיא סותרת את hx.',
+            `נניח A ⊆ B, ואחר כך ${SUBSET_INTRO_BLOCK}: יהי x₀ ∈ Bᶜ ונוכיח x₀ ∈ Aᶜ.`,
+            `פתחו את ההגדרה בהנחה x₀ ∈ Bᶜ (פירושו ¬x₀ ∈ B), ואחר כך במטרה x₀ ∈ Aᶜ (נשאר להוכיח ¬x₀ ∈ A).`,
+            'כדי להוכיח ¬x₀ ∈ A, נניח x₀ ∈ A ונגיע לסתירה.',
+            `לפי ההכלה A ⊆ B, מ־x₀ ∈ A נובע x₀ ∈ B. יש לנו ביד את x₀ ∈ B ואת השלילה שלה.`,
         ],
-        conclusion: `משלים הוא שלילה של שייכות. ההכלה מתהפכת: מ־A ⊆ B נובע Bᶜ ⊆ Aᶜ.`,
+        conclusion: `מ־A ⊆ B נובע Bᶜ ⊆ Aᶜ: המשלים הופך את כיוון ההכלה.`,
         startXml: goalXml('((A ⊆ B) → (Bᶜ ⊆ Aᶜ))'),
     }),
-    level(10, {
+    level(9, {
         title: 'הפרש',
-        name: 'unit5_l10_diff',
+        name: 'unit5_l9_diff',
         variableLine: SETS,
         params: '',
         proposition: 'A \\ B ⊆ A ∩ Bᶜ',
         goalLabel: 'A \\ B ⊆ A ∩ Bᶜ',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_diff', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'tactic_exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'and_intro', 'exact'],
         introduction: `# הפרש
 
-\`A \\ B\` הוא *ההפרש* של A ו־B: האיברים של A שלא שייכים ל־B. לפי ההגדרה, \`x0 ∈ A \\ B\` פירושו \`x0 ∈ A ∧ x0 ∉ B\`.
+\`A \\ B\` הוא *ההפרש* של A ו־B: האיברים של A שלא שייכים ל־B. לפי ההגדרה, \`x₀ ∈ A \\ B\` פירושו \`x₀ ∈ A ∧ ¬x₀ ∈ B\`.
 
-זה בדיוק החיתוך של A עם המשלים של B. הוכיחו את אחת ההכלות.`,
-        newTacticsBlocks: ['logic_unfold_diff'],
-        newTacticsInfo: [diffInfo],
+נראה שההפרש מוכל בחיתוך של A עם המשלים של B. בהוכחה פותחים שלוש הגדרות: הפרש, חיתוך ומשלים.`,
+        newDefinitions: [diff],
         hints: [
-            'קחו איבר x0 (hx), ופתחו את הגדרת ההפרש בהנחה hx, ואת הגדרת החיתוך במטרה.',
-            'הסיקו מ־hx את שני הצדדים, והוכיחו את שני הצדדים של המטרה. בצד ימין, פתחו את הגדרת המשלים במטרה.',
+            `יהי x₀ ∈ A \\ B. פתחו את ההגדרה בהנחה, ומה"וגם" נובע x₀ ∈ A ונובע ¬x₀ ∈ B.`,
+            `פתחו את ההגדרה במטרה, x₀ ∈ A ∩ Bᶜ, והוכיחו את ה"וגם" בשני חלקים.`,
+            'בחלק השני המטרה היא x₀ ∈ Bᶜ: פתחו את ההגדרה גם בה. נשאר להוכיח ¬x₀ ∈ B, וזה בידינו.',
         ],
-        conclusion: `ההפרש A \\ B שווה ל־A ∩ Bᶜ: שתי הגדרות שונות לאותה קבוצה.`,
+        conclusion: `"באחת ולא בשנייה" אפשר לכתוב כהפרש, או כחיתוך עם המשלים.`,
         startXml: goalXml('A \\ B ⊆ A ∩ Bᶜ'),
     }),
+    level(10, {
+        title: 'הקבוצה הריקה',
+        name: 'unit5_l10_empty',
+        variableLine: SETS,
+        params: '',
+        proposition: '∅ ⊆ A',
+        goalLabel: '∅ ⊆ A',
+        toolboxBlocks: ['subset_intro', 'unfold', 'exfalso', 'exact'],
+        introduction: `# הקבוצה הריקה
+
+\`∅\` היא *הקבוצה הריקה*: אין בה אף איבר. לפי ההגדרה, \`x₀ ∈ ∅\` פירושו סתירה (⊥).
+
+הקבוצה הריקה מוכלת בכל קבוצה. ניקח איבר שלה, אבל אין כזה: ההנחה עליו היא סתירה, ומסתירה נובע הכול (יחידה 3).`,
+        newDefinitions: [empty],
+        hints: [
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ ∅ ונוכיח x₀ ∈ A.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ ∅. עכשיו כתוב בו: לפי הגדרת הקבוצה הריקה, פירושו ⊥.`,
+            `הוסיפו את הבלוק "מסתירה נובע הכול, ולכן די להגיע לסתירה". הסתירה כבר בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `∅ מוכלת בכל קבוצה, כי אין בה איבר שיכול להפריך את ההכלה. זה נובע מ"מסתירה נובע הכול".`,
+        startXml: goalXml('∅ ⊆ A'),
+    }),
     level(11, {
-        title: 'תרגיל מסכם: חוק דה מורגן לקבוצות',
+        title: 'שלב בונוס: חוק דה מורגן לקבוצות',
         name: 'unit5_l11_de_morgan',
         variableLine: SETS,
         params: '',
         proposition: '(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ',
         goalLabel: '(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_union', 'logic_unfold_compl', 'logic_and_elim', 'logic_and_intro', 'logic_or_elim', 'logic_or_intro_left', 'logic_or_intro_right', 'logic_not_intro', 'logic_not_elim', 'logic_contradiction', 'tactic_exact'],
-        introduction: `# תרגיל מסכם: חוק דה מורגן לקבוצות
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_intro', 'and_elim', 'not_intro', 'not_elim', 'or_intro', 'or_elim', 'contradiction', 'exact'],
+        introduction: `# בונוס: חוק דה מורגן לקבוצות
 
-המשלים של איחוד הוא החיתוך של המשלימים: מי שלא שייך לאף אחת מהקבוצות, לא שייך ל־A וגם לא שייך ל־B.
-זה חוק דה מורגן משלב 3.6, בשפת הקבוצות. הוכיחו את שתי ההכלות.`,
+המשלים של איחוד הוא החיתוך של המשלימים: מי שלא שייך ל־A ∪ B לא שייך ל־A וגם לא ל־B, ולהפך.
+
+זה חוק דה מורגן של יחידה 3, בשפת הקבוצות: אחרי פתיחת ההגדרות נשארת ההוכחה של ¬(P ∨ Q) ↔ ¬P ∧ ¬Q. מוכיחים שתי הכלות.`,
         hints: [
-            'הכלה ראשונה: קחו איבר (hx : x0 ∈ (A ∪ B)ᶜ), פתחו את הגדרת המשלים בהנחה ואת הגדרת החיתוך במטרה.',
-            'בכל חלק פתחו את הגדרת המשלים במטרה, הוכיחו שלילה, והגיעו לסתירה בעזרת hx: הוכיחו שייכות לאיחוד.',
-            'הכלה שנייה: פתחו את החיתוך בהנחה ואת המשלים בכל מקום, הניחו שייכות לאיחוד, וחלקו למקרים.',
+            `גררו את הבלוק ${SET_EQ_BLOCK} אל תוך בלוק המטרה, ובכל חלק קחו איבר x₀ ופתחו את ההגדרות.`,
+            'בהכלה הראשונה: מ־x₀ ∈ (A ∪ B)ᶜ נובע ¬x₀ ∈ A ∪ B. המטרה x₀ ∈ Aᶜ ∩ Bᶜ היא "וגם" של שתי שלילות: בכל אחת נניח ונגיע לסתירה בעזרת ¬x₀ ∈ A ∪ B.',
+            'בהכלה השנייה: מ־x₀ ∈ Aᶜ ∩ Bᶜ נובעים ¬x₀ ∈ A ו־¬x₀ ∈ B. המטרה x₀ ∈ (A ∪ B)ᶜ היא שלילה: נניח x₀ ∈ A ∪ B, פתחו את ההגדרה, וחלקו למקרים.',
         ],
-        conclusion: `הוכחתם את חוק דה מורגן לקבוצות. כמו בשאר היחידה: אחרי פתיחת ההגדרות נשארת הוכחה לוגית מוכרת.`,
+        conclusion: `סיימתם את יחידה 5, כולל שלב הבונוס! אחרי פתיחת ההגדרות, כל הוכחה על קבוצות היא הוכחה לוגית מוכרת.`,
         startXml: goalXml('(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ'),
-    }),
-    level(12, {
-        title: 'הקבוצה הריקה',
-        name: 'unit5_l12_empty_subset',
-        variableLine: SETS,
-        params: '',
-        proposition: '∅ ⊆ A',
-        goalLabel: '∅ ⊆ A',
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_empty', 'logic_false_implies', 'tactic_apply_rule', 'logic_modus_ponens', 'tactic_exact'],
-        introduction: `# הקבוצה הריקה
-
-\`∅\` היא *הקבוצה הריקה*: אין בה אף איבר. לפי ההגדרה, \`x0 ∈ ∅\` פירושו סתירה (⊥).
-
-הקבוצה הריקה מוכלת בכל קבוצה. נראה את זה כמו כל הכלה: ניקח איבר של ∅. אבל אין כזה, ולכן ההנחה עליו היא סתירה, ומסתירה נובע הכול (שלב 3.3).`,
-        newTacticsBlocks: ['logic_unfold_empty'],
-        newTacticsInfo: [emptyInfo],
-        hints: [
-            'קחו איבר x0 של ∅ (hx), ופתחו את הגדרת הקבוצה הריקה בהנחה hx: hx : ⊥.',
-            'השתמשו בגרירה "סתירה גוררת x0 ∈ A" (כתבו בה x0 ∈ A), ועברו לתנאי שלה, או הסיקו קדימה.',
-        ],
-        conclusion: `∅ מוכלת בכל קבוצה, כי אין בה איבר שיכול להפריך את ההכלה. זה נובע מ"מסתירה נובע הכול".`,
-        startXml: goalXml('∅ ⊆ A'),
-    }),
-    level(13, {
-        title: 'קבוצה ומשלימה',
-        name: 'unit5_l13_inter_compl',
-        variableLine: SETS,
-        params: '',
-        proposition: 'A ∩ Aᶜ = ∅',
-        goalLabel: 'A ∩ Aᶜ = ∅',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_inter', 'logic_unfold_compl', 'logic_unfold_empty', 'logic_and_elim', 'logic_and_intro', 'logic_not_intro', 'logic_contradiction', 'logic_false_implies', 'tactic_apply_rule', 'tactic_exact'],
-        introduction: `# קבוצה ומשלימה
-
-אין איבר ששייך גם ל־A וגם למשלים שלה: \`A ∩ Aᶜ = ∅\`. זה עיקרון הסתירה (שלב 3.2) בשפת הקבוצות.
-
-כדי להוכיח שקבוצה שווה ל־∅ מוכיחים שתי הכלות. ההכלה ∅ ⊆ A ∩ Aᶜ דומה לשלב הקודם.`,
-        hints: [
-            'הכלה ראשונה: קחו איבר, פתחו את החיתוך והמשלים בהנחה, ואת הקבוצה הריקה במטרה: המטרה היא סתירה.',
-            'הכלה שנייה: קחו איבר של ∅ (סתירה), פתחו את החיתוך במטרה, ובכל צד השתמשו בסתירה. בצד ימין פתחו גם את המשלים במטרה.',
-        ],
-        conclusion: `A ∩ Aᶜ = ∅: אין איבר ששייך לקבוצה וגם למשלים שלה.`,
-        startXml: goalXml('A ∩ Aᶜ = ∅'),
-    }),
-    level(14, {
-        title: 'קבוצת החזקה',
-        name: 'unit5_l14_powerset',
-        variableLine: SETS,
-        params: '',
-        proposition: '(A ⊆ B) → (𝒫 A ⊆ 𝒫 B)',
-        goalLabel: '((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))',
-        toolboxBlocks: ['tactic_intro', 'logic_subset_intro', 'logic_subset_elim', 'logic_unfold_powerset', 'tactic_exact'],
-        introduction: `# קבוצת החזקה
-
-\`𝒫(A)\` היא *קבוצת החזקה* של A: הקבוצה של כל תתי־הקבוצות של A. האיברים שלה הם קבוצות, ולפי ההגדרה \`X ∈ 𝒫(A)\` פירושו \`X ⊆ A\`.
-
-אם A ⊆ B, כל תת־קבוצה של A היא גם תת־קבוצה של B. כאן האיבר שלוקחים הוא קבוצה, למשל X.`,
-        newTacticsBlocks: ['logic_unfold_powerset'],
-        newTacticsInfo: [powersetInfo],
-        hints: [
-            'הניחו את ההכלה (h), וקחו איבר X של 𝒫(A), עם hX. פתחו את הגדרת קבוצת החזקה בהנחה hX ובמטרה.',
-            'עכשיו צריך להוכיח X ⊆ B: קחו איבר x0 של X, ושרשרו את ההכלות X ⊆ A ו־A ⊆ B.',
-        ],
-        conclusion: `האיברים של קבוצת החזקה הם קבוצות, אבל ההוכחה זהה: לוקחים איבר, פותחים הגדרה, ומשתמשים בהכלות.`,
-        startXml: goalXml('((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))'),
-    }),
-    level(15, {
-        title: 'איחוד של משפחה',
-        name: 'unit5_l15_sunion',
-        variableLine: FAMILY,
-        params: '(hA : A ∈ F)',
-        proposition: 'A ⊆ ⋃₀ F',
-        goalLabel: 'A ⊆ ⋃₀ F',
-        assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sunion', 'logic_exists_intro', 'logic_and_intro', 'tactic_exact'],
-        introduction: `# איחוד של משפחה
-
-F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃₀ F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x0 ∈ ⋃₀ F\` פירושו שקיימת קבוצה S ב־F כך ש־x0 ∈ S.
-
-אם A היא אחת הקבוצות במשפחה, היא מוכלת באיחוד. העד ל"קיים" הוא A עצמה.`,
-        newTacticsBlocks: ['logic_unfold_sunion'],
-        newTacticsInfo: [sUnionInfo],
-        hints: [
-            'קחו איבר x0 של A (hx), ופתחו את הגדרת איחוד המשפחה במטרה.',
-            'בחרו את A כעד, והוכיחו את שני הצדדים בעזרת hA ו־hx.',
-        ],
-        conclusion: `איחוד של משפחה הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: הקבוצה מהמשפחה שהאיבר שייך אליה.`,
-        startXml: goalXml('A ⊆ ⋃₀ F', 'hA : A ∈ F'),
-    }),
-    level(16, {
-        title: 'חיתוך של משפחה',
-        name: 'unit5_l16_sinter',
-        variableLine: FAMILY,
-        params: '(hA : A ∈ F)',
-        proposition: '⋂₀ F ⊆ A',
-        goalLabel: '⋂₀ F ⊆ A',
-        assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['logic_subset_intro', 'logic_unfold_sinter', 'logic_forall_elim', 'logic_modus_ponens', 'tactic_exact'],
-        introduction: `# חיתוך של משפחה
-
-\`⋂₀ F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x0 ∈ ⋂₀ F\` פירושו שלכל קבוצה S ב־F מתקיים x0 ∈ S.
-
-אם A היא אחת הקבוצות במשפחה, החיתוך מוכל בה: מציבים את A בטענת ה"לכל".`,
-        newTacticsBlocks: ['logic_unfold_sinter'],
-        newTacticsInfo: [sInterInfo],
-        hints: [
-            'קחו איבר x0 של ⋂₀ F (hx), ופתחו את הגדרת חיתוך המשפחה בהנחה hx.',
-            'הציבו את A ב־hx: מקבלים A ∈ F → x0 ∈ A. הסיקו ממנה ומ־hA את x0 ∈ A.',
-        ],
-        conclusion: `חיתוך של משפחה הוא טענת "לכל", ולכן משתמשים בו בהצבה: כאן הצבתם קבוצה, A.`,
-        startXml: goalXml('⋂₀ F ⊆ A', 'hA : A ∈ F'),
-    }),
-    level(17, {
-        title: 'שלב בונוס: משלים של משלים',
-        name: 'unit5_l17_compl_compl',
-        variableLine: SETS,
-        params: '',
-        proposition: '(Aᶜ)ᶜ = A',
-        goalLabel: '(Aᶜ)ᶜ = A',
-        toolboxBlocks: ['logic_set_eq', 'logic_subset_intro', 'logic_unfold_compl', 'logic_not_intro', 'logic_not_elim', 'logic_by_contradiction', 'logic_contradiction', 'tactic_exact'],
-        introduction: `# בונוס: משלים של משלים
-
-המשלים של המשלים של A הוא A עצמה. זו השלילה הכפולה של שלבים 3.4 ו־3.7, בשפת הקבוצות.
-
-בהכלה \`(Aᶜ)ᶜ ⊆ A\` המטרה היא x0 ∈ A, ולא שלילה, ולכן מוכיחים אותה בשלילה, כמו ¬¬P → P.`,
-        hints: [
-            'הכלה ראשונה: קחו איבר (hx), פתחו את הגדרת המשלים בהנחה hx, והוכיחו בשלילה ש־x0 ∈ A.',
-            'הגיעו לסתירה בעזרת השלילה hx: נשאר להוכיח x0 ∈ Aᶜ; פתחו את הגדרת המשלים במטרה.',
-            'הכלה שנייה: פתחו את הגדרת המשלים במטרה, הוכיחו שלילה, ופתחו את המשלים בהנחה החדשה.',
-        ],
-        conclusion: `סיימתם את יחידה 5, כולל שלב הבונוס! כל הטענות על קבוצות הפכו, אחרי פתיחת ההגדרות, להוכחות לוגיות מהיחידות הקודמות.`,
-        startXml: goalXml('(Aᶜ)ᶜ = A'),
     }),
 ];
