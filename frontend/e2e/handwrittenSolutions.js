@@ -25,6 +25,12 @@ const subsetIntro = ['hw_subset_intro'];
 const subsetElim = (subset, member) => ['hw_subset_elim', { SUBSET: subset, MEMBER: member }];
 const setEq = (first, second) => ['hw_set_eq', {}, { FIRST: first, SECOND: second }];
 const unfold = (statement) => ['hw_unfold', { STATEMENT: statement }];
+const rfl = ['hw_rfl'];
+const calc = ['hw_calc'];
+const algebra = ['hw_algebra'];
+const rewrite = (equation, direction, target = '__goal__') => ['hw_rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
+const unfoldFunction = (name) => ['hw_unfold_function', { FUNCTION: name }];
+const induction = (variable, base, step) => ['hw_induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -210,6 +216,34 @@ export const HANDWRITTEN_UNITS = [
                     [subsetIntro, unfold('x₀ ∈ Aᶜ ∩ Bᶜ'), andElim('x₀ ∈ Aᶜ ∧ x₀ ∈ Bᶜ'), unfold('x₀ ∈ Aᶜ'), unfold('x₀ ∈ Bᶜ'), unfold('x₀ ∈ (A ∪ B)ᶜ'), notIntro,
                         unfold('x₀ ∈ A ∪ B'), orCases('x₀ ∈ A ∨ x₀ ∈ B', [contradiction('x₀ ∈ A')], [contradiction('x₀ ∈ B')])])],
             }],
+        ],
+    },
+    {
+        unit: 6,
+        world: 'יחידה 6 - שוויון ואינדוקציה',
+        levels: [
+            [{ label: 'פתרון', steps: [rfl] }],
+            [{ label: 'פתרון', steps: [rewrite('y = x + 7', 'FORWARD'), rfl] }],
+            [
+                { label: 'בטענה שבידינו', steps: [rewrite('a = b', 'BACKWARD', 'P b'), close] },
+                { label: 'במטרה', steps: [rewrite('a = b', 'FORWARD'), close] },
+            ],
+            [
+                { label: 'a ב־b', steps: [rewrite('a = b', 'FORWARD'), close] },
+                { label: 'c ב־b', steps: [rewrite('b = c', 'BACKWARD'), close] },
+            ],
+            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('double'), rfl], [unfoldFunction('double'), rewrite('double n = n + n', 'FORWARD'), calc])] }],
+            [{ label: 'פתרון', steps: [induction('n', [rfl], [unfoldFunction('add'), rewrite('0 + n = n', 'FORWARD'), rfl])] }],
+            [{ label: 'פתרון', steps: [assume, calc] }],
+            [{ label: 'פתרון', steps: [induction('n', [calc], [unfoldFunction('pow'), calc])] }],
+            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebra])] }],
+            [{
+                label: 'פתרון',
+                steps: [induction('n', [orIntro('LEFT'), existsIntro('0'), rfl], [orCases('(∃ j, n = 2 * j) ∨ ∃ j, n = 2 * j + 1',
+                    [existsElim('∃ j, n = 2 * j'), orIntro('RIGHT'), existsIntro('j₀'), calc],
+                    [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calc])])],
+            }],
+            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('oddSum'), rfl], [unfoldFunction('oddSum'), rewrite('oddSum n = n * n', 'FORWARD'), algebra])] }],
         ],
     },
 ];

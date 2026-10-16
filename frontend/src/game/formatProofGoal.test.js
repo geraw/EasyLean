@@ -80,6 +80,12 @@ describe('formatProofGoal with quantifiers', () => {
     it('keeps negation of a quantified formula tight', () => {
         expect(formatProofGoal('¬∀ (x : α), P x')).toBe('¬∀x P(x)');
     });
+
+    it('puts a relation body in parentheses, so it is clear where it begins', () => {
+        expect(formatProofGoal('∃ j, n = 2 * j')).toBe('∃j (n = 2 · j)');
+        expect(formatProofGoal('∃ j, (n + 1) = 2 * j')).toBe('∃j ((n + 1) = 2 · j)');
+        expect(formatProofGoal('∀ (S : Set α), S ∈ F → x ∈ S')).toBe('∀S (S ∈ F → x ∈ S)');
+    });
 });
 
 describe('formatProofGoal with the functions of unit 6', () => {

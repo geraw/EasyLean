@@ -22,28 +22,33 @@ const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/
 // move (block.stateBefore, from Lean), and a last item for typing one in.
 // With objects, the same for an object of the domain or a set, by its name.
 // For a statement that may also be the goal (withGoal), the goal is offered
-// first; only the statements that pass the filter are offered.
+// first; only the statements that pass the filter are offered. A field for
+// where something happens (goalOption) offers "the goal" itself, first.
+const GOAL = '__goal__';
+const GOAL_LABEL = 'המטרה';
+const optionLabel = (value) => (value === PLACEHOLDER ? PLACEHOLDER : value === GOAL ? GOAL_LABEL : shown(value));
+
 class FieldAssumption extends Blockly.FieldDropdown {
-    constructor({ objects = false, withGoal = false, filter = () => true } = {}) {
+    constructor({ objects = false, withGoal = false, goalOption = false, filter = () => true } = {}) {
         super(function () {
             const state = this.getSourceBlock()?.stateBefore;
             const inHand = objects
                 ? [...(state?.objects || []), ...(state?.sets || [])]
-                : [...new Set([...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])].filter(filter);
-            const options = inHand.map((formula) => [shown(formula), formula]);
-            // A new field starts as the first option: the placeholder.
-            const current = this.getValue() || PLACEHOLDER;
-            if (!inHand.includes(current)) options.unshift([current === PLACEHOLDER ? PLACEHOLDER : shown(current), current]);
+                : [...new Set([...(goalOption ? [GOAL] : []), ...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])].filter((value) => value === GOAL || filter(value));
+            const options = inHand.map((value) => [optionLabel(value), value]);
+            // A new field starts as the first option: the placeholder (or the goal).
+            const current = this.getValue() || (goalOption ? GOAL : PLACEHOLDER);
+            if (!inHand.includes(current)) options.unshift([optionLabel(current), current]);
             return [...options, [WRITE_OWN_LABEL, WRITE_OWN]];
         });
-        this.prompt = objects ? 'כתבו שם של עצם, למשל a' : 'כתבו את הטענה של ההנחה, למשל P → Q';
+        this.prompt = objects ? 'כתבו עצם, למשל a או n + 1' : 'כתבו את הטענה של ההנחה, למשל P → Q';
     }
 
     // Any statement is a value: Lean checks that it is an assumption in hand.
     doClassValidation_(value) {
         if (value === WRITE_OWN) {
             // After the menu closes, ask for the statement.
-            setTimeout(() => Blockly.dialog.prompt(isolateFormulas(this.prompt), this.getValue() === PLACEHOLDER ? '' : this.getValue(), (typed) => {
+            setTimeout(() => Blockly.dialog.prompt(isolateFormulas(this.prompt), [PLACEHOLDER, GOAL].includes(this.getValue()) ? '' : this.getValue(), (typed) => {
                 if (typed && normalizeTyped(typed)) this.setValue(normalizeTyped(typed));
             }));
             return null;
@@ -53,7 +58,7 @@ class FieldAssumption extends Blockly.FieldDropdown {
 
     doValueUpdate_(value) {
         super.doValueUpdate_(value);
-        this.selectedOption = [value === PLACEHOLDER ? PLACEHOLDER : shown(value), value];
+        this.selectedOption = [optionLabel(value), value];
         // The block's text may depend on the statement (e.g. its conclusion).
         this.getSourceBlock()?.updateText?.();
     }
@@ -79,6 +84,37 @@ class FieldSide extends Blockly.FieldDropdown {
         this.forceRerender();
     }
 }
+
+// The direction of a substitution by an equality, shown as the replacement
+// it makes once the equality is chosen ("את y ב־x + 7"); see hw_rewrite.
+class FieldDirection extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const sides = splitRelation(filled(this.getSourceBlock()?.getFieldValue('EQUATION')) && this.getSourceBlock().getFieldValue('EQUATION'), '=');
+            return sides
+                ? [[`את ${shown(sides[0])} ב־${shown(sides[1])}`, 'FORWARD'], [`את ${shown(sides[1])} ב־${shown(sides[0])}`, 'BACKWARD']]
+                : [['משמאל לימין', 'FORWARD'], ['מימין לשמאל', 'BACKWARD']];
+        });
+    }
+
+    // Shows the chosen direction by the equality, as it is now.
+    refreshText() {
+        const option = this.getOptions(false).find(([, value]) => value === this.getValue());
+        if (!option) return;
+        this.selectedOption = option;
+        this.forceRerender();
+    }
+}
+
+// The functions of unit 6 defined by recursion, and the definitions of
+// addition and power: their names, and the equation that unfolds them.
+const FUNCTIONS = [
+    ['double', 'double', 'double'],
+    ['sumTo', 'sumTo', 'sumTo'],
+    ['oddSum', 'oddSum', 'oddSum'],
+    ['החיבור', 'add', 'easylean_add_succ'],
+    ['החזקה', 'pow', 'Nat.pow_succ'],
+];
 
 const MOVE_COLOUR = 160;
 
@@ -642,6 +678,87 @@ export const defineHandwrittenBlocks = () => {
             else setPhrase(this, ['פירושו', { formula: definition.means }]);
         },
     };
+
+    // Unit 6. An equality whose two sides are the same by the definitions.
+    Blockly.Blocks['hw_rfl'] = {
+        init() {
+            this.appendDummyInput().appendField('שני הצדדים שווים לפי ההגדרה.');
+            move(this, 'סוגר מטרה a = b כששני הצדדים שווים לפי ההגדרות, בלי חשבון.');
+        },
+    };
+
+    // Substituting equals for equals: by an equality in hand, in a chosen
+    // direction, in the goal or in a statement in hand (whose result joins it).
+    Blockly.Blocks['hw_rewrite'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('לפי השוויון')
+                .appendField(new FieldAssumption({ filter: (formula) => Boolean(splitRelation(formula, '=')) }), 'EQUATION')
+                .appendField('נחליף')
+                .appendField(new FieldDirection(), 'DIRECTION');
+            this.appendDummyInput()
+                .appendField('בתוך')
+                .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
+            move(this, 'אם a = b, אפשר להחליף את a ב־b, או את b ב־a, במטרה או בטענה שבידינו. בטענה שבידינו, התוצאה מצטרפת להנחות.');
+        },
+        ...followState,
+        updateText() {
+            this.getField('DIRECTION')?.refreshText();
+        },
+    };
+
+    // Induction on a natural number: the base 0, and the step from n to n + 1,
+    // each in a part headed by what is proved in it.
+    Blockly.Blocks['hw_induction'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('נוכיח באינדוקציה על')
+                .appendField(new FieldAssumption({ objects: true }), 'VARIABLE');
+            appendPart(this, 'BASE');
+            appendPart(this, 'STEP');
+            move(this, 'כדי להוכיח טענה לכל מספר טבעי n: מוכיחים אותה עבור 0 (בסיס), ומוכיחים שאם היא נכונה עבור n אז היא נכונה עבור n + 1 (צעד).');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const variable = this.getFieldValue('VARIABLE');
+            const goal = this.stateBefore?.goal;
+            if (!filled(variable) || !goal) {
+                setPartHeading(this, 'BASE', ['בסיס: נוכיח את הטענה עבור 0']);
+                setPartHeading(this, 'STEP', ['צעד: נניח שהטענה נכונה עבור n ונוכיח אותה עבור n + 1']);
+                return;
+            }
+            setPartHeading(this, 'BASE', ['בסיס: נוכיח', { formula: substitute(goal, variable, '0') }]);
+            setPartHeading(this, 'STEP', ['צעד: נניח', { formula: goal }, 'ונוכיח', { formula: substitute(goal, variable, `${variable} + 1`) }]);
+        },
+    };
+
+    // Unfolding a definition in the goal.
+    Blockly.Blocks['hw_unfold_function'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('לפי הגדרת')
+                .appendField(new Blockly.FieldDropdown([[PLACEHOLDER, PLACEHOLDER], ...FUNCTIONS.map(([name, value]) => [name, value])]), 'FUNCTION')
+                .appendField('נפתח את המטרה');
+            move(this, 'פותח במטרה את ההגדרה של הפונקציה: למשל double(n + 1) הופך ל־double(n) + 2.');
+        },
+    };
+
+    // Arithmetic and algebra close a goal that follows from them (and the
+    // assumptions); they do not unfold definitions.
+    Blockly.Blocks['hw_calc'] = {
+        init() {
+            this.appendDummyInput().appendField('המטרה נובעת לפי חשבון.');
+            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), גם בעזרת מה שבידינו. לא פותח הגדרות.');
+        },
+    };
+
+    Blockly.Blocks['hw_algebra'] = {
+        init() {
+            this.appendDummyInput().appendField('המטרה נובעת לפי אלגברה.');
+            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים), גם בעזרת מה שבידינו. לא פותח הגדרות.');
+        },
+    };
 };
 
 // Lean finds each assumption by its statement: ‹P› is the assumption saying P,
@@ -743,8 +860,37 @@ leanGenerator.forBlock['hw_unfold'] = (block) => {
     return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr)\n  | have := ${definition.lemma}.mp ‹${statement}›\n`;
 };
 
+// Unit 6. As in the course: `rewrite`, not `rw`, which would also try to
+// close the goal; in a statement in hand, a copy of it is rewritten.
+leanGenerator.forBlock['hw_rfl'] = () => '  rfl\n';
+
+leanGenerator.forBlock['hw_rewrite'] = (block) => {
+    const arrow = block.getFieldValue('DIRECTION') === 'BACKWARD' ? '← ' : '';
+    const equation = `${arrow}‹${block.getFieldValue('EQUATION')}›`;
+    const target = block.getFieldValue('TARGET');
+    return target === GOAL
+        ? `  rewrite [${equation}]\n`
+        : `  have := ‹${target}›\n  rewrite [${equation}] at this\n`;
+};
+
+leanGenerator.forBlock['hw_induction'] = (block) => `  induction ${block.getFieldValue('VARIABLE')} with\n`;
+
+leanGenerator.forBlock['hw_unfold_function'] = (block) => {
+    const lemma = FUNCTIONS.find(([, value]) => value === block.getFieldValue('FUNCTION'))?.[2];
+    return lemma ? `  rewrite [${lemma}]\n` : '  skip\n';
+};
+
+leanGenerator.forBlock['hw_calc'] = () => '  omega\n';
+
+leanGenerator.forBlock['hw_algebra'] = () => '  grind\n';
+
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {
+    // The step keeps the variable's name: "assume it for n, prove it for n + 1".
+    hw_induction: (block) => [
+        { input: 'BASE', header: '| zero =>' },
+        { input: 'STEP', header: `| succ ${block.getFieldValue('VARIABLE')} _ =>` },
+    ],
     hw_set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
     hw_and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     hw_iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],

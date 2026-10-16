@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-5 of the handwritten version, as their hints
+// A student's walk through units 3-6 of the handwritten version, as their hints
 // describe each level: blocks dragged from the toolbox with the mouse, and
 // fields chosen only among the options their menu shows. (The solutions in
 // handwritten.spec.js are built directly, which does not catch a hint that
@@ -131,6 +131,14 @@ const choose = async (page, id, field, label) => {
     const option = options.find(([text]) => text === label);
     if (!option) throw new Error(`menu of ${field} offers ${options.map(([t]) => t).join(' | ')}, not ${label}`);
     await page.evaluate(([id, field, value]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue(value), [id, field, option[1]]);
+    await page.waitForTimeout(3500);
+};
+
+// Types a value in through the menu's last item ("כתיבה ידנית"), as a student would.
+const typeIn = async (page, id, field, text) => {
+    await page.evaluate(([id, field]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue('__write_own__'), [id, field]);
+    await page.locator('dialog.blocklyDialog input').fill(text);
+    await page.locator('dialog.blocklyDialog').getByRole('button', { name: 'OK' }).click();
     await page.waitForTimeout(3500);
 };
 
@@ -424,10 +432,102 @@ const UNIT5 = [
     },
 ];
 
+// Each level of unit 6, as its hints describe it.
+const rewrite = async (page, where, equation, direction, target, log) => {
+    const r = await drag(page, 'hw_rewrite', where);
+    await choose(page, r, 'EQUATION', equation);
+    await choose(page, r, 'DIRECTION', direction);
+    await choose(page, r, 'TARGET', target);
+    log(await phrase(page, r));
+    return r;
+};
+const unfoldFunction = async (page, where, name) => {
+    const u = await drag(page, 'hw_unfold_function', where);
+    await choose(page, u, 'FUNCTION', name);
+    return u;
+};
+const induction = async (page, log) => {
+    const i = await drag(page, 'hw_induction', { goal: true });
+    await choose(page, i, 'VARIABLE', 'n');
+    log(await phrase(page, i));
+    return i;
+};
+const UNIT6 = [
+    async (page) => { await drag(page, 'hw_rfl', { goal: true }); },
+    async (page, log) => {
+        const r = await rewrite(page, { goal: true }, 'y = x + 7', 'את y ב־x + 7', 'המטרה', log);
+        await drag(page, 'hw_rfl', { after: r });
+    },
+    async (page, log) => {
+        const r = await rewrite(page, { goal: true }, 'a = b', 'את b ב־a', 'P(b)', log);
+        await drag(page, 'hw_exact', { after: r });
+    },
+    async (page, log) => {
+        const r = await rewrite(page, { goal: true }, 'a = b', 'את a ב־b', 'המטרה', log);
+        await drag(page, 'hw_exact', { after: r });
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'double');
+        await drag(page, 'hw_rfl', { after: b });
+        const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'double');
+        const r = await rewrite(page, { after: u }, 'double(n) = n + n', 'את double(n) ב־n + n', 'המטרה', log);
+        await drag(page, 'hw_calc', { after: r });
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        await drag(page, 'hw_rfl', { into: i, input: 'BASE' });
+        const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'החיבור');
+        const r = await rewrite(page, { after: u }, '0 + n = n', 'את 0 + n ב־n', 'המטרה', log);
+        await drag(page, 'hw_rfl', { after: r });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'hw_assume', { goal: true }); log(await phrase(page, a));
+        await drag(page, 'hw_calc', { after: a });
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        await drag(page, 'hw_calc', { into: i, input: 'BASE' });
+        const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'החזקה');
+        await drag(page, 'hw_calc', { after: u });
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'sumTo');
+        await drag(page, 'hw_rfl', { after: b });
+        const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'sumTo');
+        await drag(page, 'hw_algebra', { after: u });
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        const o = await drag(page, 'hw_or_intro', { into: i, input: 'BASE' }); await choose(page, o, 'SIDE', '∃j (0 = 2 · j)');
+        const w = await drag(page, 'hw_exists_intro', { after: o }); await typeIn(page, w, 'TERM', '0'); log(await phrase(page, w));
+        await drag(page, 'hw_rfl', { after: w });
+        const k = await drag(page, 'hw_or_elim', { into: i, input: 'STEP' }); await choose(page, k, 'OR', '((∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1)))'); log(await phrase(page, k));
+        for (const [part, exists, side, witness] of [['LEFT', '∃j (n = 2 · j)', '∃j (n + 1 = 2 · j + 1)', 'j₀'], ['RIGHT', '∃j (n = 2 · j + 1)', '∃j (n + 1 = 2 · j)', 'j₀ + 1']]) {
+            const x = await drag(page, 'hw_exists_elim', { into: k, input: part }); await choose(page, x, 'EXISTS', exists); log(await phrase(page, x));
+            const s = await drag(page, 'hw_or_intro', { after: x }); await choose(page, s, 'SIDE', side);
+            const v = await drag(page, 'hw_exists_intro', { after: s });
+            if (witness === 'j₀') await choose(page, v, 'TERM', witness); else await typeIn(page, v, 'TERM', witness);
+            log(await phrase(page, v));
+            await drag(page, 'hw_calc', { after: v });
+        }
+    },
+    async (page, log) => {
+        const i = await induction(page, log);
+        const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'oddSum');
+        await drag(page, 'hw_rfl', { after: b });
+        const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'oddSum');
+        const r = await rewrite(page, { after: u }, 'oddSum(n) = n · n', 'את oddSum(n) ב־n · n', 'המטרה', log);
+        await drag(page, 'hw_algebra', { after: r });
+    },
+];
+
 const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
     { unit: 5, world: 'יחידה 5 - קבוצות', walks: UNIT5 },
+    { unit: 6, world: 'יחידה 6 - שוויון ואינדוקציה', walks: UNIT6 },
 ];
 
 for (const { unit, world, walks } of UNITS) {

@@ -14,17 +14,24 @@ import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
+import { unit6Levels } from './unit6World';
 import { HANDWRITTEN_UNITS } from '../../e2e/handwrittenSolutions';
 
 defineHandwrittenBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels];
+
+// Builds the parts of the moves that split the proof ([type, fields, parts]).
+const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
+    .forEach(([input, partSteps]) => buildParts(buildInto(block, input, partSteps), partSteps)));
 
 // A level's workspace with one of its solutions in place of the starting moves.
 const solved = (level, steps) => {
     const workspace = loadWorkspace(level.startXml);
     workspace.getTopBlocks(true).find((b) => b.type === 'game_goal').getInputTargetBlock('PROOF')?.dispose(false);
-    return { workspace, blocks: buildProof(workspace, steps) };
+    const blocks = buildProof(workspace, steps);
+    buildParts(blocks, steps);
+    return { workspace, blocks };
 };
 
 // The blocks of a solution, including those inside the parts of a move.
@@ -260,6 +267,39 @@ describe('the moves of unit 5', () => {
         const { blocks: [subsetIntro] } = solved(unit5Levels[10], [['hw_subset_intro']]);
         subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
         expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫 A ⊆ 𝒫 B יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B');
+    });
+});
+
+describe('the moves of unit 6', () => {
+    it('substitute by an equality, shown as the replacement it makes', () => {
+        const level = unit6Levels[2];
+        const { workspace, blocks: [rewrite] } = solved(level, HANDWRITTEN_UNITS[6].levels[2][0].steps);
+        expect(rewrite.getField('DIRECTION').getOptions(false).map(([label, value]) => [withoutIsolates(label), value]))
+            .toEqual([['את a ב־b', 'FORWARD'], ['את b ב־a', 'BACKWARD']]);
+        expect(withoutIsolates(rewrite.getField('DIRECTION').getText())).toBe('את b ב־a');
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  have := ‹P b›',
+            '  rewrite [← ‹a = b›] at this',
+            '  assumption',
+        ].join('\n'));
+    });
+
+    it('head the parts of an induction by what is proved in them, keeping the variable', () => {
+        const level = unit6Levels[4];
+        const { workspace, blocks: [induction] } = solved(level, HANDWRITTEN_UNITS[6].levels[4][0].steps);
+        induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
+        expect([phraseOf(induction, 'BASE_TEXT'), phraseOf(induction, 'STEP_TEXT')])
+            .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  induction n with',
+            '  | zero =>',
+            '    rewrite [double]',
+            '    rfl',
+            '  | succ n _ =>',
+            '    rewrite [double]',
+            '    rewrite [‹double n = n + n›]',
+            '    omega',
+        ].join('\n'));
     });
 });
 
