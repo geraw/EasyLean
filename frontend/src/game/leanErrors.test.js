@@ -229,7 +229,7 @@ describe('explainLeanMessage for a forward step', () => {
     });
 
     it('explains using a "for all" as if it were an implication', () => {
-        expect(explain(forallAsImplication)).toBe('ההנחה ∀x P(x) היא טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.');
+        expect(explain(forallAsImplication)).toBe('ההנחה ∀x (P(x)) היא טענת "לכל" ולא גרירה. כדי להשתמש בה מציבים בה עצם.');
     });
 
     it('explains giving an object where an assumption is needed', () => {
@@ -291,7 +291,7 @@ describe('explainLeanMessage for quantifiers', () => {
     const explain = (output) => explainLeanMessage(parseLeanMessages(output)[0].text);
 
     it('explains assuming a condition when the goal is a "for all", or no implication', () => {
-        expect(explain(assumeOnForall)).toBe('המטרה היא ∀x P(x), טענת "לכל" ולא גרירה, ולכן אין תנאי להניח. כדי להוכיח "לכל" לוקחים עצם שרירותי.');
+        expect(explain(assumeOnForall)).toBe('המטרה היא ∀x (P(x)), טענת "לכל" ולא גרירה, ולכן אין תנאי להניח. כדי להוכיח "לכל" לוקחים עצם שרירותי.');
         expect(explain(assumeOnAtom)).toBe('המטרה היא R, והיא לא גרירה, ולכן אין תנאי להניח.');
     });
 

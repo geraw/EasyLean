@@ -106,13 +106,10 @@ export const formatProofGoal = (text) => {
     if (normalized.startsWith('¬')) return `¬${formatProofGoal(normalized.slice(1))}`;
     const quantifier = parseQuantifier(normalized);
     if (quantifier) {
-        const prefix = quantifier.names.map((name) => `${quantifier.symbol}${name}`).join(' ');
-        // A relation (n = 2 · j, x ∈ A) is written in parentheses too, so it is
-        // clear where the body begins: `∃j (n = 2 · j)`.
-        const body = formatProofGoal(quantifier.body);
-        const enclosed = stripOuterParentheses(body) !== body;
-        const isRelation = / (=|≠|≤|<|≥|>|∈|∉|⊆) /.test(body) && !enclosed && !/^[¬∀∃]/.test(body);
-        return `${prefix} ${isRelation ? `(${body})` : body}`;
+        // The body of every quantifier is in parentheses, so it is clear where
+        // it begins and ends: `∀x (∃y (R(x,y)))`, `∃j (n = 2 · j)`.
+        const enclose = (text) => (stripOuterParentheses(text) !== text ? text : `(${text})`);
+        return quantifier.names.reduceRight((inner, name) => `${quantifier.symbol}${name} ${enclose(inner)}`, formatProofGoal(quantifier.body));
     }
     // Lean's False is the contradiction, written ⊥ in the course.
     if (normalized === 'False') return '⊥';

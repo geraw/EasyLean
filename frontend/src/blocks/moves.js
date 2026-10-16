@@ -172,12 +172,12 @@ export const LAWS = [
     // Replacing every implication by its contrapositive would never end.
     { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed], all: false },
     {
-        value: 'easylean_not_exists', left: '¬∃x P(x)', right: '∀x ¬P(x)', sides: [quantified('∃', true), quantified('∀', false)],
+        value: 'easylean_not_exists', left: '¬∃x (P(x))', right: '∀x (¬P(x))', sides: [quantified('∃', true), quantified('∀', false)],
         statement: (x) => `(¬∃ ${x}, p ${x}) ↔ ∀ ${x}, ¬p ${x}`,
         variable: [/¬\s*∃\s*\(?\s*([^\s,:()]+)/, /∀\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
     },
     {
-        value: 'easylean_not_forall', left: '¬∀x P(x)', right: '∃x ¬P(x)', sides: [quantified('∀', true), quantified('∃', false)],
+        value: 'easylean_not_forall', left: '¬∀x (P(x))', right: '∃x (¬P(x))', sides: [quantified('∀', true), quantified('∃', false)],
         statement: (x) => `(¬∀ ${x}, p ${x}) ↔ ∃ ${x}, ¬p ${x}`,
         variable: [/¬\s*∀\s*\(?\s*([^\s,:()]+)/, /∃\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
     },

@@ -216,8 +216,8 @@ describe('the moves of unit 4', () => {
             '  apply Exists.intro (x₀)',
             '  assumption',
         ].join('\n'));
-        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y ∃x R(x,y) יהי y₀ עצם שרירותי, ונוכיח ∃x R(x,y₀)');
-        expect(phraseOf(existsElim)).toBe('יהי x₀ עצם כך ש־ ∀y R(x₀,y)');
+        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y (∃x (R(x,y))) יהי y₀ עצם שרירותי, ונוכיח ∃x (R(x,y₀))');
+        expect(phraseOf(existsElim)).toBe('יהי x₀ עצם כך ש־ ∀y (R(x₀,y))');
     });
 
     it('substitute the chosen object, and pick the next subscript when a name is taken', () => {
@@ -226,7 +226,7 @@ describe('the moves of unit 4', () => {
         ]);
         expect(phraseOf(forallElim)).toBe('נובע (P(a) → Q(a))');
         existsIntro.setStateBefore({ assumptions: [], objects: ['a'], goal: '∃ x, Q x' });
-        expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER')]).toEqual(['כדי להוכיח ∃x Q(x) נבחר את העצם', 'ונוכיח Q(a)']);
+        expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER')]).toEqual(['כדי להוכיח ∃x (Q(x)) נבחר את העצם', 'ונוכיח Q(a)']);
         expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
         existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
         expect(phraseOf(existsElim)).toBe('יהי x₁ עצם כך ש־ P(x₁)');

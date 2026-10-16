@@ -26,7 +26,7 @@ const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רו�
 
 const forallElimInfo = {
     name: 'שימוש ב"לכל"',
-    doc: 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a: מציבים את a במקום x. בהוכחה כתובה: "לפי ∀x P(x), עבור העצם a נובע P(a)".',
+    doc: 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a: מציבים את a במקום x. בהוכחה כתובה: "לפי ∀x (P(x)), עבור העצם a נובע P(a)".',
 };
 
 const forallIntroInfo = {
@@ -56,26 +56,26 @@ export const unit4Levels = [
         proposition: 'P a',
         goalLabel: 'P(a)',
         objects: [{ name: 'a', type: 'obj' }],
-        assumptions: [{ name: 'h', prop: '∀x P(x)' }],
+        assumptions: [{ name: 'h', prop: '∀x (P(x))' }],
         toolboxBlocks: ['forall_elim', 'exact'],
         introduction: `# "לכל"
 
 מעכשיו הטענות מדברות על *עצמים* מתוך תחום, ועל תכונות שלהם. למשל: התחום הוא הסטודנטים בקורס, ו־P(x) אומרת "x עבר את הבוחן".
 לעצמים יש שמות, כמו a, ואותם רואים במצב ההוכחה תחת "עצמים".
 
-הטענה \`∀x P(x)\` נקראת "לכל x מתקיים P(x)": כל עצם בתחום מקיים את P. למשל, "כל הסטודנטים עברו את הבוחן".
+הטענה \`∀x (P(x))\` נקראת "לכל x מתקיים P(x)": כל עצם בתחום מקיים את P. למשל, "כל הסטודנטים עברו את הבוחן".
 
-כאן נתונים העצם a וההנחה \`∀x P(x)\`, והמטרה היא P(a). אם כולם עברו, גם a עבר.
-בהוכחה כתובה: "לפי ∀x P(x), עבור העצם a נובע P(a)". הבלוק ${FORALL_ELIM_BLOCK} עושה זאת: בוחרים בו את הטענה ואת העצם.`,
+כאן נתונים העצם a וההנחה \`∀x (P(x))\`, והמטרה היא P(a). אם כולם עברו, גם a עבר.
+בהוכחה כתובה: "לפי ∀x (P(x)), עבור העצם a נובע P(a)". הבלוק ${FORALL_ELIM_BLOCK} עושה זאת: בוחרים בו את הטענה ואת העצם.`,
         newTacticsBlocks: ['forall_elim'],
         newTacticsInfo: [forallElimInfo],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${FORALL_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו ∀x P(x) ואת העצם a. עכשיו כתוב בו: נובע P(a).`,
+            `גררו את הבלוק ${FORALL_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו ∀x (P(x)) ואת העצם a. עכשיו כתוב בו: נובע P(a).`,
             `P(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `הצבתם את a בטענה "לכל x מתקיים P(x)" וקיבלתם P(a). מטענת "לכל" אפשר להסיק את התכונה לכל עצם שתרצו.`,
-        startXml: goalXml('P(a)', '∀x P(x)'),
+        startXml: goalXml('P(a)', '∀x (P(x))'),
     },
     {
         id: 'unit4-2',
@@ -122,7 +122,7 @@ export const unit4Levels = [
         variableLine: DOMAIN,
         params: '',
         proposition: '(∀ x, (P x ∧ Q x)) → (∀ x, P x)',
-        goalLabel: '((∀x (P(x) ∧ Q(x))) → (∀x P(x)))',
+        goalLabel: '((∀x (P(x) ∧ Q(x))) → (∀x (P(x))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'forall_intro', 'forall_elim', 'and_elim', 'exact'],
@@ -140,14 +140,14 @@ export const unit4Levels = [
         newTacticsInfo: [forallIntroInfo],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ∀x (P(x) ∧ Q(x)) ונוכיח ∀x P(x).`,
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ∀x (P(x) ∧ Q(x)) ונוכיח ∀x (P(x)).`,
             `הוסיפו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו כתוב בו: יהי x₀ עצם שרירותי, ונוכיח P(x₀).`,
             `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀x (P(x) ∧ Q(x)) ואת העצם x₀. עכשיו כתוב בו: נובע (P(x₀) ∧ Q(x₀)).`,
             `הוסיפו את הבלוק ${AND_ELIM_BLOCK}, ובחרו בו P(x₀) ∧ Q(x₀). עכשיו P(x₀) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `לקחתם עצם שרירותי x₀ והוכחתם עליו את P(x₀), ולכן P נכונה לכל עצם.
 שימו לב לסדר: קודם לוקחים את x₀, ורק אז אפשר להציב אותו בהנחה. לפני כן אין עצם להציב.`,
-        startXml: goalXml('((∀x (P(x) ∧ Q(x))) → (∀x P(x)))'),
+        startXml: goalXml('((∀x (P(x) ∧ Q(x))) → (∀x (P(x))))'),
     },
     {
         id: 'unit4-4',
@@ -158,7 +158,7 @@ export const unit4Levels = [
         variableLine: DOMAIN,
         params: '',
         proposition: '(∀ x, (P x → Q x)) → ((∀ x, P x) → (∀ x, Q x))',
-        goalLabel: '((∀x (P(x) → Q(x))) → ((∀x P(x)) → (∀x Q(x))))',
+        goalLabel: '((∀x (P(x) → Q(x))) → ((∀x (P(x))) → (∀x (Q(x)))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'forall_intro', 'forall_elim', 'forward', 'apply_rule', 'exact'],
@@ -171,14 +171,14 @@ export const unit4Levels = [
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, והוסיפו אחריו עוד אחד כזה. עכשיו המטרה היא ∀x Q(x).`,
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, והוסיפו אחריו עוד אחד כזה. עכשיו המטרה היא ∀x (Q(x)).`,
             `הוסיפו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו כתוב בו: יהי x₀ עצם שרירותי, ונוכיח Q(x₀).`,
-            `הוסיפו פעמיים את הבלוק ${FORALL_ELIM_BLOCK}: פעם עם ∀x (P(x) → Q(x)) ופעם עם ∀x P(x), ובשתיהן את העצם x₀.`,
+            `הוסיפו פעמיים את הבלוק ${FORALL_ELIM_BLOCK}: פעם עם ∀x (P(x) → Q(x)) ופעם עם ∀x (P(x)), ובשתיהן את העצם x₀.`,
             `הוסיפו את הבלוק ${FORWARD_BLOCK}, ובחרו בו P(x₀) → Q(x₀) ואת P(x₀). עכשיו Q(x₀) בידינו.`,
             'או אחורה, כמו בשלב 2: לפי הגרירה P(x₀) → Q(x₀), כדי להוכיח Q(x₀) די להוכיח P(x₀).',
         ],
-        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ∀x (P(x) → Q(x)) ונניח ∀x P(x). יהי x₀ עצם שרירותי. נובע P(x₀) → Q(x₀), ונובע P(x₀), ולכן Q(x₀)."`,
-        startXml: goalXml('((∀x (P(x) → Q(x))) → ((∀x P(x)) → (∀x Q(x))))'),
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ∀x (P(x) → Q(x)) ונניח ∀x (P(x)). יהי x₀ עצם שרירותי. נובע P(x₀) → Q(x₀), ונובע P(x₀), ולכן Q(x₀)."`,
+        startXml: goalXml('((∀x (P(x) → Q(x))) → ((∀x (P(x))) → (∀x (Q(x)))))'),
     },
     {
         id: 'unit4-5',
@@ -195,7 +195,7 @@ export const unit4Levels = [
         toolboxBlocks: ['exists_intro', 'or_intro', 'exact'],
         introduction: `# "קיים"
 
-הטענה \`∃x P(x)\` נקראת "קיים x כך ש־P(x)": לפחות עצם אחד בתחום מקיים את P. למשל, "יש סטודנט שעבר את הבוחן".
+הטענה \`∃x (P(x))\` נקראת "קיים x כך ש־P(x)": לפחות עצם אחד בתחום מקיים את P. למשל, "יש סטודנט שעבר את הבוחן".
 
 כדי להוכיח "קיים" בוחרים עצם מתאים, *עד*, ומוכיחים שהוא מקיים את התכונה.
 כאן נתון ש־a מקיים את P, ולכן הוא עד טוב לטענה "קיים x כך ש־P(x) או Q(x)".
@@ -220,7 +220,7 @@ export const unit4Levels = [
         variableLine: DOMAIN,
         params: '',
         proposition: '(∃ x, (P x ∧ Q x)) → (∃ x, P x)',
-        goalLabel: '((∃x (P(x) ∧ Q(x))) → (∃x P(x)))',
+        goalLabel: '((∃x (P(x) ∧ Q(x))) → (∃x (P(x))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'exists_elim', 'and_elim', 'exists_intro', 'exact'],
@@ -236,13 +236,13 @@ export const unit4Levels = [
         newTacticsInfo: [existsElimInfo],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ∃x (P(x) ∧ Q(x)) ונוכיח ∃x P(x).`,
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ∃x (P(x) ∧ Q(x)) ונוכיח ∃x (P(x)).`,
             `הוסיפו את הבלוק ${EXISTS_ELIM_BLOCK}, ובחרו בו ∃x (P(x) ∧ Q(x)). עכשיו כתוב בו: יהי x₀ עצם כך ש־(P(x₀) ∧ Q(x₀)).`,
             `הוסיפו את הבלוק ${AND_ELIM_BLOCK}, ובחרו בו P(x₀) ∧ Q(x₀). עכשיו P(x₀) בידינו.`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x₀. אחר כך הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ∃x (P(x) ∧ Q(x)). יהי x₀ עצם כך ש־P(x₀) ∧ Q(x₀). נובע P(x₀). נבחר את x₀, ונוכיח P(x₀): יש לנו אותה ביד."`,
-        startXml: goalXml('((∃x (P(x) ∧ Q(x))) → (∃x P(x)))'),
+        startXml: goalXml('((∃x (P(x) ∧ Q(x))) → (∃x (P(x))))'),
     },
     {
         id: 'unit4-7',
@@ -253,30 +253,30 @@ export const unit4Levels = [
         variableLine: DOMAIN,
         params: '(h : ∀ x, (P x → Q x)) (he : ∃ x, P x)',
         proposition: '∃ x, Q x',
-        goalLabel: '∃x Q(x)',
+        goalLabel: '∃x (Q(x))',
         objects: [],
         assumptions: [
             { name: 'h', prop: '∀x (P(x) → Q(x))' },
-            { name: 'he', prop: '∃x P(x)' },
+            { name: 'he', prop: '∃x (P(x))' },
         ],
         toolboxBlocks: ['exists_elim', 'forall_elim', 'forward', 'exists_intro', 'apply_rule', 'exact'],
         introduction: `# "לכל" ו"קיים" יחד
 
 כל מי שעבר את הבוחן עבר את הקורס, ויש מי שעבר את הבוחן. לכן יש מי שעבר את הקורס.
 
-קודם מקבלים מ־\`∃x P(x)\` עצם x₀ שמקיים את P. אחר כך מציבים אותו ב־\`∀x (P(x) → Q(x))\`, ומקבלים שגם Q(x₀) נכונה.
-לבסוף x₀ הוא העד ל־\`∃x Q(x)\`.`,
+קודם מקבלים מ־\`∃x (P(x))\` עצם x₀ שמקיים את P. אחר כך מציבים אותו ב־\`∀x (P(x) → Q(x))\`, ומקבלים שגם Q(x₀) נכונה.
+לבסוף x₀ הוא העד ל־\`∃x (Q(x))\`.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${EXISTS_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו ∃x P(x). עכשיו כתוב בו: יהי x₀ עצם כך ש־P(x₀).`,
+            `גררו את הבלוק ${EXISTS_ELIM_BLOCK} אל תוך בלוק המטרה, ובחרו בו ∃x (P(x)). עכשיו כתוב בו: יהי x₀ עצם כך ש־P(x₀).`,
             `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀x (P(x) → Q(x)) ואת העצם x₀. אחר כך הוסיפו את הבלוק ${FORWARD_BLOCK} עם P(x₀) → Q(x₀) ועם P(x₀).`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x₀. Q(x₀) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
             'או אחורה: קודם בחרו את x₀ כעד, ואז לפי הגרירה P(x₀) → Q(x₀), כדי להוכיח Q(x₀) די להוכיח P(x₀).',
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "יהי x₀ עצם כך ש־P(x₀). לפי ∀x (P(x) → Q(x)), עבור x₀ נובע P(x₀) → Q(x₀), ולכן Q(x₀). נבחר את x₀."`,
-        startXml: goalXml('∃x Q(x)', '∀x (P(x) → Q(x)),  ∃x P(x)'),
+        startXml: goalXml('∃x (Q(x))', '∀x (P(x) → Q(x)),  ∃x (P(x))'),
     },
     {
         id: 'unit4-8',
@@ -287,7 +287,7 @@ export const unit4Levels = [
         variableLine: DOMAIN,
         params: '',
         proposition: '(¬∃ x, P x) → (∀ x, ¬P x)',
-        goalLabel: '((¬∃x P(x)) → (∀x ¬P(x)))',
+        goalLabel: '((¬∃x (P(x))) → (∀x (¬P(x))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'forall_intro', 'not_intro', 'not_elim', 'exists_intro', 'exact'],
@@ -296,18 +296,18 @@ export const unit4Levels = [
 אם אין אף סטודנט שעבר את הבוחן, אז כל סטודנט לא עבר אותו.
 
 אחרי הנחת התנאי ולקיחת עצם שרירותי x₀, המטרה היא \`¬P(x₀)\`: נניח P(x₀) ונגיע לסתירה, כמו ביחידה 3.
-כדי להגיע לסתירה, השתמשו בשלילה \`¬∃x P(x)\`: די להוכיח \`∃x P(x)\`, ו־x₀ הוא עד מתאים.`,
+כדי להגיע לסתירה, השתמשו בשלילה \`¬∃x (P(x))\`: די להוכיח \`∃x (P(x))\`, ו־x₀ הוא עד מתאים.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
             `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו המטרה היא ¬P(x₀).`,
             'הוסיפו את הבלוק "כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה". עכשיו כתוב בו: נניח P(x₀).',
-            'הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∃x P(x). עכשיו כתוב בו: די להוכיח ∃x P(x).',
+            'הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∃x (P(x)). עכשיו כתוב בו: די להוכיח ∃x (P(x)).',
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x₀. P(x₀) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"לא קיים x כך ש־P(x)" פירושו "לכל x, לא P(x)".`,
-        startXml: goalXml('((¬∃x P(x)) → (∀x ¬P(x)))'),
+        startXml: goalXml('((¬∃x (P(x))) → (∀x (¬P(x))))'),
     },
     {
         id: 'unit4-9',
@@ -318,7 +318,7 @@ export const unit4Levels = [
         variableLine: 'variable {obj : Type} {R : obj → obj → Prop}',
         params: '',
         proposition: '(∃ x, ∀ y, R x y) → (∀ y, ∃ x, R x y)',
-        goalLabel: '((∃x ∀y R(x,y)) → (∀y ∃x R(x,y)))',
+        goalLabel: '((∃x (∀y (R(x,y)))) → (∀y (∃x (R(x,y)))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'forall_intro', 'exists_elim', 'forall_elim', 'exists_intro', 'exact'],
@@ -332,14 +332,14 @@ R(x,y) היא תכונה של שני עצמים, למשל "x מכיר את y".
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו כתוב בו: יהי y₀ עצם שרירותי, ונוכיח ∃x R(x,y₀).`,
-            `הוסיפו את הבלוק ${EXISTS_ELIM_BLOCK}, ובחרו בו ∃x ∀y R(x,y). עכשיו כתוב בו: יהי x₀ עצם כך ש־∀y R(x₀,y).`,
-            `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀y R(x₀,y) ואת העצם y₀. עכשיו כתוב בו: נובע R(x₀,y₀).`,
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק ${FORALL_INTRO_BLOCK}. עכשיו כתוב בו: יהי y₀ עצם שרירותי, ונוכיח ∃x (R(x,y₀)).`,
+            `הוסיפו את הבלוק ${EXISTS_ELIM_BLOCK}, ובחרו בו ∃x (∀y (R(x,y))). עכשיו כתוב בו: יהי x₀ עצם כך ש־∀y (R(x₀,y)).`,
+            `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀y (R(x₀,y)) ואת העצם y₀. עכשיו כתוב בו: נובע R(x₀,y₀).`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את x₀. R(x₀,y₀) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `מ"קיים x כך שלכל y" נובע "לכל y קיים x". הכיוון ההפוך לא נכון:
 אם כל אחד מוכר על ידי מישהו, לא בהכרח יש מישהו אחד שמכיר את כולם. סדר הכמתים חשוב.`,
-        startXml: goalXml('((∃x ∀y R(x,y)) → (∀y ∃x R(x,y)))'),
+        startXml: goalXml('((∃x (∀y (R(x,y)))) → (∀y (∃x (R(x,y)))))'),
     },
     {
         id: 'unit4-10',
@@ -350,7 +350,7 @@ R(x,y) היא תכונה של שני עצמים, למשל "x מכיר את y".
         variableLine: DOMAIN,
         params: '',
         proposition: '(¬∀ x, P x) → (∃ x, ¬P x)',
-        goalLabel: '((¬∀x P(x)) → (∃x ¬P(x)))',
+        goalLabel: '((¬∀x (P(x))) → (∃x (¬P(x))))',
         objects: [],
         assumptions: [],
         toolboxBlocks: ['assume', 'by_contradiction', 'not_elim', 'forall_intro', 'exists_intro', 'exact'],
@@ -364,13 +364,13 @@ R(x,y) היא תכונה של שני עצמים, למשל "x מכיר את y".
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק "נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה". עכשיו כתוב בו: נניח ¬∃x ¬P(x).`,
-            'הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∀x P(x). עכשיו כתוב בו: די להוכיח ∀x P(x).',
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק "נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה". עכשיו כתוב בו: נניח ¬∃x (¬P(x)).`,
+            'הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∀x (P(x)). עכשיו כתוב בו: די להוכיח ∀x (P(x)).',
             `הוסיפו את הבלוק ${FORALL_INTRO_BLOCK}, ואחריו שוב "נוכיח בשלילה". עכשיו כתוב בו: נניח ¬P(x₀).`,
-            `הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∃x ¬P(x). אחר כך הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK} עם x₀, ואת הבלוק ${CLOSE_BLOCK}.`,
+            `הוסיפו את הבלוק "לפי השלילה ? שיש לנו ביד", ובחרו בו ¬∃x (¬P(x)). אחר כך הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK} עם x₀, ואת הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `סיימתם את יחידה 4, כולל שלב הבונוס! "לא לכל x מתקיים P(x)" פירושו "קיים x כך שלא P(x)".
 יחד עם שלב 8, שלילה הופכת "לכל" ל"קיים", ו"קיים" ל"לכל".`,
-        startXml: goalXml('((¬∀x P(x)) → (∃x ¬P(x)))'),
+        startXml: goalXml('((¬∀x (P(x))) → (∃x (¬P(x))))'),
     },
 ];
