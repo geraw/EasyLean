@@ -41,7 +41,17 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
     .map(({ line, severity, text }) => `proof.lean:${line - offset}:0: ${severity}: ${text}`)
     .join('\n');
 
-// blockId → { assumptions, goal } before that move, for the moves Lean got to.
+// The objects of the domain in hand (a : α, where α : Type is declared), by
+// name, apart from the assumptions: they are things we have, not claims.
+const objectsOf = (assumptions) => {
+    const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
+    return {
+        objects: assumptions.filter(({ prop }) => domains.has(prop.trim())).flatMap(({ name }) => name.split(/\s+/)),
+        isObject: ({ prop }) => domains.has(prop.trim()),
+    };
+};
+
+// blockId → { assumptions, objects, goal } before that move, for the moves Lean got to.
 export const readMoveStates = (output, { segments }) => {
     const messages = parseLeanMessages(output);
     const states = new Map();
@@ -50,8 +60,10 @@ export const readMoveStates = (output, { segments }) => {
         if (findLeanProblem(own)) return;
         const goal = openGoals(own, segment.stateLine).at(-1);
         if (!goal) return;
+        const { objects, isObject } = objectsOf(goal.assumptions);
         states.set(segment.blockId, {
-            assumptions: [...new Set(goal.assumptions.map(({ prop }) => prop).filter((prop) => !isDeclaration(prop)))],
+            assumptions: [...new Set(goal.assumptions.filter((a) => !isDeclaration(a.prop) && !isObject(a)).map(({ prop }) => prop))],
+            objects,
             goal: goal.goal,
         });
     });

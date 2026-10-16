@@ -106,6 +106,30 @@ export const splitConnective = (text, symbol) => {
 // The condition and conclusion of an implication (`P → Q → R` is P and `Q → R`).
 export const splitImplication = (text) => splitConnective(text, '→');
 
+// A formula quantified by `symbol` (∀ or ∃) as its first variable and the
+// rest, its body (`∀ (x y : α), R x y` is x and `∀ y, R x y`), or null.
+export const splitQuantifier = (text, symbol) => {
+    const quantifier = parseQuantifier(stripOuterParentheses(text || ''));
+    if (!quantifier || quantifier.symbol !== symbol) return null;
+    const [variable, ...rest] = quantifier.names;
+    const body = quantifier.body.trim();
+    return { variable, body: rest.length ? `${symbol} ${rest.join(' ')}, ${body}` : body };
+};
+
+// The body with the term in place of the variable, as a whole word.
+export const substitute = (body, variable, term) => {
+    const name = variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return body.replace(new RegExp(`(?<![\\p{L}\\p{N}_'])${name}(?![\\p{L}\\p{N}_'₀-₉])`, 'gu'), /\s/.test(term) ? `(${term})` : term);
+};
+
+// The variable's name, or, if an object in hand already has it, the name
+// with the first free subscript (x₁, x₂, ...).
+export const freshName = (variable, taken = []) => {
+    if (!taken.includes(variable)) return variable;
+    const subscript = (n) => String(n).replace(/\d/g, (digit) => '₀₁₂₃₄₅₆₇₈₉'[digit]);
+    for (let n = 1; ; n += 1) if (!taken.includes(`${variable}${subscript(n)}`)) return `${variable}${subscript(n)}`;
+};
+
 // The statement a negation denies (`¬(P ∨ Q)` is `P ∨ Q`), or null when the
 // formula is not a negation (`¬P ∨ Q` is an "or").
 export const negatedStatement = (text) => {

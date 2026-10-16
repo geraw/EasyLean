@@ -12,11 +12,12 @@ import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
 import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
+import { unit4Levels } from './unit4World';
 import { HANDWRITTEN_UNITS } from '../../e2e/handwrittenSolutions';
 
 defineHandwrittenBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels];
 
 // A level's workspace with one of its solutions in place of the starting moves.
 const solved = (level, steps) => {
@@ -192,6 +193,37 @@ describe('the moves of unit 3', () => {
     });
 });
 
+describe('the moves of unit 4', () => {
+    it('name new objects after the quantified variable, and find assumptions by statement', () => {
+        const level = unit4Levels[8];
+        const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, HANDWRITTEN_UNITS[4].levels[8][0].steps);
+        forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
+        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y'], goal: '∃ x, R x y' });
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  refine easylean_imp_intro (fun _ => ?_)',
+            '  refine easylean_forall_intro (fun y => ?_)',
+            '  refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x _ => ?_)',
+            '  have := easylean_forall_elim ‹∀ y, R x y› (y)',
+            '  apply Exists.intro (x)',
+            '  assumption',
+        ].join('\n'));
+        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y ∃x R(x,y) יהי y עצם שרירותי, ונוכיח ∃x R(x,y)');
+        expect(phraseOf(existsElim)).toBe('יהי x עצם כך ש־ ∀y R(x,y)');
+    });
+
+    it('substitute the chosen object, and pick a fresh name when the variable is taken', () => {
+        const { blocks: [forallElim, existsIntro, existsElim] } = solved(unit4Levels[6], [
+            ['hw_forall_elim', { FORALL: '∀ (x : obj), P x → Q x', TERM: 'a' }], ['hw_exists_intro', { TERM: 'a' }], ['hw_exists_elim', { EXISTS: '∃ x, P x' }],
+        ]);
+        expect(phraseOf(forallElim)).toBe('נובע (P(a) → Q(a))');
+        existsIntro.setStateBefore({ assumptions: [], objects: ['a'], goal: '∃ x, Q x' });
+        expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER')]).toEqual(['כדי להוכיח ∃x Q(x) נבחר את העצם', 'ונוכיח Q(a)']);
+        expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
+        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x'], goal: '∃ x, Q x' });
+        expect(phraseOf(existsElim)).toBe('יהי x₁ עצם כך ש־ P(x₁)');
+    });
+});
+
 describe('the proof state before each move', () => {
     it('comes from one check, a theorem per move', () => {
         const level = unit1Levels[0];
@@ -206,8 +238,8 @@ describe('the proof state before each move', () => {
             'proof.lean:11:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
         ].join('\n');
         const states = readMoveStates(output, source);
-        expect(states.get(blocks[0].id)).toEqual({ assumptions: [], goal: 'P → P' });
-        expect(states.get(blocks[1].id)).toEqual({ assumptions: ['P'], goal: 'P' });
+        expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], goal: 'P → P' });
+        expect(states.get(blocks[1].id)).toEqual({ assumptions: ['P'], objects: [], goal: 'P' });
     });
 });
 
@@ -234,6 +266,12 @@ describe('handwritten explanations', () => {
         ['using as a negation an assumption that is not one',
             'Application type mismatch: The argument\n  ?m.7\nhas type\n  Q\nbut is expected to have type\n  ¬?m.4\nin the application\n  absurd ?m.6 ?m.7',
             'ההנחה Q היא לא שלילה, ולכן אין טענה שהיא שוללת.'],
+        ['using as a "for all" an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P a\nbut is expected to have type\n  ∀ (x : ?m.3), ?m.4 x\nin the application\n  easylean_forall_elim ?m.5',
+            'ההנחה P(a) היא לא טענת "לכל", ולכן אין במה להציב עצם.'],
+        ['using as a "there exists" an assumption that is not one',
+            'Application type mismatch: The argument\n  ?m.5\nhas type\n  P a\nbut is expected to have type\n  ∃ x, ?m.3 x\nin the application\n  Exists.elim ?m.5',
+            'ההנחה P(a) היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.'],
         ['a letter that is not in the level', 'Unknown identifier `S`',
             'S לא מופיעה בשלב הזה. בדקו את מה שכתבתם מול מצב ההוכחה.'],
         ['a typed statement Lean cannot read', 'unexpected token \'›\'; expected term',

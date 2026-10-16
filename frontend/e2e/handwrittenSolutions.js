@@ -17,6 +17,10 @@ const notIntro = ['hw_not_intro'];
 const notElim = (negation) => ['hw_not_elim', { NEGATION: negation }];
 const exfalso = ['hw_exfalso'];
 const byContradiction = ['hw_by_contradiction'];
+const forallElim = (forall, term) => ['hw_forall_elim', { FORALL: forall, TERM: term }];
+const forallIntro = ['hw_forall_intro'];
+const existsIntro = (term) => ['hw_exists_intro', { TERM: term }];
+const existsElim = (exists) => ['hw_exists_elim', { EXISTS: exists }];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -111,6 +115,25 @@ export const HANDWRITTEN_UNITS = [
             [{
                 label: 'פתרון',
                 steps: [byContradiction, notElim('¬(P ∨ ¬P)'), orIntro('RIGHT'), notIntro, notElim('¬(P ∨ ¬P)'), orIntro('LEFT'), close],
+            }],
+        ],
+    },
+    {
+        unit: 4,
+        world: 'יחידה 4 - כמתים',
+        levels: [
+            [{ label: 'פתרון', steps: [forallElim('∀ x, P x', 'a'), close] }],
+            [{ label: 'פתרון', steps: [forallElim('∀ x, P x → Q x', 'a'), forward('P a → Q a', 'P a'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, forallElim('∀ x, P x ∧ Q x', 'x'), andElim('P x ∧ Q x'), close] }],
+            [{ label: 'פתרון', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x'), forallElim('∀ x, P x', 'x'), forward('P x → Q x', 'P x'), close] }],
+            [{ label: 'פתרון', steps: [existsIntro('a'), orIntro('LEFT'), close] }],
+            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, P x ∧ Q x'), andElim('P x ∧ Q x'), existsIntro('x'), close] }],
+            [{ label: 'פתרון', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x'), forward('P x → Q x', 'P x'), existsIntro('x'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, notIntro, notElim('¬∃ x, P x'), existsIntro('x'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, existsElim('∃ x, ∀ y, R x y'), forallElim('∀ y, R x y', 'y'), existsIntro('x'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [assume, byContradiction, notElim('¬∀ x, P x'), forallIntro, byContradiction, notElim('¬∃ x, ¬P x'), existsIntro('x'), close],
             }],
         ],
     },

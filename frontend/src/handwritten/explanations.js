@@ -38,6 +38,13 @@ export const HANDWRITTEN_EXPLANATIONS = [
             : `ההנחה ${formula(type)} היא לא טענת "אם ורק אם", ולכן אין לה שני כיוונים.`),
     },
     {
+        // Using as a "for all" or a "there exists" an assumption that is not one.
+        pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort .*)?but is expected to have type\s*\n\s*(∀|∃)[\s\S]*?in the application\s*\n\s*(?:easylean_forall_elim|Exists\.elim) /,
+        explain: ([, type, symbol]) => (symbol === '∀'
+            ? `ההנחה ${formula(type)} היא לא טענת "לכל", ולכן אין במה להציב עצם.`
+            : `ההנחה ${formula(type)} היא לא טענת "קיים", ולכן אין עצם לקבל ממנה.`),
+    },
+    {
         // Using as a negation an assumption that is not one (hw_not_elim).
         pattern: /^Application type mismatch: The argument\s*\n\s*.+?\s*\nhas type\s*\n\s*(.+?)\s*\n(?:of sort .*)?but is expected to have type\s*\n\s*¬[\s\S]*?in the application\s*\n\s*absurd /,
         explain: ([, type]) => `ההנחה ${formula(type)} היא לא שלילה, ולכן אין טענה שהיא שוללת.`,

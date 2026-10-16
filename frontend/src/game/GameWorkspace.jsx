@@ -274,23 +274,33 @@ const GameWorkspace = ({
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
     // The proof state before each move, for versions whose moves follow it.
+    // A move's Lean may follow the state before it (e.g. the name of a new
+    // object), so when the states change the code, it is checked again. Gives
+    // up quietly if a newer request starts: without the states the moves keep
+    // their general wording.
     const moveStatesRequestRef = useRef(0);
-    useEffect(() => {
+    const settleMoveStates = async (requestId) => {
         const { moveStates } = version;
-        if (!moveStates || !proofStateEndpoint || !workspace) return undefined;
-        const requestId = moveStatesRequestRef.current + 1;
-        moveStatesRequestRef.current = requestId;
-        const timeout = setTimeout(async () => {
+        for (let round = 0, checked = null; round < 3; round += 1) {
             const source = moveStates.build(workspace, level, preamble);
-            if (!source) return;
+            if (!source || source.code === checked) return;
+            checked = source.code;
             try {
                 const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code });
-                if (moveStatesRequestRef.current === requestId) moveStates.apply(workspace, moveStates.read(data.output || '', source));
+                if (moveStatesRequestRef.current !== requestId) return;
+                moveStates.apply(workspace, moveStates.read(data.output || '', source));
             } catch {
-                // Without the states the moves keep their general wording.
+                return;
             }
-        }, 180);
+        }
+    };
+    useEffect(() => {
+        if (!version.moveStates || !proofStateEndpoint || !workspace) return undefined;
+        const requestId = moveStatesRequestRef.current + 1;
+        moveStatesRequestRef.current = requestId;
+        const timeout = setTimeout(() => settleMoveStates(requestId), 180);
         return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint, version]);
 
     const runProof = async () => {
@@ -301,10 +311,15 @@ const GameWorkspace = ({
             setOutput(incompleteMessage);
             return;
         }
-        // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
-        const source = generateLeanSource();
         setStatus('running');
         setOutput('מריץ בדיקה...');
+        // The moves' Lean may follow the states before them: bring those up to date first.
+        if (version.moveStates && proofStateEndpoint) {
+            moveStatesRequestRef.current += 1;
+            await settleMoveStates(moveStatesRequestRef.current);
+        }
+        // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
+        const source = generateLeanSource();
         try {
             const response = await axios.post(`${BACKEND_URL}/verify`, { leanCode: source.code });
             const usesSorry = /declaration uses 'sorry'/.test(response.data.output || '');
