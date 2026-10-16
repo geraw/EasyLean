@@ -15,11 +15,12 @@ import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
+import { unit7Levels } from './unit7World';
 import { HANDWRITTEN_UNITS } from '../../e2e/handwrittenSolutions';
 
 defineHandwrittenBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels];
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -264,16 +265,16 @@ describe('the moves of unit 5', () => {
     });
 
     it('name an element of a power set as a set', () => {
-        const { blocks: [subsetIntro] } = solved(unit5Levels[10], [['hw_subset_intro']]);
+        const { blocks: [subsetIntro] } = solved(unit6Levels[1], [['hw_subset_intro']]);
         subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
         expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫 A ⊆ 𝒫 B יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B');
     });
 });
 
-describe('the moves of unit 6', () => {
+describe('the moves of unit 7', () => {
     it('substitute by an equality, shown as the replacement it makes', () => {
-        const level = unit6Levels[2];
-        const { workspace, blocks: [rewrite] } = solved(level, HANDWRITTEN_UNITS[6].levels[2][0].steps);
+        const level = unit7Levels[2];
+        const { workspace, blocks: [rewrite] } = solved(level, HANDWRITTEN_UNITS[7].levels[2][0].steps);
         expect(rewrite.getField('DIRECTION').getOptions(false).map(([label, value]) => [withoutIsolates(label), value]))
             .toEqual([['את a ב־b', 'FORWARD'], ['את b ב־a', 'BACKWARD']]);
         expect(withoutIsolates(rewrite.getField('DIRECTION').getText())).toBe('את b ב־a');
@@ -285,8 +286,8 @@ describe('the moves of unit 6', () => {
     });
 
     it('head the parts of an induction by what is proved in them, keeping the variable', () => {
-        const level = unit6Levels[4];
-        const { workspace, blocks: [induction] } = solved(level, HANDWRITTEN_UNITS[6].levels[4][0].steps);
+        const level = unit7Levels[4];
+        const { workspace, blocks: [induction] } = solved(level, HANDWRITTEN_UNITS[7].levels[4][0].steps);
         induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
         expect([phraseOf(induction, 'BASE_TEXT'), phraseOf(induction, 'STEP_TEXT')])
             .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);

@@ -1,7 +1,8 @@
 import { goalXml } from '../game/levelXml';
 
-// Unit 5 of the handwritten version (see blocks.js): sets, as in Logic and
-// Proof (chapters 11 and 12) and Mathematics in Lean (4.1). An inclusion is
+// Unit 5 of the handwritten version (see blocks.js): sets of objects, as in
+// Logic and Proof (chapters 11 and 12) and Mathematics in Lean (4.1); sets
+// of sets (power sets, families) are unit 6. An inclusion is
 // proved by taking an arbitrary element ("יהי x₀ ∈ A") and used by its
 // element; an equality is two inclusions; and membership in a set built by an
 // operation is read by its definition ("לפי הגדרת החיתוך, x₀ ∈ A ∩ B פירושו
@@ -12,7 +13,6 @@ import { goalXml } from '../game/levelXml';
 export const unit5WorldName = 'יחידה 5 - קבוצות';
 
 const SETS = 'variable {obj : Type} {A B C : Set obj}';
-const FAMILY = 'variable {obj : Type} {A : Set obj} {F : Set (Set obj)}';
 
 // The moves as the toolbox shows them, before they are placed.
 const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
@@ -48,14 +48,11 @@ const union = { symbol: 'איחוד', doc: 'x₀ ∈ A ∪ B פירושו x₀ �
 const compl = { symbol: 'משלים', doc: 'x₀ ∈ Aᶜ פירושו ¬x₀ ∈ A: האיבר לא שייך ל־A.' };
 const diff = { symbol: 'הפרש', doc: 'x₀ ∈ A \\ B פירושו x₀ ∈ A ∧ ¬x₀ ∈ B.' };
 const empty = { symbol: 'הקבוצה הריקה', doc: 'x₀ ∈ ∅ פירושו סתירה (⊥): אין אף איבר בקבוצה הריקה.' };
-const powerset = { symbol: 'קבוצת החזקה', doc: 'X₀ ∈ 𝒫 A פירושו X₀ ⊆ A: האיברים של קבוצת החזקה הם תתי־הקבוצות של A.' };
-const sUnion = { symbol: 'איחוד של משפחה', doc: 'x₀ ∈ ⋃₀ F פירושו ∃S (S ∈ F ∧ x₀ ∈ S): x₀ שייך לאחת הקבוצות במשפחה.' };
-const sInter = { symbol: 'חיתוך של משפחה', doc: 'x₀ ∈ ⋂₀ F פירושו ∀S (S ∈ F → x₀ ∈ S): x₀ שייך לכל הקבוצות במשפחה.' };
 
 const level = (number, fields) => ({
     id: `hw-unit5-${number}`,
     levelNumber: number,
-    totalLevels: 14,
+    totalLevels: 11,
     usesSets: true,
     objects: [],
     assumptions: [],
@@ -306,80 +303,8 @@ export const unit5Levels = [
         startXml: goalXml('∅ ⊆ A'),
     }),
     level(11, {
-        title: 'קבוצת החזקה',
-        name: 'hw_unit5_l11_powerset',
-        variableLine: SETS,
-        params: '',
-        proposition: '(A ⊆ B) → (𝒫 A ⊆ 𝒫 B)',
-        goalLabel: '((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))',
-        toolboxBlocks: ['hw_assume', 'hw_subset_intro', 'hw_unfold', 'hw_subset_elim', 'hw_exact'],
-        introduction: `# קבוצת החזקה
-
-\`𝒫 A\` היא *קבוצת החזקה* של A: הקבוצה שהאיברים שלה הם כל תתי־הקבוצות של A. לפי ההגדרה, \`X₀ ∈ 𝒫 A\` פירושו \`X₀ ⊆ A\`.
-
-אם A ⊆ B, כל תת־קבוצה של A היא גם תת־קבוצה של B. האיברים כאן הם קבוצות, ולכן לאיבר קוראים X₀, באות גדולה, אבל ההוכחה כמו כל הכלה: לוקחים איבר, פותחים הגדרות, ומשתמשים בהכלות.`,
-        newDefinitions: [powerset],
-        hints: [
-            `נניח A ⊆ B, ואחר כך ${SUBSET_INTRO_BLOCK}: יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B.`,
-            'פתחו את ההגדרה בהנחה X₀ ∈ 𝒫 A (פירושו X₀ ⊆ A), ואחר כך במטרה X₀ ∈ 𝒫 B (נשאר להוכיח X₀ ⊆ B).',
-            `כדי להוכיח X₀ ⊆ B, הוסיפו שוב את הבלוק ${SUBSET_INTRO_BLOCK}: יהי x₀ ∈ X₀.`,
-            `השתמשו בשתי ההכלות: לפי X₀ ⊆ A נובע x₀ ∈ A, ולפי A ⊆ B נובע x₀ ∈ B.`,
-        ],
-        conclusion: `האיברים של קבוצת החזקה הם קבוצות, אבל ההוכחה זהה: לוקחים איבר, פותחים הגדרה, ומשתמשים בהכלות.`,
-        startXml: goalXml('((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))'),
-    }),
-    level(12, {
-        title: 'איחוד של משפחה',
-        name: 'hw_unit5_l12_sunion',
-        variableLine: FAMILY,
-        params: '(hA : A ∈ F)',
-        proposition: 'A ⊆ ⋃₀ F',
-        goalLabel: 'A ⊆ ⋃₀ F',
-        assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['hw_subset_intro', 'hw_unfold', 'hw_exists_intro', 'hw_and_intro', 'hw_exact'],
-        introduction: `# איחוד של משפחה
-
-F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃₀ F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋃₀ F\` פירושו שקיימת קבוצה S ב־F כך ש־x₀ ∈ S.
-
-אם A היא אחת הקבוצות במשפחה, היא מוכלת באיחוד. אחרי פתיחת ההגדרה המטרה היא טענת "קיים", כמו ביחידה 4, והעד הוא A עצמה.`,
-        newDefinitions: [sUnion],
-        hints: [
-            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ונוכיח x₀ ∈ ⋃₀ F.`,
-            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו את המטרה x₀ ∈ ⋃₀ F. נשאר להוכיח ∃S (S ∈ F ∧ x₀ ∈ S).`,
-            'הוסיפו את הבלוק "כדי להוכיח "קיים" נבחר את העצם ?", ובחרו בו את A.',
-            `הוכיחו את ה"וגם" בשני חלקים: בכל חלק, מה שמוכיחים כבר בידינו.`,
-        ],
-        conclusion: `איחוד של משפחה הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: הקבוצה מהמשפחה שהאיבר שייך אליה.`,
-        startXml: goalXml('A ⊆ ⋃₀ F', 'A ∈ F'),
-    }),
-    level(13, {
-        title: 'חיתוך של משפחה',
-        name: 'hw_unit5_l13_sinter',
-        variableLine: FAMILY,
-        params: '(hA : A ∈ F)',
-        proposition: '⋂₀ F ⊆ A',
-        goalLabel: '⋂₀ F ⊆ A',
-        assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
-        toolboxBlocks: ['hw_subset_intro', 'hw_unfold', 'hw_forall_elim', 'hw_forward', 'hw_apply_rule', 'hw_exact'],
-        introduction: `# חיתוך של משפחה
-
-\`⋂₀ F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋂₀ F\` פירושו שלכל קבוצה S ב־F מתקיים x₀ ∈ S.
-
-אם A היא אחת הקבוצות במשפחה, החיתוך מוכל בה. אחרי פתיחת ההגדרה יש בידינו טענת "לכל", ומציבים בה את A, כמו ביחידה 4.`,
-        newDefinitions: [sInter],
-        hints: [
-            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ ⋂₀ F ונוכיח x₀ ∈ A.`,
-            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ ⋂₀ F. עכשיו כתוב בו: פירושו ∀S (S ∈ F → x₀ ∈ S).`,
-            'הוסיפו את הבלוק "לפי ה"לכל" ? עבור העצם ?", ובחרו בו את ה"לכל" ואת A. עכשיו כתוב בו: נובע (A ∈ F → x₀ ∈ A).',
-            `הוסיפו את הבלוק "מהגרירה ? ומ־?" עם A ∈ F → x₀ ∈ A ועם A ∈ F. x₀ ∈ A בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
-            'או אחורה: לפי הגרירה A ∈ F → x₀ ∈ A, כדי להוכיח x₀ ∈ A די להוכיח A ∈ F, וזה בידינו.',
-        ],
-        conclusion: `חיתוך של משפחה הוא טענת "לכל", ולכן משתמשים בו בהצבה: כאן הצבתם קבוצה, A.`,
-        startXml: goalXml('⋂₀ F ⊆ A', 'A ∈ F'),
-    }),
-    level(14, {
         title: 'שלב בונוס: חוק דה מורגן לקבוצות',
-        name: 'hw_unit5_l14_de_morgan',
+        name: 'hw_unit5_l11_de_morgan',
         variableLine: SETS,
         params: '',
         proposition: '(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ',

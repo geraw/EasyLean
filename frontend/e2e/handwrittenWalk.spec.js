@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-6 of the handwritten version, as their hints
+// A student's walk through units 3-7 of the handwritten version, as their hints
 // describe each level: blocks dragged from the toolbox with the mouse, and
 // fields chosen only among the options their menu shows. (The solutions in
 // handwritten.spec.js are built directly, which does not catch a hint that
@@ -379,31 +379,6 @@ const UNIT5 = [
         await drag(page, 'hw_exact', { after: x });
     },
     async (page, log) => {
-        const a = await drag(page, 'hw_assume', { goal: true });
-        const i1 = await drag(page, 'hw_subset_intro', { after: a }); log(await phrase(page, i1));
-        const u1 = await unfold(page, { after: i1 }, 'X₀ ∈ 𝒫 A', log);
-        const u2 = await unfold(page, { after: u1 }, 'X₀ ∈ 𝒫 B', log);
-        const i2 = await drag(page, 'hw_subset_intro', { after: u2 }); log(await phrase(page, i2));
-        const e1 = await drag(page, 'hw_subset_elim', { after: i2 }); await choose(page, e1, 'SUBSET', 'X₀ ⊆ A'); await choose(page, e1, 'MEMBER', 'x₀ ∈ X₀');
-        const e2 = await drag(page, 'hw_subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'A ⊆ B'); await choose(page, e2, 'MEMBER', 'x₀ ∈ A');
-        await drag(page, 'hw_exact', { after: e2 });
-    },
-    async (page, log) => {
-        const i = await drag(page, 'hw_subset_intro', { goal: true });
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
-        const w = await drag(page, 'hw_exists_intro', { after: u }); await choose(page, w, 'TERM', 'A'); log(await phrase(page, w));
-        const s = await drag(page, 'hw_and_intro', { after: w });
-        await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
-        await drag(page, 'hw_exact', { into: s, input: 'RIGHT' });
-    },
-    async (page, log) => {
-        const i = await drag(page, 'hw_subset_intro', { goal: true });
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋂₀ F', log);
-        const e = await drag(page, 'hw_forall_elim', { after: u }); await choose(page, e, 'FORALL', '∀S (S ∈ F → x₀ ∈ S)'); await choose(page, e, 'TERM', 'A'); log(await phrase(page, e));
-        const f = await drag(page, 'hw_forward', { after: e }); await choose(page, f, 'RULE', '(A ∈ F → x₀ ∈ A)'); await choose(page, f, 'PREMISE', 'A ∈ F');
-        await drag(page, 'hw_exact', { after: f });
-    },
-    async (page, log) => {
         const q = await drag(page, 'hw_set_eq', { goal: true }); log(await phrase(page, q));
         const i1 = await drag(page, 'hw_subset_intro', { into: q, input: 'FIRST' });
         const u1 = await unfold(page, { after: i1 }, 'x₀ ∈ (A ∪ B)ᶜ', log);
@@ -433,6 +408,60 @@ const UNIT5 = [
 ];
 
 // Each level of unit 6, as its hints describe it.
+const UNIT6 = [
+    async (page, log) => {
+        const u = await unfold(page, { goal: true }, 'A ∈ 𝒫 (A ∪ B)', log);
+        const i = await drag(page, 'hw_subset_intro', { after: u }); log(await phrase(page, i));
+        const g = await unfold(page, { after: i }, 'x₀ ∈ A ∪ B', log);
+        const o = await drag(page, 'hw_or_intro', { after: g }); await choose(page, o, 'SIDE', 'x₀ ∈ A');
+        await drag(page, 'hw_exact', { after: o });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'hw_assume', { goal: true });
+        const i1 = await drag(page, 'hw_subset_intro', { after: a }); log(await phrase(page, i1));
+        const u1 = await unfold(page, { after: i1 }, 'X₀ ∈ 𝒫 A', log);
+        const u2 = await unfold(page, { after: u1 }, 'X₀ ∈ 𝒫 B', log);
+        const i2 = await drag(page, 'hw_subset_intro', { after: u2 }); log(await phrase(page, i2));
+        const e1 = await drag(page, 'hw_subset_elim', { after: i2 }); await choose(page, e1, 'SUBSET', 'X₀ ⊆ A'); await choose(page, e1, 'MEMBER', 'x₀ ∈ X₀');
+        const e2 = await drag(page, 'hw_subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'A ⊆ B'); await choose(page, e2, 'MEMBER', 'x₀ ∈ A');
+        await drag(page, 'hw_exact', { after: e2 });
+    },
+    async (page, log) => {
+        const u = await unfold(page, { goal: true }, '∅ ∈ 𝒫 A', log);
+        const i = await drag(page, 'hw_subset_intro', { after: u });
+        const e = await unfold(page, { after: i }, 'x₀ ∈ ∅', log);
+        const x = await drag(page, 'hw_exfalso', { after: e });
+        await drag(page, 'hw_exact', { after: x });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const w = await drag(page, 'hw_exists_intro', { after: u }); await choose(page, w, 'TERM', 'A'); log(await phrase(page, w));
+        const s = await drag(page, 'hw_and_intro', { after: w });
+        await drag(page, 'hw_exact', { into: s, input: 'LEFT' });
+        await drag(page, 'hw_exact', { into: s, input: 'RIGHT' });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'hw_subset_intro', { goal: true });
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋂₀ F', log);
+        const e = await drag(page, 'hw_forall_elim', { after: u }); await choose(page, e, 'FORALL', '∀S (S ∈ F → x₀ ∈ S)'); await choose(page, e, 'TERM', 'A'); log(await phrase(page, e));
+        const f = await drag(page, 'hw_forward', { after: e }); await choose(page, f, 'RULE', '(A ∈ F → x₀ ∈ A)'); await choose(page, f, 'PREMISE', 'A ∈ F');
+        await drag(page, 'hw_exact', { after: f });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'hw_assume', { goal: true });
+        const i = await drag(page, 'hw_subset_intro', { after: a }); log(await phrase(page, i));
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const x = await drag(page, 'hw_exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃S (S ∈ F ∧ x₀ ∈ S)'); log(await phrase(page, x));
+        const d = await drag(page, 'hw_and_elim', { after: x }); await choose(page, d, 'AND', '(S₀ ∈ F ∧ x₀ ∈ S₀)');
+        const e = await drag(page, 'hw_forall_elim', { after: d }); await choose(page, e, 'FORALL', '∀S (S ∈ F → S ⊆ A)'); await choose(page, e, 'TERM', 'S₀'); log(await phrase(page, e));
+        const f = await drag(page, 'hw_forward', { after: e }); await choose(page, f, 'RULE', '(S₀ ∈ F → S₀ ⊆ A)'); await choose(page, f, 'PREMISE', 'S₀ ∈ F');
+        const m = await drag(page, 'hw_subset_elim', { after: f }); await choose(page, m, 'SUBSET', 'S₀ ⊆ A'); await choose(page, m, 'MEMBER', 'x₀ ∈ S₀'); log(await phrase(page, m));
+        await drag(page, 'hw_exact', { after: m });
+    },
+];
+
+// Each level of unit 7, as its hints describe it.
 const rewrite = async (page, where, equation, direction, target, log) => {
     const r = await drag(page, 'hw_rewrite', where);
     await choose(page, r, 'EQUATION', equation);
@@ -452,7 +481,7 @@ const induction = async (page, log) => {
     log(await phrase(page, i));
     return i;
 };
-const UNIT6 = [
+const UNIT7 = [
     async (page) => { await drag(page, 'hw_rfl', { goal: true }); },
     async (page, log) => {
         const r = await rewrite(page, { goal: true }, 'y = x + 7', 'את y ב־x + 7', 'המטרה', log);
@@ -527,7 +556,8 @@ const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
     { unit: 5, world: 'יחידה 5 - קבוצות', walks: UNIT5 },
-    { unit: 6, world: 'יחידה 6 - שוויון ואינדוקציה', walks: UNIT6 },
+    { unit: 6, world: 'יחידה 6 - קבוצות של קבוצות', walks: UNIT6 },
+    { unit: 7, world: 'יחידה 7 - שוויון ואינדוקציה', walks: UNIT7 },
 ];
 
 for (const { unit, world, walks } of UNITS) {

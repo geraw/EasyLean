@@ -200,15 +200,6 @@ export const HANDWRITTEN_UNITS = [
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close] }],
             [{
                 label: 'פתרון',
-                steps: [assume, subsetIntro, unfold('X₀ ∈ 𝒫 A'), unfold('X₀ ∈ 𝒫 B'), subsetIntro, subsetElim('X₀ ⊆ A', 'x₀ ∈ X₀'), subsetElim('A ⊆ B', 'x₀ ∈ A'), close],
-            }],
-            [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsIntro('A'), andIntro([close], [close])] }],
-            [
-                { label: 'קדימה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), forward('A ∈ F → x₀ ∈ A', 'A ∈ F'), close] },
-                { label: 'אחורה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), backward('A ∈ F → x₀ ∈ A'), close] },
-            ],
-            [{
-                label: 'פתרון',
                 steps: [setEq(
                     [subsetIntro, unfold('x₀ ∈ (A ∪ B)ᶜ'), unfold('x₀ ∈ Aᶜ ∩ Bᶜ'), andIntro(
                         [unfold('x₀ ∈ Aᶜ'), notIntro, notElim('¬x₀ ∈ A ∪ B'), unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close],
@@ -220,7 +211,29 @@ export const HANDWRITTEN_UNITS = [
     },
     {
         unit: 6,
-        world: 'יחידה 6 - שוויון ואינדוקציה',
+        world: 'יחידה 6 - קבוצות של קבוצות',
+        levels: [
+            [{ label: 'פתרון', steps: [unfold('A ∈ 𝒫 (A ∪ B)'), subsetIntro, unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [assume, subsetIntro, unfold('X₀ ∈ 𝒫 A'), unfold('X₀ ∈ 𝒫 B'), subsetIntro, subsetElim('X₀ ⊆ A', 'x₀ ∈ X₀'), subsetElim('A ⊆ B', 'x₀ ∈ A'), close],
+            }],
+            [{ label: 'פתרון', steps: [unfold('∅ ∈ 𝒫 A'), subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close] }],
+            [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsIntro('A'), andIntro([close], [close])] }],
+            [
+                { label: 'קדימה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), forward('A ∈ F → x₀ ∈ A', 'A ∈ F'), close] },
+                { label: 'אחורה', steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F'), forallElim('∀ (S : Set obj), S ∈ F → x₀ ∈ S', 'A'), backward('A ∈ F → x₀ ∈ A'), close] },
+            ],
+            [{
+                label: 'פתרון',
+                steps: [assume, subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsElim('∃ S, S ∈ F ∧ x₀ ∈ S'), andElim('S₀ ∈ F ∧ x₀ ∈ S₀'),
+                    forallElim('∀ (S : Set obj), S ∈ F → S ⊆ A', 'S₀'), forward('S₀ ∈ F → S₀ ⊆ A', 'S₀ ∈ F'), subsetElim('S₀ ⊆ A', 'x₀ ∈ S₀'), close],
+            }],
+        ],
+    },
+    {
+        unit: 7,
+        world: 'יחידה 7 - שוויון ואינדוקציה',
         levels: [
             [{ label: 'פתרון', steps: [rfl] }],
             [{ label: 'פתרון', steps: [rewrite('y = x + 7', 'FORWARD'), rfl] }],
