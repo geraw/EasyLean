@@ -194,24 +194,24 @@ describe('the moves of unit 3', () => {
 });
 
 describe('the moves of unit 4', () => {
-    it('name new objects after the quantified variable, and find assumptions by statement', () => {
+    it('name new objects after the quantified variable with a subscript, and find assumptions by statement', () => {
         const level = unit4Levels[8];
         const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, HANDWRITTEN_UNITS[4].levels[8][0].steps);
         forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
-        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y'], goal: '∃ x, R x y' });
+        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y₀'], goal: '∃ x, R x y₀' });
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  refine easylean_imp_intro (fun _ => ?_)',
-            '  refine easylean_forall_intro (fun y => ?_)',
-            '  refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x _ => ?_)',
-            '  have := easylean_forall_elim ‹∀ y, R x y› (y)',
-            '  apply Exists.intro (x)',
+            '  refine easylean_forall_intro (fun y₀ => ?_)',
+            '  refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x₀ _ => ?_)',
+            '  have := easylean_forall_elim ‹∀ y, R x₀ y› (y₀)',
+            '  apply Exists.intro (x₀)',
             '  assumption',
         ].join('\n'));
-        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y ∃x R(x,y) יהי y עצם שרירותי, ונוכיח ∃x R(x,y)');
-        expect(phraseOf(existsElim)).toBe('יהי x עצם כך ש־ ∀y R(x,y)');
+        expect(phraseOf(forallIntro)).toBe('כדי להוכיח ∀y ∃x R(x,y) יהי y₀ עצם שרירותי, ונוכיח ∃x R(x,y₀)');
+        expect(phraseOf(existsElim)).toBe('יהי x₀ עצם כך ש־ ∀y R(x₀,y)');
     });
 
-    it('substitute the chosen object, and pick a fresh name when the variable is taken', () => {
+    it('substitute the chosen object, and pick the next subscript when a name is taken', () => {
         const { blocks: [forallElim, existsIntro, existsElim] } = solved(unit4Levels[6], [
             ['hw_forall_elim', { FORALL: '∀ (x : obj), P x → Q x', TERM: 'a' }], ['hw_exists_intro', { TERM: 'a' }], ['hw_exists_elim', { EXISTS: '∃ x, P x' }],
         ]);
@@ -219,7 +219,7 @@ describe('the moves of unit 4', () => {
         existsIntro.setStateBefore({ assumptions: [], objects: ['a'], goal: '∃ x, Q x' });
         expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER')]).toEqual(['כדי להוכיח ∃x Q(x) נבחר את העצם', 'ונוכיח Q(a)']);
         expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
-        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x'], goal: '∃ x, Q x' });
+        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
         expect(phraseOf(existsElim)).toBe('יהי x₁ עצם כך ש־ P(x₁)');
     });
 });

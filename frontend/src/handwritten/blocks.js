@@ -136,7 +136,7 @@ const asImplication = (formula) => {
 const negation = (formula) => `¬(${formula})`;
 
 // The name of a new object (∀ introduction, ∃ elimination): the quantified
-// variable's, unless an object in hand already has it (see freshName).
+// variable's with a subscript, x₀ (see freshName).
 const newObjectName = (block, variable) => freshName(variable, block.stateBefore?.objects || []);
 
 const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
@@ -610,7 +610,7 @@ leanGenerator.forBlock['hw_forall_elim'] = (block) =>
 
 leanGenerator.forBlock['hw_forall_intro'] = (block) => {
     const quantified = splitQuantifier(block.stateBefore?.goal, '∀');
-    return `  refine easylean_forall_intro (fun ${quantified ? newObjectName(block, quantified.variable) : 'x'} => ?_)\n`;
+    return `  refine easylean_forall_intro (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} => ?_)\n`;
 };
 
 leanGenerator.forBlock['hw_exists_intro'] = (block) => `  apply Exists.intro (${block.getFieldValue('TERM')})\n`;
@@ -618,7 +618,7 @@ leanGenerator.forBlock['hw_exists_intro'] = (block) => `  apply Exists.intro (${
 leanGenerator.forBlock['hw_exists_elim'] = (block) => {
     const exists = block.getFieldValue('EXISTS');
     const quantified = splitQuantifier(exists, '∃');
-    return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x'} _ => ?_)\n`;
+    return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
