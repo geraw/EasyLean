@@ -669,9 +669,10 @@ export const defineMoveBlocks = () => {
         updateText() {
             const statement = this.getFieldValue('STATEMENT');
             const definition = filled(statement) && unfoldMembership(statement);
-            setPhrase(this, [definition ? `לפי הגדרת ${definition.name},` : 'לפי ההגדרה,'], 'NAME');
+            const onGoal = definition && isGoal(this, statement);
+            setPhrase(this, [definition ? `לפי הגדרת ${definition.name},` : 'לפי ההגדרה,', ...(onGoal ? ['כדי להוכיח'] : [])], 'NAME');
             if (!definition) setPhrase(this, ['פירושו מה שההגדרה אומרת']);
-            else if (isGoal(this, statement)) setPhrase(this, ['כלומר, נוכיח', { formula: definition.means }]);
+            else if (onGoal) setPhrase(this, ['די להוכיח', { formula: definition.means }]);
             else setPhrase(this, ['פירושו', { formula: definition.means }]);
         },
     };

@@ -95,6 +95,15 @@ describe('formatProofGoal with the functions of unit 7', () => {
     });
 });
 
+describe('formatProofGoal with power sets', () => {
+    it('writes the set in parentheses, also a single one', () => {
+        expect(formatProofGoal('X₀ ∈ 𝒫 A')).toBe('X₀ ∈ 𝒫(A)');
+        expect(formatProofGoal('A ∈ 𝒫 (A ∪ B)')).toBe('A ∈ 𝒫(A ∪ B)');
+        expect(formatProofGoal('A ⊆ B → 𝒫 A ⊆ 𝒫 B')).toBe('(A ⊆ B → 𝒫(A) ⊆ 𝒫(B))');
+        expect(formatProofGoal('S ∈ 𝒫 𝒫 A')).toBe('S ∈ 𝒫(𝒫(A))');
+    });
+});
+
 describe('splitImplication', () => {
     it.each([
         ['P → Q', ['P', 'Q']],

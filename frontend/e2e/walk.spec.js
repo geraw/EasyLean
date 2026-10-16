@@ -409,7 +409,7 @@ const UNIT5 = [
 // Each level of unit 6, as its hints describe it.
 const UNIT6 = [
     async (page, log) => {
-        const u = await unfold(page, { goal: true }, 'A ∈ 𝒫 (A ∪ B)', log);
+        const u = await unfold(page, { goal: true }, 'A ∈ 𝒫(A ∪ B)', log);
         const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
         const g = await unfold(page, { after: i }, 'x₀ ∈ A ∪ B', log);
         const o = await drag(page, 'or_intro', { after: g }); await choose(page, o, 'SIDE', 'x₀ ∈ A');
@@ -418,15 +418,15 @@ const UNIT6 = [
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const i1 = await drag(page, 'subset_intro', { after: a }); log(await phrase(page, i1));
-        const u1 = await unfold(page, { after: i1 }, 'X₀ ∈ 𝒫 A', log);
-        const u2 = await unfold(page, { after: u1 }, 'X₀ ∈ 𝒫 B', log);
+        const u1 = await unfold(page, { after: i1 }, 'X₀ ∈ 𝒫(A)', log);
+        const u2 = await unfold(page, { after: u1 }, 'X₀ ∈ 𝒫(B)', log);
         const i2 = await drag(page, 'subset_intro', { after: u2 }); log(await phrase(page, i2));
         const e1 = await drag(page, 'subset_elim', { after: i2 }); await choose(page, e1, 'SUBSET', 'X₀ ⊆ A'); await choose(page, e1, 'MEMBER', 'x₀ ∈ X₀');
         const e2 = await drag(page, 'subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'A ⊆ B'); await choose(page, e2, 'MEMBER', 'x₀ ∈ A');
         await drag(page, 'exact', { after: e2 });
     },
     async (page, log) => {
-        const u = await unfold(page, { goal: true }, '∅ ∈ 𝒫 A', log);
+        const u = await unfold(page, { goal: true }, '∅ ∈ 𝒫(A)', log);
         const i = await drag(page, 'subset_intro', { after: u });
         const e = await unfold(page, { after: i }, 'x₀ ∈ ∅', log);
         const x = await drag(page, 'exfalso', { after: e });

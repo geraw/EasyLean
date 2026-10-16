@@ -245,7 +245,7 @@ describe('the moves of unit 5', () => {
         expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
         expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x₀ ∈ A ∧ x₀ ∈ (B ∪ C))']);
         unfoldGoal.setStateBefore({ assumptions: [], objects: ['x₀'], sets: [], goal: 'x₀ ∈ (A ∪ B)ᶜ' });
-        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת המשלים,', 'כלומר, נוכיח ¬x₀ ∈ (A ∪ B)']);
+        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת המשלים, כדי להוכיח', 'די להוכיח ¬x₀ ∈ (A ∪ B)']);
         // The menu offers only membership statements with a definition to use, the goal first.
         unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x₀ ∈ A', 'x₀ ∈ A ∪ B'], objects: ['x₀'], sets: [], goal: 'x₀ ∈ Bᶜ' });
         expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x₀ ∈ (A ∪ B)ᶜ', 'x₀ ∈ Bᶜ', 'x₀ ∈ A ∪ B', '__write_own__']);
@@ -266,7 +266,7 @@ describe('the moves of unit 5', () => {
     it('name an element of a power set as a set', () => {
         const { blocks: [subsetIntro] } = solved(unit6Levels[1], [['subset_intro']]);
         subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
-        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫 A ⊆ 𝒫 B יהי X₀ ∈ 𝒫 A ונוכיח X₀ ∈ 𝒫 B');
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X₀ ∈ 𝒫(A) ונוכיח X₀ ∈ 𝒫(B)');
     });
 });
 

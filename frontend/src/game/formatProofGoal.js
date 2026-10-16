@@ -64,6 +64,36 @@ const operand = (formula) => (isQuantified(formula) ? `(${formula})` : formula);
 // know which connective binds tighter: `P ∧ Q → R` is `((P ∧ Q) → R)`.
 // Quantifiers and predicates use the course's notation: Lean's
 // `∀ (x : α), R x y` is `∀x R(x,y)`.
+// A power set is written as a function of its set: `𝒫 A` is `𝒫(A)`, and
+// `𝒫 (A ∪ B)` is `𝒫(A ∪ B)`.
+const POWER_SET = '𝒫 ';
+const powerSetArgument = (text, start) => {
+    if (text.startsWith(POWER_SET, start)) {
+        const inner = powerSetArgument(text, start + POWER_SET.length);
+        return { text: `𝒫(${inner.text})`, end: inner.end };
+    }
+    if (text[start] === '(') {
+        let depth = 0;
+        for (let index = start; index < text.length; index += 1) {
+            if (text[index] === '(') depth += 1;
+            if (text[index] === ')') depth -= 1;
+            if (depth === 0) return { text: writePowerSets(text.slice(start + 1, index)), end: index + 1 };
+        }
+    }
+    const atom = text.slice(start).match(/^[\p{L}\p{N}_₀-₉']+/u)?.[0] || '';
+    return { text: atom, end: start + atom.length };
+};
+const writePowerSets = (text) => {
+    let result = '';
+    let index = 0;
+    for (let found = text.indexOf(POWER_SET); found !== -1; found = text.indexOf(POWER_SET, index)) {
+        const argument = powerSetArgument(text, found + POWER_SET.length);
+        result += `${text.slice(index, found)}𝒫(${argument.text})`;
+        index = argument.end;
+    }
+    return result + text.slice(index);
+};
+
 export const formatProofGoal = (text) => {
     const normalized = stripOuterParentheses(text || '');
     for (const [symbol, spellings] of CONNECTIVES) {
@@ -93,7 +123,7 @@ export const formatProofGoal = (text) => {
     }
     // The functions of unit 7 inside an equation: `double (k + 1)` is
     // `double(k + 1)`; multiplication is written with a dot.
-    return normalized.replace(/ \* /g, ' · ').replace(/\b(double|sumTo|oddSum) (\([^()]*\)|[\p{L}\p{N}_]+)/gu,
+    return writePowerSets(normalized).replace(/ \* /g, ' · ').replace(/\b(double|sumTo|oddSum) (\([^()]*\)|[\p{L}\p{N}_]+)/gu,
         (_, name, argument) => `${name}(${argument.replace(/^\((.*)\)$/, '$1')})`);
 };
 
@@ -188,7 +218,7 @@ const mainSetOperation = (text) => {
     }
     if (set.endsWith('ᶜ')) return { operation: 'ᶜ', operands: [set.slice(0, -1).trim()] };
     if (set === '∅') return { operation: '∅', operands: [] };
-    const prefix = ['𝒫', '⋃₀', '⋂₀'].find((operation) => set.startsWith(`${operation} `));
+    const prefix = ['𝒫', '⋃₀', '⋂₀'].find((operation) => set.startsWith(`${operation} `) || set.startsWith(`${operation}(`));
     return prefix ? { operation: prefix, operands: [set.slice(prefix.length).trim()] } : null;
 };
 
