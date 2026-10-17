@@ -3,6 +3,7 @@ import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
 import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, substitute, unfoldMembership } from '../game/formatProofGoal';
 import { isolateFormulas, isolateHebrew } from '../game/bidi';
+import { hasNoVariables, unfoldableParts } from '../game/terms';
 
 // The moves of the course: they read like a proof written by hand ("נניח P
 // ונוכיח Q"), and assumptions have no names. A move points to
@@ -169,8 +170,7 @@ export const LAWS = [
     { value: 'easylean_not_or', left: '¬(A ∨ B)', right: '(¬A ∧ ¬B)', sides: [negated('∨'), both('∧', true, true)] },
     { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)', sides: [negated('∧'), both('∨', true, true)] },
     { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)', sides: [both('→', false, false), both('∨', true, false)] },
-    // Replacing every implication by its contrapositive would never end.
-    { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed], all: false },
+    { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed] },
     {
         value: 'easylean_not_exists', left: '¬∃x (P(x))', right: '∀x (¬P(x))', sides: [quantified('∃', true), quantified('∀', false)],
         statement: (x) => `(¬∃ ${x}, p ${x}) ↔ ∀ ${x}, ¬p ${x}`,
@@ -245,22 +245,18 @@ class FieldLawDirection extends Blockly.FieldDropdown {
             const target = block.getFieldValue('TARGET');
             const formula = target === GOAL ? block.stateBefore?.goal : filled(target) && target;
             const sides = (backward) => (backward ? [law.right, law.left] : [law.left, law.right]).map(isolateFormulas);
-            // The first part of that form, or, when there are several, all of them.
-            const options = (backward) => {
+            // The first part of that form, as Lean finds it.
+            const option = (backward) => {
                 const instances = lawInstances(law, backward, formula);
                 const [from, to] = instances.length ? instances[0].map(shown) : sides(backward);
-                const direction = backward ? 'BACKWARD' : 'FORWARD';
-                const first = [isolateHebrew(`את ${from} ב־${to}`), direction];
-                if (instances.length < 2 || law.all === false) return [first];
-                const [form, replacement] = sides(backward);
-                return [first, [isolateHebrew(`את כל הביטויים מהצורה ${form} ב־${replacement}`), `${direction}_ALL`]];
+                return [isolateHebrew(`את ${from} ב־${to}`), backward ? 'BACKWARD' : 'FORWARD'];
             };
-            return law.backward === false ? options(false) : [...options(false), ...options(true)];
+            return law.backward === false ? [option(false)] : [option(false), option(true)];
         });
     }
 
     doClassValidation_(value) {
-        return ['FORWARD', 'BACKWARD', 'FORWARD_ALL', 'BACKWARD_ALL'].includes(value) ? value : null;
+        return ['FORWARD', 'BACKWARD'].includes(value) ? value : null;
     }
 
     refreshText() {
@@ -335,6 +331,37 @@ const FUNCTIONS = [
 ];
 const functionOf = (value) => FUNCTIONS.find(([, candidate]) => candidate === value);
 const structureFunctions = () => FUNCTIONS.filter(([, , , structure]) => structure === levelStructure.replace(/5$/, ''));
+
+// Which part of the chosen place to unfold the definition in: a menu of the
+// parts it applies to there (see game/terms.js), one at a time, so that the
+// proof says what it rewrites. A new block takes the first part, in the order
+// they are read (which is also where Lean would unfold first).
+class FieldPart extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const parts = this.getSourceBlock()?.unfoldableParts?.() || [];
+            const options = parts.map((part) => [shown(part), part]);
+            const current = this.getValue() || PLACEHOLDER;
+            if (!parts.includes(current)) options.unshift([current === PLACEHOLDER ? PLACEHOLDER : shown(current), current]);
+            return options;
+        });
+    }
+
+    doClassValidation_(value) {
+        return typeof value === 'string' && value.trim() ? value : null;
+    }
+
+    // Shows the chosen part as it is now; a block without one takes the first.
+    refreshText() {
+        const parts = this.getSourceBlock()?.unfoldableParts?.() || [];
+        if (this.getValue() === PLACEHOLDER && parts.length) {
+            this.setValue(parts[0]);
+            return;
+        }
+        this.selectedOption = this.getOptions(false).find(([, value]) => value === this.getValue()) || this.selectedOption;
+        this.forceRerender();
+    }
+}
 
 // The function whose definition to unfold: a menu of those of the level's structure.
 class FieldFunction extends Blockly.FieldDropdown {
@@ -1066,21 +1093,32 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Unfolding a definition, in the goal or in a statement in hand (whose
-    // result joins it).
+    // Unfolding a definition, in a chosen part of the goal or of a statement in
+    // hand (whose result joins it).
     Blockly.Blocks['unfold_function'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי הגדרת')
+                .appendField('נשתמש בהגדרת')
                 .appendField(new FieldFunction(), 'FUNCTION')
-                .appendField('נפתח את')
+                .appendField('כדי לשכתב את')
+                .appendField(new FieldPart(), 'PART');
+            this.appendDummyInput()
+                .appendField('בתוך')
                 .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
             appendResult(this);
-            move(this, 'פותח את ההגדרה של הפונקציה, במטרה או בטענה שבידינו: למשל double(n + 1) הופך ל־double(n) + 2, ו־leaves(node(l,r)) הופך ל־leaves(l) + leaves(r).');
+            move(this, 'משכתב לפי ההגדרה של הפונקציה חלק שהיא מופעלת בו, במטרה או בטענה שבידינו: למשל double(n + 1) הופך ל־double(n) + 2, ו־leaves(node(l,r)) הופך ל־leaves(l) + leaves(r).');
             this.updateText();
         },
         ...followResult,
+        // The parts the chosen definition applies to in the chosen place.
+        unfoldableParts() {
+            const value = this.getFieldValue('FUNCTION');
+            const target = this.getFieldValue('TARGET');
+            const statement = !target || target === GOAL ? this.stateBefore?.goal : target;
+            return filled(value) && statement ? unfoldableParts(value, statement) : [];
+        },
         updateText() {
+            this.getField('PART')?.refreshText();
             setResult(this, this.getFieldValue('TARGET'));
         },
     };
@@ -1238,15 +1276,14 @@ leanGenerator.forBlock['unfold'] = (block) => {
 };
 
 // Unit 5. `rewrite` replaces the first part of the form of the law's side;
-// inside a quantifier, which `rewrite` cannot reach, `simp only` does, and it
-// replaces all of them, as it does when all are chosen. A law about a
+// inside a quantifier, which `rewrite` cannot reach, `simp only` does (and it
+// replaces all of them; in the levels there is one). A law about a
 // quantifier is restated, for this move only, with the formula's bound
 // variable, so that the result keeps its names.
 leanGenerator.forBlock['replace'] = (block) => {
     const law = lawOf(block.getFieldValue('LAW'));
     if (!law) return '  skip\n';
-    const direction = block.getFieldValue('DIRECTION');
-    const backward = direction.startsWith('BACKWARD');
+    const backward = block.getFieldValue('DIRECTION') === 'BACKWARD';
     const target = block.getFieldValue('TARGET');
     const onGoal = target === GOAL;
     const text = onGoal ? block.stateBefore?.goal || '' : target;
@@ -1263,8 +1300,7 @@ leanGenerator.forBlock['replace'] = (block) => {
     }
     const rule = `${backward ? '← ' : ''}${name}`;
     const side = backward ? law.right : law.left;
-    const first = direction.endsWith('_ALL') ? '' : `rewrite (occs := .pos [1]) [${rule}]${at} | `;
-    return `  ${copy}${restated}(first | ${first}simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
+    return `  ${copy}${restated}(first | rewrite (occs := .pos [1]) [${rule}]${at} | simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
 };
 
 // Unit 8. `rewrite`, not `rw`, which would also try to close the goal; in a
@@ -1282,15 +1318,24 @@ leanGenerator.forBlock['rewrite'] = (block) => {
 
 leanGenerator.forBlock['induction'] = (block) => `  induction ${block.getFieldValue('VARIABLE')} with\n`;
 
-// In a statement in hand, on a copy of it, as `rewrite` (unit 8) does.
+// In a statement in hand, on a copy of it, as `rewrite` (unit 8) does. Lean
+// unfolds the chosen part in an equation of its own (easylean_eq), whose right
+// side it finds, and replaces the part by it. A part without variables is the
+// base case of its definition, which `rewrite` tries first (and the equation
+// could not tell its types), so it is unfolded directly; so is the first part,
+// until one is chosen (the proof state is not known yet).
 leanGenerator.forBlock['unfold_function'] = (block) => {
-    const lemmas = functionOf(block.getFieldValue('FUNCTION'))?.[2];
+    const value = block.getFieldValue('FUNCTION');
+    const lemmas = functionOf(value)?.[2];
     if (!lemmas) return '  skip\n';
     const target = block.getFieldValue('TARGET');
     const onGoal = !target || target === GOAL;
     const at = onGoal ? '' : ' at this';
     const copy = onGoal ? '' : `  have := ‹${target}›\n`;
-    return `${copy}  ${lemmas.length === 1 ? `rewrite [${lemmas[0]}]${at}` : `first ${lemmas.map((lemma) => `| rewrite [${lemma}]${at}`).join(' ')}`}\n`;
+    const unfold = (where) => (lemmas.length === 1 ? `rewrite [${lemmas[0]}]${where}` : `first ${lemmas.map((lemma) => `| rewrite [${lemma}]${where}`).join(' ')}`);
+    const part = block.getFieldValue('PART');
+    if (!filled(part) || hasNoVariables(part)) return `${copy}  ${unfold(at)}\n`;
+    return `${copy}  have easylean_eq : ${part} = _ := (by (${unfold('')}); rfl)\n  rewrite [easylean_eq]${at}; clear easylean_eq\n`;
 };
 
 // From the goal alone, with its own message when that is not enough (see leanErrors.js).

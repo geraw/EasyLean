@@ -32,6 +32,8 @@ const algebra = ['algebra'];
 const algebraHyps = ['algebra_hyps'];
 const rewrite = (equation, direction, target = '__goal__') => ['rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
 const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
+// One part only (in Lean's spelling, as the menu offers it).
+const unfoldPart = (name, part) => ['unfold_function', { FUNCTION: name, PART: part }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
 const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
@@ -307,7 +309,7 @@ export const UNITS = [
                 label: 'פתרון',
                 steps: [inductionOn('l', {
                     NIL: [unfoldFunction('append'), unfoldFunction('length'), calc],
-                    CONS: [unfoldFunction('append'), unfoldFunction('length'), unfoldFunction('length'),
+                    CONS: [unfoldFunction('append'), unfoldPart('length', 'List.length (a :: (l ++ m))'), unfoldPart('length', 'List.length (a :: l)'),
                         rewrite('List.length (l ++ m) = List.length l + List.length m', 'FORWARD'), calc],
                 })],
             }],
@@ -315,7 +317,8 @@ export const UNITS = [
                 label: 'פתרון',
                 steps: [inductionOn('l', {
                     NIL: [rfl],
-                    CONS: [unfoldFunction('append'), unfoldFunction('append'), unfoldFunction('append'), rewrite('l ++ (m ++ k) = l ++ m ++ k', 'FORWARD'), rfl],
+                    CONS: [unfoldPart('append', '(a :: l) ++ (m ++ k)'), unfoldPart('append', '(a :: l) ++ m'), unfoldPart('append', '(a :: (l ++ m)) ++ k'),
+                        rewrite('l ++ (m ++ k) = l ++ m ++ k', 'FORWARD'), rfl],
                 })],
             }],
             [{
@@ -336,7 +339,8 @@ export const UNITS = [
                 label: 'פתרון',
                 steps: [inductionOn('t', {
                     LEAF: [rfl],
-                    NODE: [unfoldFunction('mirror'), unfoldFunction('mirror'), rewrite('mirror (mirror l) = l', 'FORWARD'), rewrite('mirror (mirror r) = r', 'FORWARD'), rfl],
+                    NODE: [unfoldPart('mirror', 'mirror (node l r)'), unfoldPart('mirror', 'mirror (node (mirror r) (mirror l))'),
+                        rewrite('mirror (mirror l) = l', 'FORWARD'), rewrite('mirror (mirror r) = r', 'FORWARD'), rfl],
                 })],
             }],
             [{

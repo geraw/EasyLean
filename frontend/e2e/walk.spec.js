@@ -569,9 +569,11 @@ const rewrite = async (page, where, equation, direction, target, log) => {
     log(await phrase(page, r));
     return r;
 };
-const unfoldFunction = async (page, where, name) => {
+// Unfolds a definition, in all its parts, or in the part chosen by how the menu shows it.
+const unfoldFunction = async (page, where, name, part) => {
     const u = await drag(page, 'unfold_function', where);
     await choose(page, u, 'FUNCTION', name);
+    if (part) await choose(page, u, 'PART', part);
     return u;
 };
 const induction = async (page, log) => {
@@ -658,10 +660,10 @@ const inductionOn = async (page, variable, log) => {
     log(await phrase(page, i));
     return i;
 };
-// Unfolds the given functions, one after the other, at the start of a part.
+// Unfolds the given functions (or [function, part]), one after the other, at the start of a part.
 const unfoldAll = async (page, where, names) => {
     let last = null;
-    for (const name of names) last = await unfoldFunction(page, last ? { after: last } : where, name);
+    for (const name of names) last = await unfoldFunction(page, last ? { after: last } : where, ...[name].flat());
     return last;
 };
 const UNIT9 = [
@@ -675,14 +677,14 @@ const UNIT9 = [
     async (page, log) => {
         const i = await inductionOn(page, 'l', log);
         await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NIL' }, ['++', 'length']) });
-        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', 'length', 'length']);
+        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', ['length', 'length(a :: (l ++ m))'], ['length', 'length(a :: l)']]);
         const r = await rewrite(page, { after: u }, 'length(l ++ m) = length(l) + length(m)', 'את length(l ++ m) ב־length(l) + length(m)', 'המטרה', log);
         await drag(page, 'calc', { after: r });
     },
     async (page, log) => {
         const i = await inductionOn(page, 'l', log);
         await drag(page, 'rfl', { into: i, input: 'NIL' });
-        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', '++', '++']);
+        const u = await unfoldAll(page, { into: i, input: 'CONS' }, [['++', '(a :: l) ++ (m ++ k)'], ['++', '(a :: l) ++ m'], ['++', '(a :: (l ++ m)) ++ k']]);
         const r = await rewrite(page, { after: u }, 'l ++ (m ++ k) = (l ++ m) ++ k', 'את l ++ (m ++ k) ב־(l ++ m) ++ k', 'המטרה', log);
         await drag(page, 'rfl', { after: r });
     },
@@ -702,7 +704,7 @@ const UNIT9 = [
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
         await drag(page, 'rfl', { into: i, input: 'LEAF' });
-        const u = await unfoldAll(page, { into: i, input: 'NODE' }, ['mirror', 'mirror']);
+        const u = await unfoldAll(page, { into: i, input: 'NODE' }, [['mirror', 'mirror(node(l,r))'], ['mirror', 'mirror(node(mirror(r),mirror(l)))']]);
         const r1 = await rewrite(page, { after: u }, 'mirror(mirror(l)) = l', 'את mirror(mirror(l)) ב־l', 'המטרה', log);
         const r2 = await rewrite(page, { after: r1 }, 'mirror(mirror(r)) = r', 'את mirror(mirror(r)) ב־r', 'המטרה', log);
         await drag(page, 'rfl', { after: r2 });

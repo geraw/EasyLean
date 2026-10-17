@@ -266,13 +266,6 @@ describe('the moves of unit 5', () => {
         expect(options(second, 'DIRECTION')).toEqual([['את ¬¬Q ב־Q', 'FORWARD']]);
         setLevelLaws([]);
     });
-
-    it('offer to replace all the parts of the form, when there are several', () => {
-        const { blocks: [replace] } = solved(unit5Levels[8], [['replace', { LAW: 'easylean_not_not', TARGET: '¬¬P ∧ (Q ∨ ¬¬¬Q)' }]]);
-        expect(options(replace, 'DIRECTION')).toEqual([['את ¬¬P ב־P', 'FORWARD'], ['את כל הביטויים מהצורה ¬¬A ב־A', 'FORWARD_ALL']]);
-        replace.setFieldValue('FORWARD_ALL', 'DIRECTION');
-        expect(leanGenerator.blockToCode(replace)).toBe('  have := ‹¬¬P ∧ (Q ∨ ¬¬¬Q)›; (first | simp only [easylean_not_not] at this | fail "easylean: no part of the form ¬¬A")\n');
-    });
 });
 
 describe('the moves of unit 6', () => {
@@ -386,6 +379,9 @@ describe('the moves of unit 9', () => {
         // In a statement in hand, on a copy of it, which joins the assumptions.
         expect(leanGenerator.blockToCode(inStructure(unit9Levels[3], [['unfold_function', { FUNCTION: 'leaves', TARGET: 'leaves t = 3' }]]).blocks[0]))
             .toBe('  have := ‹leaves t = 3›\n  rewrite [leaves] at this\n');
+        // One part: Lean finds what it unfolds to, in an equation of its own.
+        expect(leanGenerator.blockToCode(inStructure(unit9Levels[5], [['unfold_function', { FUNCTION: 'mirror', PART: 'mirror (node l r)' }]]).blocks[0]))
+            .toBe('  have easylean_eq : mirror (node l r) = _ := (by (rewrite [mirror]); rfl)\n  rewrite [easylean_eq]; clear easylean_eq\n');
     });
 });
 

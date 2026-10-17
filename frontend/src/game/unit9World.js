@@ -14,7 +14,7 @@ export const unit9WorldName = 'יחידה 9 - אינדוקציה מבנית';
 
 // The moves as the toolbox shows them, before they are placed.
 const INDUCTION_BLOCK = '"נוכיח באינדוקציה על ?"';
-const UNFOLD_BLOCK = '"לפי הגדרת ? נפתח את המטרה"';
+const UNFOLD_BLOCK = '"נשתמש בהגדרת ? כדי לשכתב ..."';
 const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
 const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
 const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
@@ -101,7 +101,7 @@ export const unit9Levels = [
         hints: [
             'אינדוקציה על l.',
             `בבסיס: ${UNFOLD_BLOCK} עם ++, ואחריו אותו בלוק עם length, ולבסוף ${CALC_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם ++, ואחר כך פעמיים עם length: פעם בצד שמאל ופעם בצד ימין.`,
+            `בצעד: ${UNFOLD_BLOCK} עם ++, ואחר כך פעמיים עם length, ובכל פעם בחרו בו חלק אחד: קודם length(a :: (l ++ m)) בצד שמאל, ואחר כך length(a :: l) בצד ימין.`,
             `עכשיו ${REWRITE_BLOCK} עם הנחת האינדוקציה length(l ++ m) = length(l) + length(m), "את length(l ++ m) ב־length(l) + length(m)", במטרה. מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
         ],
         conclusion: 'length(l ++ m) = length(l) + length(m) לכל שתי רשימות. האינדוקציה הייתה על הרשימה שההגדרות "מפרקות", ו־m נשארה קבועה לאורך כל ההוכחה.',
@@ -123,7 +123,7 @@ export const unit9Levels = [
 בצעד פותחים את ההגדרה של ++ בכל מקום שבו a :: l עומדת משמאל לשרשור, עד שבשני הצדדים כתוב a :: ..., ואז מחליפים לפי הנחת האינדוקציה.`,
         hints: [
             `אינדוקציה על l. בבסיס: ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם ++, שלוש פעמים. כל פעם נפתח שרשור אחד שמתחיל ב־a :: l.`,
+            `בצעד: ${UNFOLD_BLOCK} עם ++, שלוש פעמים, ובכל פעם בחרו בו חלק אחד לשכתב: קודם (a :: l) ++ (m ++ k), אחר כך (a :: l) ++ m, ולבסוף (a :: (l ++ m)) ++ k.`,
             `עכשיו המטרה היא a :: (l ++ (m ++ k)) = a :: ((l ++ m) ++ k): ${REWRITE_BLOCK} עם הנחת האינדוקציה, "את l ++ (m ++ k) ב־(l ++ m) ++ k", במטרה, ולבסוף ${RFL_BLOCK}`,
         ],
         conclusion: 'השרשור אסוציאטיבי. בצעד פתחתם את ההגדרה שלוש פעמים, ורק אז הנחת האינדוקציה התאימה למה שנשאר להוכיח.',
@@ -193,7 +193,7 @@ export const unit9Levels = [
         newDefinitions: [mirror],
         hints: [
             `אינדוקציה על t. בבסיס: ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם mirror, פעמיים. עכשיו המטרה היא node(mirror(mirror(l)),mirror(mirror(r))) = node(l,r).`,
+            `בצעד: ${UNFOLD_BLOCK} עם mirror, פעמיים: קודם את mirror(node(l,r)), ואחר כך את mirror(node(mirror(r),mirror(l))). עכשיו המטרה היא node(mirror(mirror(l)),mirror(mirror(r))) = node(l,r).`,
             `${REWRITE_BLOCK} עם mirror(mirror(l)) = l, ואחריו עם mirror(mirror(r)) = r, ולבסוף ${RFL_BLOCK}`,
         ],
         conclusion: 'mirror(mirror(t)) = t לכל עץ. כל הנחת אינדוקציה החליפה את מה שקרה בילד אחד.',

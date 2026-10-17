@@ -284,7 +284,8 @@ const GameWorkspace = ({
             checked = source.code;
             try {
                 const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code });
-                if (moveStatesRequestRef.current !== requestId) return;
+                // A newer edit's request supersedes this one; the check's own (null) is never superseded.
+                if (requestId !== null && moveStatesRequestRef.current !== requestId) return;
                 applyMoveStates(workspace, readMoveStates(data.output || '', source));
             } catch {
                 return;
@@ -301,19 +302,18 @@ const GameWorkspace = ({
     }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint]);
 
     const runProof = async () => {
+        setStatus('running');
+        setOutput('מריץ בדיקה...');
+        // The moves' Lean may follow the states before them, and a move may
+        // fill a field from its state (the part a definition is unfolded in):
+        // bring those up to date first.
+        if (proofStateEndpoint) await settleMoveStates(null);
         const incomplete = findIncompleteMove(workspace);
         if (incomplete) {
             markBlockError(workspace, incomplete.id, incompleteMessage, { gentle: true });
             setStatus('error');
             setOutput(incompleteMessage);
             return;
-        }
-        setStatus('running');
-        setOutput('מריץ בדיקה...');
-        // The moves' Lean may follow the states before them: bring those up to date first.
-        if (proofStateEndpoint) {
-            moveStatesRequestRef.current += 1;
-            await settleMoveStates(moveStatesRequestRef.current);
         }
         // A hole rather than `sorry`: Lean only warns about `sorry`, so an empty proof would pass.
         const source = generateLeanSource();
