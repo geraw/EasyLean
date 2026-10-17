@@ -159,15 +159,19 @@ const writeApplications = (text) => {
     return result;
 };
 
-// Lists (unit 9): Lean prints `(l ++ m) ++ k` as `l ++ m ++ k`, and `(a :: l)
-// ++ m` as `a :: l ++ m`, by the precedence of ++ and ::. The display writes
-// the parentheses of every ++ that is inside another one, and of a :: inside
-// a ++, so that the grouping shows; and a whole side of an equation needs
-// none of its own: `x = (a :: l)` is `x = a :: l`.
+// Lists (unit 9) and sets (units 6-7): Lean prints `(l ++ m) ++ k` as
+// `l ++ m ++ k`, `(a :: l) ++ m` as `a :: l ++ m`, and `(A \ B) ∩ C` as
+// `A \ B ∩ C`, by the precedence of the operators. The display writes the
+// parentheses of every operation inside another one (but a :: inside a ::,
+// which reads one way only), so that the grouping shows; and a whole side of
+// an equation needs none of its own: `x = (a :: l)` is `x = a :: l`. The set
+// a membership is about is in parentheses when it is an operation:
+// `¬x ∈ A \ B` is `¬x ∈ (A \ B)`, which cannot be read as `(¬x ∈ A) \ B`.
 const RELATIONS = new Set(['=', '≠', '≤', '<', '≥', '>']);
-const LIST_OPERATORS = new Set(['++', '::']);
+const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'] };
+const isInfix = (word) => Object.prototype.hasOwnProperty.call(INFIX, word);
 // The words of a text at its top level: groups in parentheses or brackets are
-// one word each, with their insides written as lists too.
+// one word each, with their insides written the same way.
 const topLevelWords = (text) => {
     const words = [];
     let word = '';
@@ -188,37 +192,41 @@ const topLevelWords = (text) => {
     if (word) words.push(word);
     return words;
 };
-// A run atom (op atom)* of :: and ++, parsed by their precedence (:: binds
-// tighter, and to the right; ++ to the left), and written with parentheses.
+// A run atom (op atom)*, parsed by the operators' precedence, and written
+// with parentheses.
 const writeListRun = (words) => {
-    const consOf = (start) => (words[start + 1] === '::' ? { op: '::', left: words[start], right: consOf(start + 2) } : { atom: words[start] });
-    const size = (node) => (node.atom !== undefined ? 1 : size(node.right) + 2);
-    let index = 0;
-    let tree = consOf(0);
-    index = size(tree);
-    while (words[index] === '++') {
-        const right = consOf(index + 1);
-        tree = { op: '++', left: tree, right };
-        index += 1 + size(right);
-    }
-    const write = (node, inside) => {
-        if (node.atom !== undefined) return node.atom;
-        const text = node.op === '::' ? `${node.left} :: ${write(node.right, '::')}` : `${write(node.left, '++')} ++ ${write(node.right, '++')}`;
-        return inside === '++' ? `(${text})` : text;
+    let position = 0;
+    const parse = (minimum) => {
+        let left = { atom: words[position] };
+        position += 1;
+        while (isInfix(words[position]) && INFIX[words[position]][0] >= minimum) {
+            const op = words[position];
+            const [precedence, associativity] = INFIX[op];
+            position += 1;
+            left = { op, left, right: parse(associativity === 'left' ? precedence + 1 : precedence) };
+        }
+        return left;
     };
-    return write(tree, null);
+    const write = (node, parent, side) => {
+        if (node.atom !== undefined) return node.atom;
+        const text = `${write(node.left, node.op, 'left')} ${node.op} ${write(node.right, node.op, 'right')}`;
+        const chain = node.op === '::' && parent === '::' && side === 'right';
+        return parent && !chain ? `(${text})` : text;
+    };
+    return write(parse(0), null, null);
 };
 const enclosedGroup = (word) => word.startsWith('(') && closingOf(word, 0) === word.length - 1;
 const writeLists = (text) => {
-    if (!/\+\+|::/.test(text)) return text;
+    if (!/\+\+|::|∪|∩|\\/.test(text)) return text;
     const words = topLevelWords(text);
     if (!words) return text;
     const result = [];
     for (let index = 0; index < words.length;) {
-        if (LIST_OPERATORS.has(words[index + 1])) {
+        if (isInfix(words[index + 1])) {
             let end = index + 1;
-            while (LIST_OPERATORS.has(words[end])) end += 2;
-            result.push(writeListRun(words.slice(index, end)));
+            while (isInfix(words[end])) end += 2;
+            const run = writeListRun(words.slice(index, end));
+            result.push(words[index - 1] === '∈' ? `(${run})` : run);
             index = end;
         } else {
             const word = words[index];
@@ -335,7 +343,7 @@ const SET_OPERATIONS = {
     '\\': { lemma: 'easylean_mem_diff', name: 'ההפרש', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ¬${t} ∈ ${b}` },
     'ᶜ': { lemma: 'easylean_mem_compl', name: 'המשלים', means: (t, [a]) => `¬${t} ∈ ${a}` },
     '∅': { lemma: 'easylean_mem_empty', name: 'הקבוצה הריקה', means: () => 'False' },
-    '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${a}` },
+    '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
     '⋃₀': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
     '⋂₀': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
 };

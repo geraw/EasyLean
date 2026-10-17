@@ -234,21 +234,26 @@ export const UNITS = [
                         [orIntro('LEFT'), unfold('x₀ ∈ A ∩ B'), andIntro([close], [close])],
                         [orIntro('RIGHT'), unfold('x₀ ∈ A ∩ C'), andIntro([close], [close])])],
             }],
-            [{ label: 'פתרון', steps: [assume, subsetIntro, unfold('x₀ ∈ Bᶜ'), unfold('x₀ ∈ Aᶜ'), notIntro, subsetElim('A ⊆ B', 'x₀ ∈ A'), contradiction('x₀ ∈ B')] }],
             [{
                 label: 'פתרון',
-                steps: [subsetIntro, unfold('x₀ ∈ A \\ B'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B'), unfold('x₀ ∈ A ∩ Bᶜ'),
-                    andIntro([close], [unfold('x₀ ∈ Bᶜ'), close])],
+                steps: [assume, subsetIntro, unfold('x₀ ∈ C \\ B'), andElim('x₀ ∈ C ∧ ¬x₀ ∈ B'), unfold('x₀ ∈ C \\ A'),
+                    andIntro([close], [notIntro, subsetElim('A ⊆ B', 'x₀ ∈ A'), contradiction('x₀ ∈ B')])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x₀ ∈ A \\ (A \\ B)'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ A \\ B'), unfold('x₀ ∈ A ∩ B'),
+                    andIntro([close], [byContradiction, notElim('¬x₀ ∈ A \\ B'), unfold('x₀ ∈ A \\ B'), andIntro([close], [close])])],
             }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close] }],
             [{
                 label: 'פתרון',
                 steps: [setEq(
-                    [subsetIntro, unfold('x₀ ∈ (A ∪ B)ᶜ'), unfold('x₀ ∈ Aᶜ ∩ Bᶜ'), andIntro(
-                        [unfold('x₀ ∈ Aᶜ'), notIntro, notElim('¬x₀ ∈ A ∪ B'), unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close],
-                        [unfold('x₀ ∈ Bᶜ'), notIntro, notElim('¬x₀ ∈ A ∪ B'), unfold('x₀ ∈ A ∪ B'), orIntro('RIGHT'), close])],
-                    [subsetIntro, unfold('x₀ ∈ Aᶜ ∩ Bᶜ'), andElim('x₀ ∈ Aᶜ ∧ x₀ ∈ Bᶜ'), unfold('x₀ ∈ Aᶜ'), unfold('x₀ ∈ Bᶜ'), unfold('x₀ ∈ (A ∪ B)ᶜ'), notIntro,
-                        unfold('x₀ ∈ A ∪ B'), orCases('x₀ ∈ A ∨ x₀ ∈ B', [contradiction('x₀ ∈ A')], [contradiction('x₀ ∈ B')])])],
+                    [subsetIntro, unfold('x₀ ∈ A \\ (B ∪ C)'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B ∪ C'), unfold('x₀ ∈ (A \\ B) ∩ (A \\ C)'), andIntro(
+                        [unfold('x₀ ∈ A \\ B'), andIntro([close], [notIntro, notElim('¬x₀ ∈ B ∪ C'), unfold('x₀ ∈ B ∪ C'), orIntro('LEFT'), close])],
+                        [unfold('x₀ ∈ A \\ C'), andIntro([close], [notIntro, notElim('¬x₀ ∈ B ∪ C'), unfold('x₀ ∈ B ∪ C'), orIntro('RIGHT'), close])])],
+                    [subsetIntro, unfold('x₀ ∈ (A \\ B) ∩ (A \\ C)'), andElim('x₀ ∈ A \\ B ∧ x₀ ∈ A \\ C'), unfold('x₀ ∈ A \\ B'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B'),
+                        unfold('x₀ ∈ A \\ C'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ C'), unfold('x₀ ∈ A \\ (B ∪ C)'),
+                        andIntro([close], [notIntro, unfold('x₀ ∈ B ∪ C'), orCases('x₀ ∈ B ∨ x₀ ∈ C', [contradiction('x₀ ∈ B')], [contradiction('x₀ ∈ C')])])])],
             }],
         ],
     },

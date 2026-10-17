@@ -1070,7 +1070,7 @@ export const defineMoveBlocks = () => {
             appendPhrase(this, this.appendDummyInput('NAMEROW'), 'NAME')
                 .appendField(new FieldAssumption({ withGoal: true, filter: (formula) => Boolean(unfoldMembership(formula)) }), 'STATEMENT');
             appendPhrase(this);
-            move(this, 'לפי הגדרת הפעולה על קבוצות: למשל x₀ ∈ A ∩ B פירושו x₀ ∈ A ∧ x₀ ∈ B.');
+            move(this, 'לפי הגדרת הפעולה על קבוצות: למשל x₀ ∈ (A ∩ B) פירושו x₀ ∈ A ∧ x₀ ∈ B.');
             this.updateText();
         },
         ...followState,

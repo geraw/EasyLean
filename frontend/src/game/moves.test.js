@@ -275,7 +275,7 @@ describe('the moves of unit 6', () => {
             ['unfold', { STATEMENT: 'x₀ ∈ A ∩ (B ∪ C)' }], ['unfold', { STATEMENT: 'x₀ ∈ (A ∪ B)ᶜ' }],
         ]);
         subsetIntro.setStateBefore({ assumptions: [], objects: [], sets: ['A', 'B', 'C'], goal: 'A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C' });
-        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C יהי x₀ ∈ A ∩ (B ∪ C) ונוכיח x₀ ∈ A ∩ B ∪ A ∩ C');
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C) יהי x₀ ∈ (A ∩ (B ∪ C)) ונוכיח x₀ ∈ ((A ∩ B) ∪ (A ∩ C))');
         expect(phraseOf(subsetElim)).toBe('נובע x₀ ∈ B');
         setEq.setStateBefore({ assumptions: [], objects: [], sets: [], goal: 'A ∩ B = B ∩ A' });
         expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
