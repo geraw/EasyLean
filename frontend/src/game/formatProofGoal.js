@@ -168,7 +168,7 @@ const writeApplications = (text) => {
 // a membership is about is in parentheses when it is an operation:
 // `¬x ∈ A \ B` is `¬x ∈ (A \ B)`, which cannot be read as `(¬x ∈ A) \ B`.
 const RELATIONS = new Set(['=', '≠', '≤', '<', '≥', '>']);
-const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'] };
+const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∆': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'] };
 const isInfix = (word) => Object.prototype.hasOwnProperty.call(INFIX, word);
 // The words of a text at its top level: groups in parentheses or brackets are
 // one word each, with their insides written the same way.
@@ -217,7 +217,7 @@ const writeListRun = (words) => {
 };
 const enclosedGroup = (word) => word.startsWith('(') && closingOf(word, 0) === word.length - 1;
 const writeLists = (text) => {
-    if (!/\+\+|::|∪|∩|\\/.test(text)) return text;
+    if (!/\+\+|::|∪|∆|∩|\\/.test(text)) return text;
     const words = topLevelWords(text);
     if (!words) return text;
     const result = [];
@@ -341,6 +341,7 @@ const SET_OPERATIONS = {
     '∪': { lemma: 'easylean_mem_union', name: 'האיחוד', means: (t, [a, b]) => `${t} ∈ ${a} ∨ ${t} ∈ ${b}` },
     '∩': { lemma: 'easylean_mem_inter', name: 'החיתוך', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ${t} ∈ ${b}` },
     '\\': { lemma: 'easylean_mem_diff', name: 'ההפרש', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ¬${t} ∈ ${b}` },
+    '∆': { lemma: 'easylean_mem_symmDiff', name: 'ההפרש הסימטרי', means: (t, [a, b]) => `${t} ∈ ${a} \\ ${b} ∨ ${t} ∈ ${b} \\ ${a}` },
     'ᶜ': { lemma: 'easylean_mem_compl', name: 'המשלים', means: (t, [a]) => `¬${t} ∈ ${a}` },
     '∅': { lemma: 'easylean_mem_empty', name: 'הקבוצה הריקה', means: () => 'False' },
     '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
@@ -351,7 +352,7 @@ const SET_OPERATIONS = {
 // The main operation of a set expression and its operands, or null for a set's name.
 const mainSetOperation = (text) => {
     const set = stripOuterParentheses(text);
-    for (const operations of [['∪'], ['∩', '\\']]) {
+    for (const operations of [['∪', '∆'], ['∩', '\\']]) {
         const found = findLastTopLevel(set, operations);
         if (found) return { operation: found.operation, operands: [set.slice(0, found.index).trim(), set.slice(found.index + found.length).trim()] };
     }

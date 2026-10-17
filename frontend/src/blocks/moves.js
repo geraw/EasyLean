@@ -65,6 +65,25 @@ class FieldAssumption extends Blockly.FieldDropdown {
     }
 }
 
+// The statement of an intermediate claim (the move claim): a menu of claims
+// the level offers (level.claims, set when the level is loaded), some of them
+// not needed, and a last item for typing one in.
+let levelClaims = [];
+export const setLevelClaims = (claims = []) => { levelClaims = claims; };
+
+class FieldClaim extends FieldAssumption {
+    constructor() {
+        super();
+        this.menuGenerator_ = function () {
+            const current = this.getValue() || PLACEHOLDER;
+            const options = levelClaims.map((value) => [optionLabel(value), value]);
+            if (!levelClaims.includes(current)) options.unshift([optionLabel(current), current]);
+            return [...options, [WRITE_OWN_LABEL, WRITE_OWN]];
+        };
+        this.prompt = 'כתבו את טענת העזר, למשל A ⊆ B';
+    }
+}
+
 // Which side of an "or" to prove, shown by its statement once the goal before
 // the move is known (block.stateBefore). A new field starts unchosen.
 class FieldSide extends Blockly.FieldDropdown {
@@ -171,6 +190,7 @@ export const LAWS = [
     { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)', sides: [negated('∧'), both('∨', true, true)] },
     { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)', sides: [both('→', false, false), both('∨', true, false)] },
     { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed] },
+    { value: 'easylean_not_imp', left: '¬(A → B)', right: '(A ∧ ¬B)', sides: [negated('→'), both('∧', false, true)] },
     {
         value: 'easylean_not_exists', left: '¬∃x (P(x))', right: '∀x (¬P(x))', sides: [quantified('∃', true), quantified('∀', false)],
         statement: (x) => `(¬∃ ${x}, p ${x}) ↔ ∀ ${x}, ¬p ${x}`,
@@ -1141,6 +1161,26 @@ export const defineMoveBlocks = () => {
         },
     };
 
+    // An intermediate claim, as in a written proof ("נוכיח קודם ש..."): it is
+    // proved in a part of its own, and after it, it is in hand.
+    Blockly.Blocks['claim'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('נוכיח קודם את טענת העזר')
+                .appendField(new FieldClaim(), 'CLAIM');
+            appendPart(this, 'PROOF');
+            appendPhrase(this);
+            move(this, 'טענת עזר: מוכיחים קודם טענה שתעזור בהמשך, ומעכשיו היא בידינו.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const claim = this.getFieldValue('CLAIM');
+            setPartHeading(this, 'PROOF', filled(claim) ? ['נוכיח', { formula: claim }] : ['נוכיח אותה:']);
+            setPhrase(this, filled(claim) ? ['ומעכשיו', { formula: claim }, 'בידינו'] : ['ומעכשיו היא בידינו']);
+        },
+    };
+
     // Induction (units 8 and 9): a part for each way the level's structure is
     // built, a basis for each one without parts like it, and a step, with an
     // induction hypothesis for each part like it, for each of the others.
@@ -1407,6 +1447,9 @@ leanGenerator.forBlock['rewrite'] = (block) => {
 
 leanGenerator.forBlock['induction'] = (block) => `  induction ${block.getFieldValue('VARIABLE')} with\n`;
 
+// The claim is proved in its part (see leanBranches), and then it is in hand.
+leanGenerator.forBlock['claim'] = (block) => (filled(block.getFieldValue('CLAIM')) ? '' : '  skip\n');
+
 // In a statement in hand, on a copy of it, as `rewrite` (unit 8) does. Lean
 // unfolds the chosen part in an equation of its own (easylean_eq), whose right
 // side it finds, and replaces the part by it. A part without variables is the
@@ -1457,4 +1500,8 @@ Object.assign(leanBranches, {
     and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
     or_elim: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
+    claim: (block) => {
+        const claim = block.getFieldValue('CLAIM');
+        return filled(claim) ? [{ input: 'PROOF', header: `have : ${claim} := by` }] : [];
+    },
 });

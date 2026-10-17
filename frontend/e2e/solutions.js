@@ -38,6 +38,8 @@ const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
 const unfoldPart = (name, part) => ['unfold_function', { FUNCTION: name, PART: part }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
 const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
+// An intermediate claim, proved in its part, and then in hand.
+const claim = (statement, proof) => ['claim', { CLAIM: statement }, { PROOF: proof }];
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
 // Structural induction (unit 9): a part for each way the structure is built.
 const inductionOn = (variable, parts) => ['induction', { VARIABLE: variable }, parts];
@@ -195,6 +197,18 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, andIntro(
+                        [byContradiction, notElim('¬(P → Q)'), assume, exfalso, contradiction('P')],
+                        [notIntro, notElim('¬(P → Q)'), assume, close])],
+                    [assume, andElim('P ∧ ¬Q'), notIntro, forward('P → Q', 'P'), contradiction('Q')])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, replace('easylean_not_forall', 'FORWARD', '¬∀ x, P x → Q x'), replace('easylean_not_imp', 'FORWARD', '∃ x, ¬(P x → Q x)'), close],
+            }],
+            [{
+                label: 'פתרון',
                 steps: [assume, replace('easylean_imp_or', 'BACKWARD'), assume, notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
             }],
         ],
@@ -244,6 +258,16 @@ export const UNITS = [
                 steps: [subsetIntro, unfold('x₀ ∈ A \\ (A \\ B)'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ A \\ B'), unfold('x₀ ∈ A ∩ B'),
                     andIntro([close], [byContradiction, notElim('¬x₀ ∈ A \\ B'), unfold('x₀ ∈ A \\ B'), andIntro([close], [close])])],
             }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x₀ ∈ A ∆ B'), unfold('x₀ ∈ (A ∪ B) \\ (A ∩ B)'), orCases('x₀ ∈ A \\ B ∨ x₀ ∈ B \\ A',
+                    [unfold('x₀ ∈ A \\ B'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B'), andIntro(
+                        [unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close],
+                        [notIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), contradiction('x₀ ∈ B')])],
+                    [unfold('x₀ ∈ B \\ A'), andElim('x₀ ∈ B ∧ ¬x₀ ∈ A'), andIntro(
+                        [unfold('x₀ ∈ A ∪ B'), orIntro('RIGHT'), close],
+                        [notIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), contradiction('x₀ ∈ A')])])],
+            }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close] }],
             [{
                 label: 'פתרון',
@@ -265,6 +289,10 @@ export const UNITS = [
             [{
                 label: 'פתרון',
                 steps: [assume, subsetIntro, unfold('X₀ ∈ 𝒫 A'), unfold('X₀ ∈ 𝒫 B'), subsetIntro, subsetElim('X₀ ⊆ A', 'x₀ ∈ X₀'), subsetElim('A ⊆ B', 'x₀ ∈ A'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, claim('A ∈ 𝒫 A', [unfold('A ∈ 𝒫 A'), subsetIntro, close]), subsetElim('𝒫 A ⊆ 𝒫 B', 'A ∈ 𝒫 A'), unfold('A ∈ 𝒫 B'), close],
             }],
             [{ label: 'פתרון', steps: [unfold('∅ ∈ 𝒫 A'), subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close] }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsIntro('A'), andIntro([close], [close])] }],

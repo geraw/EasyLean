@@ -46,12 +46,13 @@ const setEqInfo = {
 const inter = { symbol: 'חיתוך', doc: 'x₀ ∈ (A ∩ B) פירושו x₀ ∈ A ∧ x₀ ∈ B.' };
 const union = { symbol: 'איחוד', doc: 'x₀ ∈ (A ∪ B) פירושו x₀ ∈ A ∨ x₀ ∈ B.' };
 const diff = { symbol: 'הפרש', doc: 'x₀ ∈ (A \\ B) פירושו x₀ ∈ A ∧ ¬x₀ ∈ B.' };
+const symmDiff = { symbol: 'הפרש סימטרי', doc: 'x₀ ∈ (A ∆ B) פירושו x₀ ∈ (A \\ B) ∨ x₀ ∈ (B \\ A): האיברים שבאחת הקבוצות ולא בשנייה.' };
 const empty = { symbol: 'הקבוצה הריקה', doc: 'x₀ ∈ ∅ פירושו סתירה (⊥): אין אף איבר בקבוצה הריקה.' };
 
 const level = (number, fields) => ({
     id: `unit6-${number}`,
     levelNumber: number,
-    totalLevels: 11,
+    totalLevels: 12,
     usesSets: true,
     objects: [],
     assumptions: [],
@@ -279,8 +280,31 @@ export const unit6Levels = [
         startXml: goalXml('A \\ (A \\ B) ⊆ A ∩ B'),
     }),
     level(10, {
+        title: 'הפרש סימטרי',
+        name: 'unit6_l10_symmetric_difference',
+        variableLine: SETS,
+        params: '',
+        proposition: 'A ∆ B ⊆ (A ∪ B) \\ (A ∩ B)',
+        goalLabel: 'A ∆ B ⊆ (A ∪ B) \\ (A ∩ B)',
+        toolboxBlocks: ['subset_intro', 'unfold', 'or_elim', 'and_elim', 'and_intro', 'or_intro', 'not_intro', 'contradiction', 'exact'],
+        introduction: `# הפרש סימטרי
+
+\`A ∆ B\` הוא *ההפרש הסימטרי* של A ו־B: האיברים שבאחת הקבוצות ולא בשנייה, כלומר (A \\ B) ∪ (B \\ A). לפי ההגדרה, \`x₀ ∈ (A ∆ B)\` פירושו \`x₀ ∈ (A \\ B) ∨ x₀ ∈ (B \\ A)\`.
+
+יש לו הגדרה נוספת: מה שבאיחוד ולא בחיתוך, (A ∪ B) \\ (A ∩ B). כאן מוכיחים שכל איבר של A ∆ B שייך לקבוצה הזאת. אחרי פתיחת ההגדרות, מחלקים למקרים לפי ה"או".`,
+        newDefinitions: [symmDiff],
+        hints: [
+            `יהי x₀ ∈ (A ∆ B). פתחו את ההגדרה בהנחה, ופתחו את ההגדרה במטרה x₀ ∈ ((A ∪ B) \\ (A ∩ B)): נשאר להוכיח x₀ ∈ (A ∪ B) ∧ ¬x₀ ∈ (A ∩ B).`,
+            `חלקו למקרים לפי x₀ ∈ (A \\ B) ∨ x₀ ∈ (B \\ A). במקרה הראשון פתחו את הגדרת ההפרש, ומה"וגם" נובע x₀ ∈ A ונובע ¬x₀ ∈ B.`,
+            'הוכיחו את ה"וגם" בשני חלקים. את x₀ ∈ (A ∪ B): פתחו את ההגדרה, ובחרו את x₀ ∈ A. את ¬x₀ ∈ (A ∩ B): נניח x₀ ∈ (A ∩ B), פתחו את ההגדרה, ומה"וגם" נובע x₀ ∈ B, וזו סתירה עם ¬x₀ ∈ B.',
+            'המקרה השני דומה, עם B במקום A.',
+        ],
+        conclusion: `A ∆ B ⊆ (A ∪ B) \\ (A ∩ B). גם ההכלה ההפוכה נכונה, ולכן שתי ההגדרות של ההפרש הסימטרי שוות. את ההכלה ההפוכה תוכיחו ביחידה 10.`,
+        startXml: goalXml('A ∆ B ⊆ (A ∪ B) \\ (A ∩ B)'),
+    }),
+    level(11, {
         title: 'הקבוצה הריקה',
-        name: 'unit6_l10_empty',
+        name: 'unit6_l11_empty',
         variableLine: SETS,
         params: '',
         proposition: '∅ ⊆ A',
@@ -300,9 +324,9 @@ export const unit6Levels = [
         conclusion: `∅ מוכלת בכל קבוצה, כי אין בה איבר שיכול להפריך את ההכלה. זה נובע מ"מסתירה נובע הכול".`,
         startXml: goalXml('∅ ⊆ A'),
     }),
-    level(11, {
+    level(12, {
         title: 'שלב בונוס: חוק דה מורגן לקבוצות',
-        name: 'unit6_l11_de_morgan',
+        name: 'unit6_l12_de_morgan',
         variableLine: SETS,
         params: '',
         proposition: 'A \\ (B ∪ C) = (A \\ B) ∩ (A \\ C)',

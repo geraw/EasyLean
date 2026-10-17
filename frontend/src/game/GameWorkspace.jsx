@@ -3,7 +3,7 @@ import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineGameBlocks } from '../blocks/gameBlocks';
-import { defineMoveBlocks, setLevelLaws, setLevelStructure } from '../blocks/moves';
+import { defineMoveBlocks, setLevelClaims, setLevelLaws, setLevelStructure } from '../blocks/moves';
 import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveStates';
 import { formatProofGoal } from './formatProofGoal';
 import { findIncompleteMove, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
@@ -147,23 +147,26 @@ const GameWorkspace = ({
     }, []);
 
     const level = levels[levelIdx];
-    // The laws the equivalence move offers in this level, and the structure its
-    // induction is on (idempotent, so they may run on render).
+    // The laws the equivalence move offers in this level, the claims the
+    // intermediate claim offers, and the structure its induction is on
+    // (idempotent, so they may run on render).
     setLevelLaws(level.laws);
+    setLevelClaims(level.claims);
     setLevelStructure(level.structure);
 
+    // One drawer of moves, or, in a level with drawers (level.toolboxDrawers:
+    // [{ name, blocks }]), a drawer for each kind of move.
     const toolboxConfiguration = useMemo(() => {
         const blocks = level.toolboxBlocks || [...new Set(levels.slice(0, levelIdx + 1).flatMap(l => l.newTacticsBlocks))];
+        const drawers = level.toolboxDrawers || [{ name: toolboxLabel, blocks }];
         return {
             kind: 'categoryToolbox',
-            contents: [
-                {
-                    kind: 'category',
-                    name: toolboxLabel,
-                    colour: '#5C81A6',
-                    contents: blocks.map(type => ({ kind: 'block', type })),
-                },
-            ],
+            contents: drawers.map((drawer) => ({
+                kind: 'category',
+                name: drawer.name,
+                colour: '#5C81A6',
+                contents: drawer.blocks.map(type => ({ kind: 'block', type })),
+            })),
         };
     }, [levelIdx, levels, toolboxLabel]);
 

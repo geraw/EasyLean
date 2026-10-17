@@ -41,6 +41,8 @@ instance : Inter (Set α) := ⟨fun A B => fun x => x ∈ A ∧ x ∈ B⟩
 instance : Union (Set α) := ⟨fun A B => fun x => x ∈ A ∨ x ∈ B⟩
 instance : SDiff (Set α) := ⟨fun A B => fun x => x ∈ A ∧ ¬ x ∈ B⟩
 instance : EmptyCollection (Set α) := ⟨fun _ => False⟩
+def Set.symmDiff (A B : Set α) : Set α := fun x => x ∈ A \\ B ∨ x ∈ B \\ A
+infixl:65 " ∆ " => Set.symmDiff
 def Set.compl (A : Set α) : Set α := fun x => ¬ x ∈ A
 postfix:max "ᶜ" => Set.compl
 def Set.powerset (A : Set α) : Set (Set α) := fun B => B ⊆ A
@@ -52,6 +54,7 @@ prefix:110 "⋂₀ " => Set.sInter
 theorem easylean_mem_inter {α : Type u} {A B : Set α} {x : α} : x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B := Iff.rfl
 theorem easylean_mem_union {α : Type u} {A B : Set α} {x : α} : x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B := Iff.rfl
 theorem easylean_mem_diff {α : Type u} {A B : Set α} {x : α} : x ∈ A \\ B ↔ x ∈ A ∧ ¬ x ∈ B := Iff.rfl
+theorem easylean_mem_symmDiff {α : Type u} {A B : Set α} {x : α} : x ∈ A ∆ B ↔ x ∈ A \\ B ∨ x ∈ B \\ A := Iff.rfl
 theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ ¬ x ∈ A := Iff.rfl
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl
@@ -72,6 +75,7 @@ theorem easylean_not_or {a b : Prop} : ¬(a ∨ b) ↔ (¬a ∧ ¬b) := ⟨fun h
 theorem easylean_not_and {a b : Prop} : ¬(a ∧ b) ↔ (¬a ∨ ¬b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr fun y => h ⟨x, y⟩) Or.inl, fun h ⟨x, y⟩ => h.elim (· x) (· y)⟩
 theorem easylean_imp_or {a b : Prop} : (a → b) ↔ (¬a ∨ b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr (h x)) Or.inl, fun h x => h.elim (fun n => (n x).elim) id⟩
 theorem easylean_contrapositive {a b : Prop} : (a → b) ↔ (¬b → ¬a) := ⟨fun h nb x => nb (h x), fun h x => Classical.byContradiction fun nb => h nb x⟩
+theorem easylean_not_imp {a b : Prop} : ¬(a → b) ↔ (a ∧ ¬b) := ⟨fun h => ⟨Classical.byContradiction fun na => h fun x => (na x).elim, fun hb => h fun _ => hb⟩, fun ⟨x, nb⟩ h => nb (h x)⟩
 theorem easylean_not_exists {α : Type u} {p : α → Prop} : (¬∃ x, p x) ↔ ∀ x, ¬p x := ⟨fun h x hx => h ⟨x, hx⟩, fun h ⟨x, hx⟩ => h x hx⟩
 theorem easylean_not_forall {α : Type u} {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x := ⟨fun h => Classical.byContradiction fun h' => h fun x => Classical.byContradiction fun hx => h' ⟨x, hx⟩, fun ⟨x, hx⟩ h => hx (h x)⟩
 `;

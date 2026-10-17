@@ -12,11 +12,14 @@ const phrase = (page, id) => page.evaluate((id) => window.__easyleanWorkspace.ge
     .map((input) => input.fieldRow.filter((f) => f.isVisible()).map((f) => f.getText()).join(' ')).join(' / ')
     .replace(/[\u2066\u2067\u2069]/g, ''), id);
 
-const openToolbox = async (page) => {
-    await page.evaluate(() => {
+// Opens the drawer that holds the move (a level may have several).
+const openToolbox = async (page, type) => {
+    await page.evaluate((type) => {
         const toolbox = window.__easyleanWorkspace.getToolbox();
-        if (!toolbox.getFlyout().isVisible()) toolbox.setSelectedItem(toolbox.getToolboxItems()[0]);
-    });
+        const items = toolbox.getToolboxItems();
+        const drawer = items.find((item) => (item.getContents?.() || []).some((entry) => entry.type === type)) || items[0];
+        if (!toolbox.getFlyout().isVisible() || toolbox.getSelectedItem() !== drawer) toolbox.setSelectedItem(drawer);
+    }, type);
     await page.waitForTimeout(400);
 };
 
@@ -65,7 +68,7 @@ const targetPoint = (page, where) => page.evaluate((where) => {
 }, where);
 
 const drag = async (page, type, where) => {
-    await openToolbox(page);
+    await openToolbox(page, type);
     const before = await page.evaluate(() => window.__easyleanWorkspace.getAllBlocks(false).map((b) => b.id));
     // A long toolbox is scrolled with the mouse wheel until the block shows.
     for (let tries = 0; tries < 20; tries += 1) {
@@ -374,6 +377,31 @@ const UNIT5 = [
         await drag(page, 'exact', { after: r2 });
     },
     async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' }); log(await phrase(page, a));
+        const s = await drag(page, 'and_intro', { after: a }); log(await phrase(page, s));
+        const b = await drag(page, 'by_contradiction', { into: s, input: 'LEFT' }); log(await phrase(page, b));
+        const e1 = await drag(page, 'not_elim', { after: b }); await choose(page, e1, 'NEGATION', '¬(P → Q)'); log(await phrase(page, e1));
+        const a1 = await drag(page, 'assume', { after: e1 }); log(await phrase(page, a1));
+        const x = await drag(page, 'exfalso', { after: a1 });
+        const c1 = await drag(page, 'contradiction', { after: x }); await choose(page, c1, 'FACT', 'P');
+        const n = await drag(page, 'not_intro', { into: s, input: 'RIGHT' }); log(await phrase(page, n));
+        const e2 = await drag(page, 'not_elim', { after: n }); await choose(page, e2, 'NEGATION', '¬(P → Q)');
+        const a2 = await drag(page, 'assume', { after: e2 });
+        await drag(page, 'exact', { after: a2 });
+        const a3 = await drag(page, 'assume', { into: k, input: 'BACKWARD' }); log(await phrase(page, a3));
+        const d = await drag(page, 'and_elim', { after: a3 }); await choose(page, d, 'AND', '(P ∧ ¬Q)'); log(await phrase(page, d));
+        const n2 = await drag(page, 'not_intro', { after: d }); log(await phrase(page, n2));
+        const f = await drag(page, 'forward', { after: n2 }); await choose(page, f, 'RULE', '(P → Q)'); await choose(page, f, 'PREMISE', 'P');
+        const c2 = await drag(page, 'contradiction', { after: f }); await choose(page, c2, 'FACT', 'Q');
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const r1 = await replace(page, { after: a }, '¬∀x (P(x)) ↔ ∃x (¬P(x))', 'את ¬∀x (P(x) → Q(x)) ב־∃x (¬(P(x) → Q(x)))', '¬∀x (P(x) → Q(x))', log);
+        const r2 = await replace(page, { after: r1 }, '¬(A → B) ↔ (A ∧ ¬B)', 'את ¬(P(x) → Q(x)) ב־(P(x) ∧ ¬Q(x))', '∃x (¬(P(x) → Q(x)))', log); log(await state(page));
+        await drag(page, 'exact', { after: r2 });
+    },
+    async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const r = await replace(page, { after: a }, IMP_OR, 'את (¬P ∨ ¬Q) ב־(P → ¬Q)', 'המטרה', log);
         const a2 = await drag(page, 'assume', { after: r }); log(await phrase(page, a2));
@@ -482,6 +510,24 @@ const UNIT6 = [
         await drag(page, 'exact', { into: t, input: 'RIGHT' });
     },
     async (page, log) => {
+        const i = await drag(page, 'subset_intro', { goal: true }); log(await phrase(page, i));
+        const u1 = await unfold(page, { after: i }, 'x₀ ∈ (A ∆ B)', log);
+        const u2 = await unfold(page, { after: u1 }, 'x₀ ∈ ((A ∪ B) \\ (A ∩ B))', log);
+        const k = await drag(page, 'or_elim', { after: u2 }); await choose(page, k, 'OR', '(x₀ ∈ (A \\ B) ∨ x₀ ∈ (B \\ A))'); log(await phrase(page, k));
+        for (const [part, mine, other, side] of [['LEFT', 'A', 'B', 'x₀ ∈ A'], ['RIGHT', 'B', 'A', 'x₀ ∈ B']]) {
+            const u = await unfold(page, { into: k, input: part }, `x₀ ∈ (${mine} \\ ${other})`, log);
+            const d = await drag(page, 'and_elim', { after: u }); await choose(page, d, 'AND', `(x₀ ∈ ${mine} ∧ ¬x₀ ∈ ${other})`);
+            const s = await drag(page, 'and_intro', { after: d }); log(await phrase(page, s));
+            const g = await unfold(page, { into: s, input: 'LEFT' }, 'x₀ ∈ (A ∪ B)', log);
+            const o = await drag(page, 'or_intro', { after: g }); await choose(page, o, 'SIDE', side);
+            await drag(page, 'exact', { after: o });
+            const n = await drag(page, 'not_intro', { into: s, input: 'RIGHT' }); log(await phrase(page, n));
+            const h = await unfold(page, { after: n }, 'x₀ ∈ (A ∩ B)', log);
+            const e = await drag(page, 'and_elim', { after: h }); await choose(page, e, 'AND', '(x₀ ∈ A ∧ x₀ ∈ B)');
+            const c = await drag(page, 'contradiction', { after: e }); await choose(page, c, 'FACT', `x₀ ∈ ${other}`);
+        }
+    },
+    async (page, log) => {
         const i = await drag(page, 'subset_intro', { goal: true });
         const u = await unfold(page, { after: i }, 'x₀ ∈ ∅', log);
         const x = await drag(page, 'exfalso', { after: u });
@@ -541,6 +587,16 @@ const UNIT7 = [
         const e1 = await drag(page, 'subset_elim', { after: i2 }); await choose(page, e1, 'SUBSET', 'X₀ ⊆ A'); await choose(page, e1, 'MEMBER', 'x₀ ∈ X₀');
         const e2 = await drag(page, 'subset_elim', { after: e1 }); await choose(page, e2, 'SUBSET', 'A ⊆ B'); await choose(page, e2, 'MEMBER', 'x₀ ∈ A');
         await drag(page, 'exact', { after: e2 });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const c = await drag(page, 'claim', { after: a }); await choose(page, c, 'CLAIM', 'A ∈ 𝒫(A)'); log(await phrase(page, c));
+        const u = await unfold(page, { into: c, input: 'PROOF' }, 'A ∈ 𝒫(A)', log);
+        const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
+        await drag(page, 'exact', { after: i });
+        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', '𝒫(A) ⊆ 𝒫(B)'); await choose(page, m, 'MEMBER', 'A ∈ 𝒫(A)'); log(await phrase(page, m));
+        const u2 = await unfold(page, { after: m }, 'A ∈ 𝒫(B)', log);
+        await drag(page, 'exact', { after: u2 });
     },
     async (page, log) => {
         const u = await unfold(page, { goal: true }, '∅ ∈ 𝒫(A)', log);

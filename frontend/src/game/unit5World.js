@@ -13,11 +13,14 @@ export const unit5WorldName = 'יחידה 5 - שקילויות לוגיות';
 const PROPOSITIONS = 'variable {P Q : Prop}';
 const DOMAIN = 'variable {obj : Type} {P : obj → Prop}';
 const RELATION = 'variable {obj : Type} {R : obj → obj → Prop}';
+const TWO_PROPERTIES = 'variable {obj : Type} {P Q : obj → Prop}';
 
 // The moves as the toolbox shows them, before they are placed.
 const ASSUME_BLOCK = '"כדי להוכיח את הגרירה, נניח..."';
 const REPLACE_BLOCK = '"לפי השקילות ? נחליף ..."';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
+const IFF_INTRO_BLOCK = '"כדי להוכיח את ה"אם ורק אם", נוכיח את שני הכיוונים"';
+const BY_CONTRADICTION_BLOCK = '"נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה"';
 const NOT_INTRO_BLOCK = '"כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה"';
 const CONTRADICTION_BLOCK = '"יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."';
 
@@ -33,12 +36,13 @@ const implicationAsOr = law('גרירה כ"או"', '(A → B) ↔ (¬A ∨ B). �
 const contrapositive = law('קונטרה־פוזיציה', '(A → B) ↔ (¬B → ¬A). הכיוון ← הוא יחידה 3, שלב 9, והכיוון → הוא שלב 2 ביחידה הזאת.');
 const doubleNegation = law('שלילה כפולה', '¬¬A ↔ A. הכיוון → הוא יחידה 3, שלב 8, והכיוון ← הוא יחידה 3, שלב 2. מחליפים רק את ¬¬A ב־A: בכיוון ההפוך, כל טענה היא מהצורה A.');
 const notForall = law('שלילה של "לכל"', '¬∀x (P(x)) ↔ ∃x (¬P(x)). הכיוון → הוא יחידה 4, שלב 10, והכיוון ← הוא שלב 5 ביחידה הזאת.');
+const notImplies = law('שלילה של גרירה', '¬(A → B) ↔ (A ∧ ¬B). הוכחתם את שני הכיוונים בשלב 11.');
 const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P(x)). הכיוון → הוא יחידה 4, שלב 8, והכיוון ← הוא שלב 4 ביחידה הזאת.');
 
 const level = (number, fields) => ({
     id: `unit5-${number}`,
     levelNumber: number,
-    totalLevels: 11,
+    totalLevels: 13,
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
@@ -266,8 +270,52 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         startXml: goalXml('((¬∀x (∃y (R(x,y)))) → (∃x (∀y (¬R(x,y)))))'),
     }),
     level(11, {
+        title: 'השלילה של גרירה',
+        name: 'unit5_l11_not_implies',
+        proposition: '¬(P → Q) ↔ (P ∧ ¬Q)',
+        goalLabel: '(¬(P → Q) ↔ (P ∧ ¬Q))',
+        toolboxBlocks: ['iff_intro', 'assume', 'and_intro', 'by_contradiction', 'not_elim', 'exfalso', 'contradiction', 'not_intro', 'exact', 'and_elim', 'forward'],
+        introduction: `# השלילה של גרירה
+
+מתי "אם P אז Q" לא נכונה? רק כש־P נכונה ו־Q לא נכונה. כאן מוכיחים זאת בשני הכיוונים, ואחרי השלב הזה ¬(A → B) ↔ (A ∧ ¬B) היא שקילות, שאפשר להחליף לפיה.
+
+- **הכיוון ←** (מ־P ∧ ¬Q ל־¬(P → Q)): נניח P → Q, ונגיע לסתירה עם ¬Q.
+- **הכיוון →** קשה יותר. את ¬Q מוכיחים בהנחת Q, ואת P מוכיחים בשלילה: בשני המקרים, לפי השלילה ¬(P → Q), די להוכיח את הגרירה P → Q.`,
+        hints: [
+            `גררו את הבלוק ${IFF_INTRO_BLOCK} אל תוך בלוק המטרה.`,
+            'בכיוון הראשון: נניח ¬(P → Q), ונוכיח כל צד של P ∧ ¬Q לחוד.',
+            `את P: ${BY_CONTRADICTION_BLOCK}, נניח ¬P. לפי השלילה ¬(P → Q), די להוכיח P → Q. נניח P, וממנה ומ־¬P נובע הכול.`,
+            'את ¬Q: נניח Q ונגיע לסתירה. שוב לפי ¬(P → Q) די להוכיח P → Q: נניח P, ו־Q בידינו.',
+            'בכיוון השני: נניח P ∧ ¬Q, ומה"וגם" נובעות P ו־¬Q. כדי להוכיח ¬(P → Q), נניח P → Q: ממנה ומ־P נובע Q, וזו סתירה עם ¬Q.',
+        ],
+        conclusion: `עכשיו ¬(A → B) ↔ (A ∧ ¬B) היא שקילות: השלילה של "אם A אז B" היא "A, ובכל זאת לא B". בשלב הבא תשתמשו בה.`,
+        startXml: goalXml('(¬(P → Q) ↔ (P ∧ ¬Q))'),
+    }),
+    level(12, {
+        title: 'דוגמה נגדית',
+        name: 'unit5_l12_counterexample',
+        variableLine: TWO_PROPERTIES,
+        proposition: '(¬∀ x, P x → Q x) → (∃ x, P x ∧ ¬Q x)',
+        goalLabel: '((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))',
+        laws: ['easylean_not_forall', 'easylean_not_imp'],
+        toolboxBlocks: ['assume', 'replace', 'exact'],
+        introduction: `# דוגמה נגדית
+
+"כל P הוא Q" היא ∀x (P(x) → Q(x)). מה פירוש השלילה שלה? מעבירים את השלילה פנימה: קודם דרך ה"לכל", ואחר כך דרך הגרירה, לפי השקילות משלב 11.
+מה שמתקבל, ∃x (P(x) ∧ ¬Q(x)), הוא *דוגמה נגדית*: עצם שהוא P ואינו Q.`,
+        newDefinitions: [notForall, notImplies],
+        hints: [
+            'נניח ¬∀x (P(x) → Q(x)).',
+            'לפי השלילה של "לכל", החליפו בהנחה: עכשיו בידינו ∃x (¬(P(x) → Q(x))).',
+            'לפי השלילה של גרירה, החליפו בהנחה החדשה את ¬(P(x) → Q(x)) ב־(P(x) ∧ ¬Q(x)).',
+            `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `"לא כל P הוא Q" פירושו "יש P שאינו Q". כך מפריכים טענה כללית: מראים דוגמה נגדית.`,
+        startXml: goalXml('((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))'),
+    }),
+    level(13, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
-        name: 'unit5_l11_de_morgan_and',
+        name: 'unit5_l13_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         laws: ['easylean_imp_or'],

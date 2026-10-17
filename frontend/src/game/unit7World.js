@@ -14,6 +14,7 @@ const FAMILY = 'variable {obj : Type} {A : Set obj} {F : Set (Set obj)}';
 // The moves as the toolbox shows them, before they are placed.
 const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
 const SUBSET_ELIM_BLOCK = '"לפי ההכלה ? ומ־?"';
+const CLAIM_BLOCK = '"נוכיח קודם את טענת העזר ?"';
 const UNFOLD_BLOCK = '"לפי ההגדרה, ?"';
 const OR_INTRO_BLOCK = '"כדי להוכיח את ה"או" די להוכיח את ?"';
 const EXISTS_INTRO_BLOCK = '"כדי להוכיח "קיים" נבחר את העצם ?"';
@@ -22,6 +23,11 @@ const FORALL_ELIM_BLOCK = '"לפי ה"לכל" ? עבור העצם ?"';
 const AND_ELIM_BLOCK = '"מה"וגם" ?"';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
+const claimInfo = {
+    name: 'טענת עזר',
+    doc: 'בהוכחה כתובה מוכיחים לפעמים קודם טענה שתעזור בהמשך: "נוכיח קודם ש...". בוחרים את הטענה בבלוק (מהרשימה, או בכתיבה ידנית), מוכיחים אותה בחלק שבתוכו, ומעכשיו היא בידינו.',
+};
+
 const powerset = { symbol: 'קבוצת החזקה', doc: 'X ∈ 𝒫(A) פירושו X ⊆ A: האיברים של קבוצת החזקה הם תתי־הקבוצות של A.' };
 const sUnion = { symbol: 'איחוד של משפחה', doc: 'x₀ ∈ ⋃₀ F פירושו ∃S (S ∈ F ∧ x₀ ∈ S): x₀ שייך לאחת הקבוצות במשפחה.' };
 const sInter = { symbol: 'חיתוך של משפחה', doc: 'x₀ ∈ ⋂₀ F פירושו ∀S (S ∈ F → x₀ ∈ S): x₀ שייך לכל הקבוצות במשפחה.' };
@@ -29,7 +35,7 @@ const sInter = { symbol: 'חיתוך של משפחה', doc: 'x₀ ∈ ⋂₀ F �
 const level = (number, fields) => ({
     id: `unit7-${number}`,
     levelNumber: number,
-    totalLevels: 6,
+    totalLevels: 7,
     usesSets: true,
     objects: [],
     assumptions: [],
@@ -87,8 +93,35 @@ export const unit7Levels = [
         startXml: goalXml('((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))'),
     }),
     level(3, {
+        title: 'טענת עזר',
+        name: 'unit7_l3_claim',
+        variableLine: SETS,
+        params: '',
+        proposition: '(𝒫 A ⊆ 𝒫 B) → (A ⊆ B)',
+        goalLabel: '(𝒫(A) ⊆ 𝒫(B) → A ⊆ B)',
+        claims: ['A ∈ 𝒫 A', 'B ∈ 𝒫 B', 'A ∈ 𝒫 B'],
+        toolboxBlocks: ['assume', 'claim', 'unfold', 'subset_intro', 'subset_elim', 'exact'],
+        newTacticsBlocks: ['claim'],
+        newTacticsInfo: [claimInfo],
+        introduction: `# טענת עזר
+
+זה הכיוון ההפוך לשלב הקודם: אם 𝒫(A) ⊆ 𝒫(B), אז A ⊆ B.
+
+ההכלה 𝒫(A) ⊆ 𝒫(B) מדברת על האיברים של 𝒫(A), ולכן כדי להשתמש בה צריך איבר של 𝒫(A). הרעיון: A עצמה היא איבר של 𝒫(A).
+בהוכחה כתובה כותבים: "נוכיח קודם ש־A ∈ 𝒫(A)", מוכיחים, וממשיכים. בשביל זה יש מהלך חדש: *טענת עזר*. מוכיחים אותה בחלק שבתוך הבלוק, ומעכשיו היא בידינו.`,
+        hints: [
+            'נניח 𝒫(A) ⊆ 𝒫(B).',
+            `הוסיפו את הבלוק ${CLAIM_BLOCK}, ובחרו בו את A ∈ 𝒫(A).`,
+            `בתוך הבלוק: פתחו את ההגדרה במטרה A ∈ 𝒫(A) (נשאר להוכיח A ⊆ A), ואחר כך ${SUBSET_INTRO_BLOCK}: יהי x₀ ∈ A, והוא בידינו.`,
+            `אחרי הבלוק A ∈ 𝒫(A) בידינו: ${SUBSET_ELIM_BLOCK} עם 𝒫(A) ⊆ 𝒫(B) ועם A ∈ 𝒫(A) נותן A ∈ 𝒫(B).`,
+            'פתחו את ההגדרה ב־A ∈ 𝒫(B): פירושו A ⊆ B, וזו המטרה.',
+        ],
+        conclusion: `יחד עם השלב הקודם: A ⊆ B אם ורק אם 𝒫(A) ⊆ 𝒫(B). טענת העזר A ∈ 𝒫(A) היא הרעיון של ההוכחה, ולכן כותבים אותה במפורש.`,
+        startXml: goalXml('(𝒫(A) ⊆ 𝒫(B) → A ⊆ B)'),
+    }),
+    level(4, {
         title: 'הקבוצה הריקה בקבוצת החזקה',
-        name: 'unit7_l3_empty_mem_powerset',
+        name: 'unit7_l4_empty_mem_powerset',
         variableLine: SETS,
         params: '',
         proposition: '∅ ∈ 𝒫 A',
@@ -96,7 +129,7 @@ export const unit7Levels = [
         toolboxBlocks: ['unfold', 'subset_intro', 'exfalso', 'exact'],
         introduction: `# הקבוצה הריקה בקבוצת החזקה
 
-הקבוצה הריקה היא תת־קבוצה של כל קבוצה (יחידה 6, שלב 10), ולכן היא איבר של כל קבוצת חזקה.
+הקבוצה הריקה היא תת־קבוצה של כל קבוצה (יחידה 6, שלב 11), ולכן היא איבר של כל קבוצת חזקה.
 
 פותחים את הגדרת קבוצת החזקה במטרה, ונשארים עם ההכלה ∅ ⊆ A, שכבר הוכחתם פעם.`,
         hints: [
@@ -107,9 +140,9 @@ export const unit7Levels = [
         conclusion: `∅ ∈ 𝒫(A) לכל קבוצה A: קבוצת החזקה אף פעם לא ריקה.`,
         startXml: goalXml('∅ ∈ 𝒫(A)'),
     }),
-    level(4, {
+    level(5, {
         title: 'איחוד של משפחה',
-        name: 'unit7_l4_sunion',
+        name: 'unit7_l5_sunion',
         variableLine: FAMILY,
         params: '(hA : A ∈ F)',
         proposition: 'A ⊆ ⋃₀ F',
@@ -131,9 +164,9 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
         conclusion: `איחוד של משפחה הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: הקבוצה מהמשפחה שהאיבר שייך אליה.`,
         startXml: goalXml('A ⊆ ⋃₀ F', 'A ∈ F'),
     }),
-    level(5, {
+    level(6, {
         title: 'חיתוך של משפחה',
-        name: 'unit7_l5_sinter',
+        name: 'unit7_l6_sinter',
         variableLine: FAMILY,
         params: '(hA : A ∈ F)',
         proposition: '⋂₀ F ⊆ A',
@@ -156,9 +189,9 @@ F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם
         conclusion: `חיתוך של משפחה הוא טענת "לכל", ולכן משתמשים בו בהצבה: כאן הצבתם קבוצה, A.`,
         startXml: goalXml('⋂₀ F ⊆ A', 'A ∈ F'),
     }),
-    level(6, {
+    level(7, {
         title: 'תרגיל מסכם: איחוד מוכל',
-        name: 'unit7_l6_sunion_subset',
+        name: 'unit7_l7_sunion_subset',
         variableLine: FAMILY,
         params: '',
         proposition: '(∀ S, S ∈ F → S ⊆ A) → ⋃₀ F ⊆ A',
