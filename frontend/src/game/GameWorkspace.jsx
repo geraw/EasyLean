@@ -21,7 +21,7 @@ defineGameBlocks();
 defineMoveBlocks();
 
 // Very small markdown-ish renderer: blank-line-separated paragraphs,
-// "# " headings, `code` spans and *emphasis*.
+// "# " headings, `code` spans, **bold** and *emphasis*.
 const renderInline = (text, keyPrefix) => {
     return text.split('`').map((chunk, i) => {
         if (i % 2 === 1) {
@@ -31,11 +31,11 @@ const renderInline = (text, keyPrefix) => {
                 </code>
             );
         }
-        return isolateFormulas(chunk).split(/\*(.+?)\*/g).map((seg, j) =>
-            j % 2 === 1
-                ? <em key={`${keyPrefix}-i${i}-${j}`}>{seg}</em>
-                : <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{seg}</React.Fragment>
-        );
+        return isolateFormulas(chunk).split(/(\*\*.+?\*\*|\*.+?\*)/g).map((seg, j) => {
+            if (seg.startsWith('**') && seg.endsWith('**') && seg.length > 4) return <strong key={`${keyPrefix}-b${i}-${j}`}>{seg.slice(2, -2)}</strong>;
+            if (seg.startsWith('*') && seg.endsWith('*') && seg.length > 2) return <em key={`${keyPrefix}-i${i}-${j}`}>{seg.slice(1, -1)}</em>;
+            return <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{seg}</React.Fragment>;
+        });
     });
 };
 

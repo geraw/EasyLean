@@ -17,11 +17,12 @@ import { unit6Levels } from './unit6World';
 import { unit7Levels } from './unit7World';
 import { unit8Levels } from './unit8World';
 import { unit9Levels } from './unit9World';
+import { unit10Levels } from './unit10World';
 import { UNITS } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels, unit9Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels, unit9Levels, unit10Levels];
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -52,7 +53,8 @@ describe.each(UNITS.map(({ unit, levels }) => [unit, levels]))('unit %i', (unit,
             expect(Blockly.Blocks[type], type).toBeDefined();
             expect(leanGenerator.forBlock[type], type).toBeTypeOf('function');
         });
-        expect(level.toolboxBlocks.filter((type) => !used.has(type))).toEqual([]);
+        // A level with drawers offers all the moves; the others only those of their solutions.
+        if (!level.toolboxDrawers) expect(level.toolboxBlocks.filter((type) => !used.has(type))).toEqual([]);
         levelSolutions.forEach(({ steps }) => usedBlocks(steps).forEach((type) => expect(level.toolboxBlocks).toContain(type)));
     });
 

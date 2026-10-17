@@ -93,6 +93,9 @@ def sumTo : Nat → Nat
 def oddSum : Nat → Nat
   | 0 => 0
   | n + 1 => oddSum n + (2 * n + 1)
+def sumCubes : Nat → Nat
+  | 0 => 0
+  | n + 1 => sumCubes n + (n + 1) ^ 3
 theorem easylean_add_succ (n m : Nat) : n + (m + 1) = (n + m) + 1 := rfl
 `;
 

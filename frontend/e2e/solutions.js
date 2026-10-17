@@ -405,4 +405,138 @@ export const UNITS = [
             }],
         ],
     },
+    {
+        unit: 10,
+        world: 'יחידה 10 - תרגילים מסכמים',
+        levels: [
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, byContradiction, replace('easylean_not_or', 'FORWARD', '¬((P → Q) ∨ (P → R))'), andElim('¬(P → Q) ∧ ¬(P → R)'),
+                        replace('easylean_not_imp', 'FORWARD', '¬(P → Q)'), andElim('P ∧ ¬Q'), replace('easylean_not_imp', 'FORWARD', '¬(P → R)'), andElim('P ∧ ¬R'),
+                        forward('P → Q ∨ R', 'P'), orCases('Q ∨ R', [contradiction('Q')], [contradiction('R')])],
+                    [assume, assume, orCases('(P → Q) ∨ (P → R)', [orIntro('LEFT'), forward('P → Q', 'P'), close], [orIntro('RIGHT'), forward('P → R', 'P'), close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [byContradiction, replace('easylean_not_or', 'FORWARD', '¬((P → Q) ∨ (Q → P))'), andElim('¬(P → Q) ∧ ¬(Q → P)'),
+                    replace('easylean_not_imp', 'FORWARD', '¬(P → Q)'), andElim('P ∧ ¬Q'), replace('easylean_not_imp', 'FORWARD', '¬(Q → P)'), andElim('Q ∧ ¬P'), contradiction('P')],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, replace('easylean_not_forall', 'FORWARD', '¬∀ x, ∀ y, R x y ∧ R y x → x = y'),
+                    replace('easylean_not_forall', 'FORWARD', '∃ x, ¬∀ y, R x y ∧ R y x → x = y'),
+                    replace('easylean_not_imp', 'FORWARD', '∃ x, ∃ y, ¬(R x y ∧ R y x → x = y)'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [forallIntro, forallIntro, forallIntro, assume, andElim('(R x₀ y₀ ∧ S x₀ y₀) ∧ R y₀ z₀ ∧ S y₀ z₀'), andElim('R x₀ y₀ ∧ S x₀ y₀'), andElim('R y₀ z₀ ∧ S y₀ z₀'),
+                    andIntro(...['R', 'S'].map((rel) => [
+                        forallElim(`∀ (x y z : obj), ${rel} x y ∧ ${rel} y z → ${rel} x z`, 'x₀'), forallElim(`∀ (y z : obj), ${rel} x₀ y ∧ ${rel} y z → ${rel} x₀ z`, 'y₀'),
+                        forallElim(`∀ (z : obj), ${rel} x₀ y₀ ∧ ${rel} y₀ z → ${rel} x₀ z`, 'z₀'), backward(`${rel} x₀ y₀ ∧ ${rel} y₀ z₀ → ${rel} x₀ z₀`), andIntro([close], [close])]))],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x₀ ∈ (A \\ C) ∩ B'), andElim('x₀ ∈ A \\ C ∧ x₀ ∈ B'), unfold('x₀ ∈ A \\ C'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ C'),
+                    unfold('x₀ ∈ B \\ C'), andIntro([close], [close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x₀ ∈ A \\ (B \\ C)'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B \\ C'), unfold('x₀ ∈ (A \\ B) ∪ (A ∩ C)'),
+                        claim('x₀ ∈ C ∨ ¬x₀ ∈ C', [byContradiction, notElim('¬(x₀ ∈ C ∨ ¬x₀ ∈ C)'), orIntro('RIGHT'), notIntro, notElim('¬(x₀ ∈ C ∨ ¬x₀ ∈ C)'), orIntro('LEFT'), close]),
+                        orCases('x₀ ∈ C ∨ ¬x₀ ∈ C',
+                            [orIntro('RIGHT'), unfold('x₀ ∈ A ∩ C'), andIntro([close], [close])],
+                            [orIntro('LEFT'), unfold('x₀ ∈ A \\ B'), andIntro([close], [notIntro, notElim('¬x₀ ∈ B \\ C'), unfold('x₀ ∈ B \\ C'), andIntro([close], [close])])])],
+                    [subsetIntro, unfold('x₀ ∈ (A \\ B) ∪ (A ∩ C)'), unfold('x₀ ∈ A \\ (B \\ C)'), orCases('x₀ ∈ A \\ B ∨ x₀ ∈ A ∩ C',
+                        [unfold('x₀ ∈ A \\ B'), andElim('x₀ ∈ A ∧ ¬x₀ ∈ B'), andIntro([close], [notIntro, unfold('x₀ ∈ B \\ C'), andElim('x₀ ∈ B ∧ ¬x₀ ∈ C'), contradiction('x₀ ∈ B')])],
+                        [unfold('x₀ ∈ A ∩ C'), andElim('x₀ ∈ A ∧ x₀ ∈ C'), andIntro([close], [notIntro, unfold('x₀ ∈ B \\ C'), andElim('x₀ ∈ B ∧ ¬x₀ ∈ C'), contradiction('x₀ ∈ C')])])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, setEq(
+                        [subsetIntro, unfold('x₀ ∈ (A ∪ B) \\ B'), andElim('x₀ ∈ A ∪ B ∧ ¬x₀ ∈ B'), unfold('x₀ ∈ A ∪ B'), orCases('x₀ ∈ A ∨ x₀ ∈ B', [close], [exfalso, contradiction('x₀ ∈ B')])],
+                        [subsetIntro, unfold('x₀ ∈ (A ∪ B) \\ B'), andIntro(
+                            [unfold('x₀ ∈ A ∪ B'), orIntro('LEFT'), close],
+                            [notIntro, claim('x₀ ∈ A ∩ B', [unfold('x₀ ∈ A ∩ B'), andIntro([close], [close])]), rewrite('A ∩ B = ∅', 'FORWARD', 'x₀ ∈ A ∩ B'), unfold('x₀ ∈ ∅'), close])])],
+                    [assume, setEq(
+                        [subsetIntro, unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), rewrite('(A ∪ B) \\ B = A', 'BACKWARD', 'x₀ ∈ A'), unfold('x₀ ∈ (A ∪ B) \\ B'),
+                            andElim('x₀ ∈ A ∪ B ∧ ¬x₀ ∈ B'), exfalso, contradiction('x₀ ∈ B')],
+                        [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, forallElim('∀ (X : Set obj), A ∩ X = A', '∅'), setEq(
+                    [subsetIntro, rewrite('A ∩ ∅ = A', 'BACKWARD', 'x₀ ∈ A'), unfold('x₀ ∈ A ∩ ∅'), andElim('x₀ ∈ A ∧ x₀ ∈ ∅'), close],
+                    [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [existsIntro('E \\ A'), andIntro(
+                    [claim('∃ x, x ∈ E ∧ ¬x ∈ A', [byContradiction, notElim('¬E ⊆ A'), subsetIntro, byContradiction, notElim('¬∃ x, x ∈ E ∧ ¬x ∈ A'), existsIntro('x₀'), andIntro([close], [close])]),
+                        existsElim('∃ x, x ∈ E ∧ ¬x ∈ A'), andElim('x₀ ∈ E ∧ ¬x₀ ∈ A'), existsIntro('x₀'), unfold('x₀ ∈ (E \\ A) ∩ E'),
+                        andIntro([unfold('x₀ ∈ E \\ A'), andIntro([close], [close])], [close])],
+                    [setEq(
+                        [subsetIntro, unfold('x₀ ∈ A ∩ (E \\ A)'), andElim('x₀ ∈ A ∧ x₀ ∈ E \\ A'), unfold('x₀ ∈ E \\ A'), andElim('x₀ ∈ E ∧ ¬x₀ ∈ A'), exfalso, contradiction('x₀ ∈ A')],
+                        [subsetIntro, unfold('x₀ ∈ ∅'), exfalso, close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x₀ ∈ (A ∪ B) \\ (A ∩ B)'), andElim('x₀ ∈ A ∪ B ∧ ¬x₀ ∈ A ∩ B'), unfold('x₀ ∈ A ∪ B'), unfold('x₀ ∈ A ∆ B'),
+                    orCases('x₀ ∈ A ∨ x₀ ∈ B', ...[['LEFT', 'A \\ B'], ['RIGHT', 'B \\ A']].map(([side, diff]) => [orIntro(side), unfold(`x₀ ∈ ${diff}`),
+                        andIntro([close], [notIntro, notElim('¬x₀ ∈ A ∩ B'), unfold('x₀ ∈ A ∩ B'), andIntro([close], [close])])]))],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('X₀ ∈ 𝒫 (A ∩ B)'), unfold('X₀ ∈ 𝒫 A ∩ 𝒫 B'), andIntro(...['A', 'B'].map((set) => [unfold(`X₀ ∈ 𝒫 ${set}`), subsetIntro,
+                        subsetElim('X₀ ⊆ A ∩ B', 'x₀ ∈ X₀'), unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), close]))],
+                    [subsetIntro, unfold('X₀ ∈ 𝒫 A ∩ 𝒫 B'), andElim('X₀ ∈ 𝒫 A ∧ X₀ ∈ 𝒫 B'), unfold('X₀ ∈ 𝒫 A'), unfold('X₀ ∈ 𝒫 B'), unfold('X₀ ∈ 𝒫 (A ∩ B)'), subsetIntro,
+                        unfold('x₀ ∈ A ∩ B'), andIntro([subsetElim('X₀ ⊆ A', 'x₀ ∈ X₀'), close], [subsetElim('X₀ ⊆ B', 'x₀ ∈ X₀'), close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsElim('∃ S, S ∈ F ∧ x₀ ∈ S'), andElim('S₀ ∈ F ∧ x₀ ∈ S₀'), subsetElim('F ⊆ 𝒫 A', 'S₀ ∈ F'),
+                        unfold('S₀ ∈ 𝒫 A'), subsetElim('S₀ ⊆ A', 'x₀ ∈ S₀'), close],
+                    [assume, subsetIntro, unfold('X₀ ∈ 𝒫 A'), subsetIntro, claim('x₀ ∈ ⋃₀ F', [unfold('x₀ ∈ ⋃₀ F'), existsIntro('X₀'), andIntro([close], [close])]),
+                        subsetElim('⋃₀ F ⊆ A', 'x₀ ∈ ⋃₀ F'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x₀ ∈ ⋃₀ (𝒫 A)'), existsElim('∃ S, S ∈ 𝒫 A ∧ x₀ ∈ S'), andElim('S₀ ∈ 𝒫 A ∧ x₀ ∈ S₀'), unfold('S₀ ∈ 𝒫 A'), subsetElim('S₀ ⊆ A', 'x₀ ∈ S₀'), close],
+                    [subsetIntro, unfold('x₀ ∈ ⋃₀ (𝒫 A)'), existsIntro('A'), andIntro([unfold('A ∈ 𝒫 A'), subsetIntro, close], [close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, subsetIntro, unfold('x₀ ∈ ⋃₀ F'), existsElim('∃ S, S ∈ F ∧ x₀ ∈ S'), andElim('S₀ ∈ F ∧ x₀ ∈ S₀'),
+                    forallElim('∀ (T : Set obj), T ∈ F → ∃ X, X ∈ G ∧ T ⊆ X', 'S₀'), forward('S₀ ∈ F → ∃ X, X ∈ G ∧ S₀ ⊆ X', 'S₀ ∈ F'),
+                    existsElim('∃ X, X ∈ G ∧ S₀ ⊆ X'), andElim('X₀ ∈ G ∧ S₀ ⊆ X₀'), subsetElim('S₀ ⊆ X₀', 'x₀ ∈ S₀'), unfold('x₀ ∈ ⋃₀ G'), existsIntro('X₀'), andIntro([close], [close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [claim('∀ k, 2 * sumTo k = k * (k + 1)', [forallIntro, induction('k₀', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebraHyps('2 * sumTo k₀ = k₀ * (k₀ + 1)')])]),
+                    induction('n', [unfoldFunction('sumCubes'), unfoldFunction('sumTo'), rfl], [unfoldPart('sumCubes', 'sumCubes (n + 1)'), unfoldPart('sumTo', 'sumTo (n + 1)'),
+                        forallElim('∀ (k : Nat), 2 * sumTo k = k * (k + 1)', 'n'), algebraHyps('sumCubes n = sumTo n ^ 2', '2 * sumTo n = n * (n + 1)')])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [induction('n', [calc], [forallElim('∀ (m k : Nat), m ≤ k ↔ f m ≤ f k', 'n + 1'), forallElim('∀ (k : Nat), n + 1 ≤ k ↔ f (n + 1) ≤ f k', 'n'),
+                    calcHyps('n ≤ f n', 'n + 1 ≤ n ↔ f (n + 1) ≤ f n')])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x₀ ∈ ⋂₀ F ∪ ⋂₀ G'), byContradiction, replace('easylean_not_or', 'FORWARD', '¬(x₀ ∈ ⋂₀ F ∨ x₀ ∈ ⋂₀ G)'), andElim('¬x₀ ∈ ⋂₀ F ∧ ¬x₀ ∈ ⋂₀ G'),
+                    ...[['F', 'X'], ['G', 'Y']].map(([family, set]) => claim(`∃ ${set}, ${set} ∈ ${family} ∧ ¬x₀ ∈ ${set}`, [byContradiction, notElim(`¬x₀ ∈ ⋂₀ ${family}`), unfold(`x₀ ∈ ⋂₀ ${family}`),
+                        forallIntro, assume, byContradiction, notElim(`¬∃ ${set}, ${set} ∈ ${family} ∧ ¬x₀ ∈ ${set}`), existsIntro('S₀'), andIntro([close], [close])])),
+                    existsElim('∃ X, X ∈ F ∧ ¬x₀ ∈ X'), andElim('X₀ ∈ F ∧ ¬x₀ ∈ X₀'), existsElim('∃ Y, Y ∈ G ∧ ¬x₀ ∈ Y'), andElim('Y₀ ∈ G ∧ ¬x₀ ∈ Y₀'),
+                    forallElim('∀ (X : Set obj), X ∈ F → ∀ (Y : Set obj), Y ∈ G → X ∪ Y ∈ H', 'X₀'), forward('X₀ ∈ F → ∀ (Y : Set obj), Y ∈ G → X₀ ∪ Y ∈ H', 'X₀ ∈ F'),
+                    forallElim('∀ (Y : Set obj), Y ∈ G → X₀ ∪ Y ∈ H', 'Y₀'), forward('Y₀ ∈ G → X₀ ∪ Y₀ ∈ H', 'Y₀ ∈ G'),
+                    unfold('x₀ ∈ ⋂₀ H'), forallElim('∀ (S : Set obj), S ∈ H → x₀ ∈ S', 'X₀ ∪ Y₀'), forward('X₀ ∪ Y₀ ∈ H → x₀ ∈ X₀ ∪ Y₀', 'X₀ ∪ Y₀ ∈ H'),
+                    unfold('x₀ ∈ X₀ ∪ Y₀'), orCases('x₀ ∈ X₀ ∨ x₀ ∈ Y₀', [contradiction('x₀ ∈ X₀')], [contradiction('x₀ ∈ Y₀')])],
+            }],
+        ],
+    },
 ];

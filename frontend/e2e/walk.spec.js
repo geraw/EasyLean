@@ -814,6 +814,67 @@ const UNIT9 = [
     },
 ];
 
+// Unit 10 offers every move, in drawers: a walk for some of its levels, by
+// level number, each in other drawers.
+const UNIT10 = {
+    1: async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
+        const b = await drag(page, 'by_contradiction', { after: a }); log(await phrase(page, b));
+        const r1 = await replace(page, { after: b }, '¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'את ¬((P → Q) ∨ (P → R)) ב־(¬(P → Q) ∧ ¬(P → R))', '¬((P → Q) ∨ (P → R))', log);
+        const d1 = await drag(page, 'and_elim', { after: r1 }); await choose(page, d1, 'AND', '(¬(P → Q) ∧ ¬(P → R))');
+        let last = d1;
+        for (const [rule, side] of [['Q', '¬Q'], ['R', '¬R']]) {
+            const r = await replace(page, { after: last }, '¬(A → B) ↔ (A ∧ ¬B)', `את ¬(P → ${rule}) ב־(P ∧ ${side})`, `¬(P → ${rule})`, log);
+            last = await drag(page, 'and_elim', { after: r }); await choose(page, last, 'AND', `(P ∧ ${side})`);
+        }
+        const f = await drag(page, 'forward', { after: last }); await choose(page, f, 'RULE', '(P → (Q ∨ R))'); await choose(page, f, 'PREMISE', 'P'); log(await phrase(page, f));
+        const c = await drag(page, 'or_elim', { after: f }); await choose(page, c, 'OR', '(Q ∨ R)');
+        for (const [part, fact] of [['LEFT', 'Q'], ['RIGHT', 'R']]) {
+            const t = await drag(page, 'contradiction', { into: c, input: part }); await choose(page, t, 'FACT', fact);
+        }
+        const a1 = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
+        const a2 = await drag(page, 'assume', { after: a1 }); log(await phrase(page, a2));
+        const o = await drag(page, 'or_elim', { after: a2 }); await choose(page, o, 'OR', '((P → Q) ∨ (P → R))');
+        for (const [part, rule] of [['LEFT', 'Q'], ['RIGHT', 'R']]) {
+            const i = await drag(page, 'or_intro', { into: o, input: part }); await choose(page, i, 'SIDE', rule);
+            const g = await drag(page, 'forward', { after: i }); await choose(page, g, 'RULE', `(P → ${rule})`); await choose(page, g, 'PREMISE', 'P');
+            await drag(page, 'exact', { after: g });
+        }
+    },
+    12: async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
+        const i = await drag(page, 'subset_intro', { after: a }); log(await phrase(page, i));
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃S (S ∈ F ∧ x₀ ∈ S)');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(S₀ ∈ F ∧ x₀ ∈ S₀)');
+        const e1 = await drag(page, 'subset_elim', { after: d }); await choose(page, e1, 'SUBSET', 'F ⊆ 𝒫(A)'); await choose(page, e1, 'MEMBER', 'S₀ ∈ F');
+        const u2 = await unfold(page, { after: e1 }, 'S₀ ∈ 𝒫(A)', log);
+        const e2 = await drag(page, 'subset_elim', { after: u2 }); await choose(page, e2, 'SUBSET', 'S₀ ⊆ A'); await choose(page, e2, 'MEMBER', 'x₀ ∈ S₀');
+        await drag(page, 'exact', { after: e2 });
+        const b = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
+        const j = await drag(page, 'subset_intro', { after: b }); log(await phrase(page, j));
+        const v = await unfold(page, { after: j }, 'X₀ ∈ 𝒫(A)', log);
+        const j2 = await drag(page, 'subset_intro', { after: v }); log(await phrase(page, j2));
+        const c = await drag(page, 'claim', { after: j2 }); await choose(page, c, 'CLAIM', 'x₀ ∈ ⋃₀ F'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, 'x₀ ∈ ⋃₀ F', log);
+        const y = await drag(page, 'exists_intro', { after: w }); await choose(page, y, 'TERM', 'X₀');
+        const s = await drag(page, 'and_intro', { after: y });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        await drag(page, 'exact', { into: s, input: 'RIGHT' });
+        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', '⋃₀ F ⊆ A'); await choose(page, m, 'MEMBER', 'x₀ ∈ ⋃₀ F');
+        await drag(page, 'exact', { after: m });
+    },
+    16: async (page, log) => {
+        const i = await drag(page, 'induction', { goal: true }); await choose(page, i, 'VARIABLE', 'n'); log(await phrase(page, i));
+        await drag(page, 'calc', { into: i, input: 'BASE' });
+        const e1 = await drag(page, 'forall_elim', { into: i, input: 'STEP' }); await choose(page, e1, 'FORALL', '∀m (∀k (m ≤ k ↔ f(m) ≤ f(k)))'); await typeIn(page, e1, 'TERM', 'n + 1');
+        const e2 = await drag(page, 'forall_elim', { after: e1 }); await choose(page, e2, 'FORALL', '∀k (n + 1 ≤ k ↔ f(n + 1) ≤ f(k))'); await choose(page, e2, 'TERM', 'n'); log(await phrase(page, e2));
+        await fromFacts(page, 'calc_hyps', { after: e2 }, ['n ≤ f(n)', '(n + 1 ≤ n ↔ f(n + 1) ≤ f(n))'], log);
+    },
+};
+
 const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
@@ -822,10 +883,13 @@ const UNITS = [
     { unit: 7, world: 'יחידה 7 - קבוצות של קבוצות', walks: UNIT7 },
     { unit: 8, world: 'יחידה 8 - שוויון ואינדוקציה', walks: UNIT8 },
     { unit: 9, world: 'יחידה 9 - אינדוקציה מבנית', walks: UNIT9 },
+    { unit: 10, world: 'יחידה 10 - תרגילים מסכמים', walks: UNIT10 },
 ];
 
+// The walks of a unit: a list, for every level, or by level number, for some.
 for (const { unit, world, walks } of UNITS) {
-    walks.forEach((walk, index) => {
+    const byIndex = Array.isArray(walks) ? walks.map((walk, index) => [index, walk]) : Object.entries(walks).map(([number, walk]) => [Number(number) - 1, walk]);
+    byIndex.forEach(([index, walk]) => {
         test(`student walk, unit ${unit} level ${index + 1}`, async ({ page }) => {
             test.setTimeout(400000);
             await page.setViewportSize({ width: 1500, height: 1000 });

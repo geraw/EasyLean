@@ -335,6 +335,7 @@ const FUNCTIONS = [
     ['double', 'double', ['double'], 'Nat'],
     ['sumTo', 'sumTo', ['sumTo'], 'Nat'],
     ['oddSum', 'oddSum', ['oddSum'], 'Nat'],
+    ['sumCubes', 'sumCubes', ['sumCubes'], 'Nat'],
     ['החיבור', 'add', ['easylean_add_succ'], 'Nat'],
     ['החזקה', 'pow', ['Nat.pow_succ'], 'Nat'],
     ['++', 'append', ['List.nil_append', 'List.cons_append'], 'List'],
@@ -477,7 +478,7 @@ const negation = (formula) => `¬(${formula})`;
 
 // The element taken to prove an inclusion: a set when the sets are of sets
 // (a power set), otherwise an object.
-const elementName = (block, smaller) => newObjectName(block, smaller.startsWith('𝒫') ? 'X' : 'x');
+const elementName = (block, smaller, larger = '') => newObjectName(block, smaller.startsWith('𝒫') || larger.startsWith('𝒫') ? 'X' : 'x');
 
 // The name of a new object (∀ introduction, ∃ elimination): the quantified
 // variable's with a subscript, x₀ (see freshName).
@@ -1034,7 +1035,7 @@ export const defineMoveBlocks = () => {
                 setPhrase(this, ['כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה']);
                 return;
             }
-            const element = elementName(this, sets[0]);
+            const element = elementName(this, sets[0], sets[1]);
             setPhrase(this, ['כדי להוכיח', { formula: goal }, 'יהי', { formula: `${element} ∈ ${sets[0]}` }, 'ונוכיח', { formula: `${element} ∈ ${sets[1]}` }]);
         },
     };
@@ -1383,7 +1384,7 @@ leanGenerator.forBlock['exists_elim'] = (block) => {
 // Units 6 and 7. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
-    return `  refine easylean_subset_intro (fun ${sets ? elementName(block, sets[0]) : 'x₀'} _ => ?_)\n`;
+    return `  refine easylean_subset_intro (fun ${sets ? elementName(block, sets[0], sets[1]) : 'x₀'} _ => ?_)\n`;
 };
 
 leanGenerator.forBlock['subset_elim'] = (block) =>

@@ -98,7 +98,7 @@ const writePowerSets = (text) => {
 // to their arguments as functions are written: `double (k + 1)` is
 // `double(k + 1)`, `mirror (node l r)` is `mirror(node(l,r))`, and Lean's
 // `List.length l` is `length(l)`.
-const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
+const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'sumCubes', 'f', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
     'opening', 'closing', 'atoms', 'binaries', 'negations', 'depth', 'atom', 'neg', 'conj']);
 const NAME = /^[\p{L}\p{N}_'₀-₉]+/u;
 const closingOf = (text, start) => {
@@ -208,7 +208,7 @@ const writeListRun = (words) => {
         return left;
     };
     const write = (node, parent, side) => {
-        if (node.atom !== undefined) return node.atom;
+        if (node.atom !== undefined) return /^[⋃⋂]₀ /.test(node.atom) ? `(${node.atom})` : node.atom;
         const text = `${write(node.left, node.op, 'left')} ${node.op} ${write(node.right, node.op, 'right')}`;
         const chain = node.op === '::' && parent === '::' && side === 'right';
         return parent && !chain ? `(${text})` : text;
@@ -218,8 +218,10 @@ const writeListRun = (words) => {
 const enclosedGroup = (word) => word.startsWith('(') && closingOf(word, 0) === word.length - 1;
 const writeLists = (text) => {
     if (!/\+\+|::|∪|∆|∩|\\/.test(text)) return text;
-    const words = topLevelWords(text);
-    if (!words) return text;
+    const separate = topLevelWords(text);
+    if (!separate) return text;
+    // The union or intersection of a family is one operand: `⋃₀ F ∪ A` is (⋃₀ F) ∪ A.
+    const words = separate.reduce((merged, word) => (['⋃₀', '⋂₀'].includes(merged.at(-1)) ? [...merged.slice(0, -1), `${merged.at(-1)} ${word}`] : [...merged, word]), []);
     const result = [];
     for (let index = 0; index < words.length;) {
         if (isInfix(words[index + 1])) {

@@ -109,6 +109,7 @@ const UNFOLDS = {
     double: (node) => isApplication(node, ['double']) && (isAtom(node.args[0], '0') || isSuccessor(node.args[0])),
     sumTo: (node) => isApplication(node, ['sumTo']) && (isAtom(node.args[0], '0') || isSuccessor(node.args[0])),
     oddSum: (node) => isApplication(node, ['oddSum']) && (isAtom(node.args[0], '0') || isSuccessor(node.args[0])),
+    sumCubes: (node) => isApplication(node, ['sumCubes']) && (isAtom(node.args[0], '0') || isSuccessor(node.args[0])),
     add: (node) => node.op === '+' && isSuccessor(node.right),
     pow: (node) => node.op === '^' && isSuccessor(node.right),
     append: (node) => node.op === '++' && (isAtom(node.left, '[]') || isCons(node.left)),
