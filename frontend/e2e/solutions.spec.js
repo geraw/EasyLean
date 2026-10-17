@@ -105,6 +105,36 @@ test('arithmetic from the goal alone does not use the induction hypothesis', asy
     await expect(page.getByText('הצלחה!')).toHaveCount(0);
 });
 
+// A block's text as shown, all its rows.
+const blockText = (page, blockId) => page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).inputList
+    .map((input) => input.fieldRow.filter((f) => f.isVisible()).map((f) => f.getText()).join(' ')).join(' / ')
+    .replace(/[\u2066\u2067\u2069]/g, ''), blockId);
+
+test('a move that uses an induction hypothesis says so', async ({ page }) => {
+    const unit = (number) => UNITS.find(({ unit: candidate }) => candidate === number);
+    await openLevel(page, unit(9).world, 0);
+    await clearProof(page);
+    const [, , , rewrite] = await buildProof(page, unit(9).levels[0][0].steps);
+    await expect.poll(() => blockText(page, rewrite)).toMatch(/^לפי הנחת האינדוקציה l \+\+ \[\] = l נחליף/);
+    await openLevel(page, unit(9).world, 6);
+    await clearProof(page);
+    const [, , , , close] = await buildProof(page, unit(9).levels[6][0].steps);
+    await expect.poll(() => blockText(page, close)).toBe('זו בדיוק הנחת האינדוקציה.');
+    await openLevel(page, unit(9).world, 4);
+    await clearProof(page);
+    const steps = await buildProof(page, unit(9).levels[4][0].steps);
+    await expect.poll(() => blockText(page, steps.at(-1))).toBe('נכונות המטרה נובעת מחשבון פשוט ומהנחות האינדוקציה.');
+    // Outside an induction, the moves read as before.
+    await openLevel(page, unit(8).world, 6);
+    await clearProof(page);
+    const [, calc] = await buildProof(page, unit(8).levels[6][0].steps);
+    await expect.poll(() => blockText(page, calc)).toBe('נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו.');
+    await openLevel(page, unit(8).world, 2);
+    await clearProof(page);
+    const [byEquality] = await buildProof(page, unit(8).levels[2][0].steps);
+    await expect.poll(() => blockText(page, byEquality)).toMatch(/^לפי השוויון a = b נחליף/);
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);

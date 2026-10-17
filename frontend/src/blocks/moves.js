@@ -445,6 +445,47 @@ const followResult = {
         this.updateText();
     },
 };
+// The induction hypotheses where a move is: in a step of an induction, the
+// statements its heading assumes ("נניח P(l) ו־P(r)"), as Lean spells them,
+// so that a move that uses one says so, as written proofs do ("לפי הנחת
+// האינדוקציה"). The nearest induction around the move counts.
+const inductionHypotheses = (block) => {
+    for (let child = block, parent = block.getSurroundParent(); parent; child = parent, parent = parent.getSurroundParent()) {
+        if (parent.type !== 'induction') continue;
+        let first = child;
+        while (first.getPreviousBlock() && first.getPreviousBlock() !== parent) first = first.getPreviousBlock();
+        const input = parent.inputList.find((candidate) => candidate.connection?.targetBlock() === first);
+        const part = STRUCTURES[parent.structure || 'Nat'].find(({ input: name }) => name === input?.name);
+        const variable = parent.getFieldValue('VARIABLE');
+        const goal = parent.stateBefore?.goal;
+        if (!part || !filled(variable) || !goal) return [];
+        return part.hypotheses(variable).map((name) => substitute(goal, variable, name));
+    }
+    return [];
+};
+const isInductionHypothesis = (block, statement) => filled(statement) && inductionHypotheses(block).some((hypothesis) => sameStatement(hypothesis, statement));
+
+// A label set by the move's text, without firing events.
+const setLabel = (block, name, text) => {
+    const field = block.getField(name);
+    if (!field || field.getValue() === text) return;
+    Blockly.Events.disable();
+    try {
+        field.setValue(text);
+    } finally {
+        Blockly.Events.enable();
+    }
+};
+
+// "ומההנחות שבידינו", or, in a step whose only assumptions in hand are its
+// induction hypotheses, "ומהנחת/ומהנחות האינדוקציה".
+const fromAssumptions = (block) => {
+    const inHand = block.stateBefore?.assumptions || [];
+    const hypotheses = inductionHypotheses(block);
+    if (!inHand.length || !inHand.every((statement) => hypotheses.some((hypothesis) => sameStatement(hypothesis, statement)))) return 'ומההנחות שבידינו.';
+    return inHand.length === 1 ? 'ומהנחת האינדוקציה.' : 'ומהנחות האינדוקציה.';
+};
+
 const appendResult = (block) => appendPhrase(block, block.appendDummyInput('RESULTROW'), 'RESULT');
 const setResult = (block, target) => {
     const after = block.stateAfter;
@@ -461,8 +502,15 @@ export const defineMoveBlocks = () => {
     // for it among everything in hand, so the student does not point to it.
     Blockly.Blocks['exact'] = {
         init() {
-            this.appendDummyInput().appendField('יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.');
+            this.appendDummyInput().appendField(new Blockly.FieldLabel('יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.'), 'TEXT');
             move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שרוצים להוכיח, ההוכחה הושלמה.');
+        },
+        ...followState,
+        // In a step whose goal is its induction hypothesis, says so.
+        updateText() {
+            setLabel(this, 'TEXT', isInductionHypothesis(this, this.stateBefore?.goal)
+                ? 'זו בדיוק הנחת האינדוקציה.'
+                : 'יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.');
         },
     };
 
@@ -963,7 +1011,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['rewrite'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי השוויון')
+                .appendField(new Blockly.FieldLabel('לפי השוויון'), 'BY')
                 .appendField(new FieldAssumption({ filter: (formula) => Boolean(splitRelation(formula, '=')) }), 'EQUATION')
                 .appendField('נחליף')
                 .appendField(new FieldDirection(), 'DIRECTION');
@@ -976,13 +1024,12 @@ export const defineMoveBlocks = () => {
         },
         ...followResult,
         updateText() {
+            setLabel(this, 'BY', isInductionHypothesis(this, this.getFieldValue('EQUATION')) ? 'לפי הנחת האינדוקציה' : 'לפי השוויון');
             this.getField('DIRECTION')?.refreshText();
             setResult(this, this.getFieldValue('TARGET'));
         },
     };
 
-    // Induction on a natural number: the base 0, and the step from n to n + 1,
-    // each in a part headed by what is proved in it.
     // Induction (units 8 and 9): a part for each way the level's structure is
     // built, a basis for each one without parts like it, and a step, with an
     // induction hypothesis for each part like it, for each of the others.
@@ -1052,8 +1099,12 @@ export const defineMoveBlocks = () => {
 
     Blockly.Blocks['calc_hyps'] = {
         init() {
-            this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו.');
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט').appendField(new Blockly.FieldLabel('ומההנחות שבידינו.'), 'FROM');
             move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות) בעזרת ההנחות שבידינו, למשל אי־שוויון שאי אפשר להחליף לפיו. לא פותח הגדרות.');
+        },
+        ...followState,
+        updateText() {
+            setLabel(this, 'FROM', fromAssumptions(this));
         },
     };
 
@@ -1066,8 +1117,12 @@ export const defineMoveBlocks = () => {
 
     Blockly.Blocks['algebra_hyps'] = {
         init() {
-            this.appendDummyInput().appendField('נכונות המטרה נובעת מאלגברה ומההנחות שבידינו.');
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מאלגברה').appendField(new Blockly.FieldLabel('ומההנחות שבידינו.'), 'FROM');
             move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים) בעזרת ההנחות שבידינו. לא פותח הגדרות.');
+        },
+        ...followState,
+        updateText() {
+            setLabel(this, 'FROM', fromAssumptions(this));
         },
     };
 };
