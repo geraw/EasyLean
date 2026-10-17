@@ -33,8 +33,9 @@ class FieldAssumption extends Blockly.FieldDropdown {
     constructor({ objects = false, withGoal = false, goalOption = false, filter = () => true } = {}) {
         super(function () {
             const state = this.getSourceBlock()?.stateBefore;
+            // With sets, the empty set is a set too, for a "for all sets".
             const inHand = objects
-                ? [...(state?.objects || []), ...(state?.sets || [])]
+                ? [...(state?.objects || []), ...(state?.sets || []), ...(state?.sets?.length ? ['∅'] : [])]
                 : [...new Set([...(goalOption ? [GOAL] : []), ...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])].filter((value) => value === GOAL || filter(value));
             const options = inHand.map((value) => [optionLabel(value), value]);
             // A new field starts as the first option: the placeholder (or the goal).

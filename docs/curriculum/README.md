@@ -23,10 +23,11 @@
 | 3 | [03-negation.md](03-negation.md) | שלילה והוכחה בשלילה |
 | 4 | [04-quantifiers.md](04-quantifiers.md) | כמתים |
 | 5 | [05-equivalences.md](05-equivalences.md) | שקילויות לוגיות: משלימים את החוקים, ומחליפים טענה בטענה ששקולה לה |
-| 6 | [06-sets.md](06-sets.md) | קבוצות |
-| 7 | [07-sets-of-sets.md](07-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה ומשפחות |
+| 6 | [06-sets.md](06-sets.md) | קבוצות: הכלה, חיתוך, איחוד, הפרש והפרש סימטרי |
+| 7 | [07-sets-of-sets.md](07-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה, טענת עזר ומשפחות |
 | 8 | [08-equality-and-induction.md](08-equality-and-induction.md) | שוויון ואינדוקציה |
 | 9 | [09-structural-induction.md](09-structural-induction.md) | אינדוקציה מבנית: רשימות, עצים ונוסחאות |
+| 10 | [10-summary.md](10-summary.md) | יחידה מסכמת (בתכנון): בין השאר ההכלה ההפוכה של שלב 6.10, וארגז שמחולק למגירות |
 
 | מסמך כללי | תוכן |
 |---|---|
