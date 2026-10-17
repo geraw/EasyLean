@@ -1006,7 +1006,7 @@ export const defineMoveBlocks = () => {
     // assumptions); they do not unfold definitions.
     Blockly.Blocks['calc'] = {
         init() {
-            this.appendDummyInput().appendField('המטרה נובעת לפי חשבון.');
+            this.appendDummyInput().appendField('המטרה נובעת מחשבון פשוט.');
             move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), גם בעזרת מה שבידינו. לא פותח הגדרות.');
         },
     };
