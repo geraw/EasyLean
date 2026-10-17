@@ -224,44 +224,44 @@ export const unit10Levels = [
         name: 'unit10_l12_family_of_subsets',
         variableLine: FAMILIES,
         usesSets: true,
-        proposition: 'F ⊆ 𝒫 A ↔ ⋃₀ F ⊆ A',
-        goalLabel: '(F ⊆ 𝒫(A) ↔ ⋃₀ F ⊆ A)',
-        claims: ['x₀ ∈ ⋃₀ F', 'X₀ ∈ 𝒫 A', 'A ∈ F'],
+        proposition: 'F ⊆ 𝒫 A ↔ ⋃ F ⊆ A',
+        goalLabel: '(F ⊆ 𝒫(A) ↔ ⋃F ⊆ A)',
+        claims: ['x₀ ∈ ⋃ F', 'X₀ ∈ 𝒫 A', 'A ∈ F'],
         introduction: `# משפחה של תתי־קבוצות
 
-**תרגיל 12** (תרגול 4, ותכנון הסמסטר): הוכיחו ש־F ⊆ 𝒫(A) אם ורק אם ⋃₀ F ⊆ A.
+**תרגיל 12** (תרגול 4, ותכנון הסמסטר): הוכיחו ש־F ⊆ 𝒫(A) אם ורק אם ⋃F ⊆ A.
 ההוכחה עוברת בין שלוש רמות: איברים, קבוצות ומשפחות.`,
-        hints: ['בכיוון ←, כדי להשתמש ב־⋃₀ F ⊆ A צריך איבר של ⋃₀ F: הוכיחו קודם את טענת העזר x₀ ∈ ⋃₀ F.'],
-        conclusion: 'F ⊆ 𝒫(A) ו־⋃₀ F ⊆ A אומרות אותו דבר: כל קבוצה במשפחה מוכלת ב־A.',
-        startXml: goalXml('(F ⊆ 𝒫(A) ↔ ⋃₀ F ⊆ A)'),
+        hints: ['בכיוון ←, כדי להשתמש ב־⋃F ⊆ A צריך איבר של ⋃F: הוכיחו קודם את טענת העזר x₀ ∈ ⋃F.'],
+        conclusion: 'F ⊆ 𝒫(A) ו־⋃F ⊆ A אומרות אותו דבר: כל קבוצה במשפחה מוכלת ב־A.',
+        startXml: goalXml('(F ⊆ 𝒫(A) ↔ ⋃F ⊆ A)'),
     }),
     level(13, {
         title: 'האיחוד של קבוצת החזקה',
         name: 'unit10_l13_union_of_powerset',
         variableLine: FAMILIES,
         usesSets: true,
-        proposition: '⋃₀ (𝒫 A) = A',
-        goalLabel: '⋃₀ 𝒫(A) = A',
+        proposition: '⋃ (𝒫 A) = A',
+        goalLabel: '⋃𝒫(A) = A',
         introduction: `# האיחוד של קבוצת החזקה
 
-**תרגיל 13** (לפי שאלה ממבחן 2025ב, מועד ג): הוכיחו ש־⋃₀ 𝒫(A) = A.`,
+**תרגיל 13** (לפי שאלה ממבחן 2025ב, מועד ג): הוכיחו ש־⋃𝒫(A) = A.`,
         hints: ['בהכלה ⊇, צריך קבוצה ב־𝒫(A) שמכילה את x₀. נסו את A עצמה.'],
         conclusion: 'האיחוד של כל תתי־הקבוצות של A הוא A, כי A היא אחת מהן.',
-        startXml: goalXml('⋃₀ 𝒫(A) = A'),
+        startXml: goalXml('⋃𝒫(A) = A'),
     }),
     level(14, {
         title: 'איחוד של משפחות',
         name: 'unit10_l14_union_of_families',
         variableLine: FAMILIES,
         usesSets: true,
-        proposition: '(∀ (T : Set obj), T ∈ F → ∃ X, X ∈ G ∧ T ⊆ X) → ⋃₀ F ⊆ ⋃₀ G',
-        goalLabel: '((∀T (T ∈ F → (∃X (X ∈ G ∧ T ⊆ X)))) → ⋃₀ F ⊆ ⋃₀ G)',
+        proposition: '(∀ (T : Set obj), T ∈ F → ∃ X, X ∈ G ∧ T ⊆ X) → ⋃ F ⊆ ⋃ G',
+        goalLabel: '((∀T (T ∈ F → (∃X (X ∈ G ∧ T ⊆ X)))) → ⋃F ⊆ ⋃G)',
         introduction: `# איחוד של משפחות
 
-**תרגיל 14** (בוחן 1, 2026א, שאלה 3): אם כל קבוצה ב־F מוכלת באחת הקבוצות של G, אז ⋃₀ F ⊆ ⋃₀ G.`,
-        hints: ['יש כאן שתי טענות "קיים" שמשתמשים בהן: האחת מההגדרה של x₀ ∈ ⋃₀ F, והשנייה מההנחה, אחרי הצבה.'],
+**תרגיל 14** (בוחן 1, 2026א, שאלה 3): אם כל קבוצה ב־F מוכלת באחת הקבוצות של G, אז ⋃F ⊆ ⋃G.`,
+        hints: ['יש כאן שתי טענות "קיים" שמשתמשים בהן: האחת מההגדרה של x₀ ∈ ⋃F, והשנייה מההנחה, אחרי הצבה.'],
         conclusion: 'זו הייתה שאלה בבוחן של השנה. המבנה שלה, "קיים" שנותן עצם, ו"לכל" שמציבים בו את העצם, חוזר בהרבה הוכחות.',
-        startXml: goalXml('((∀T (T ∈ F → (∃X (X ∈ G ∧ T ⊆ X)))) → ⋃₀ F ⊆ ⋃₀ G)'),
+        startXml: goalXml('((∀T (T ∈ F → (∃X (X ∈ G ∧ T ⊆ X)))) → ⋃F ⊆ ⋃G)'),
     }),
     level(15, {
         title: 'סכום החזקות השלישיות',
@@ -305,15 +305,15 @@ sumTo מיחידה 8 הוא הסכום 1 + 2 + ... + n, ו־sumCubes הוא סכ
         variableLine: FAMILIES,
         usesSets: true,
         params: '(hH : ∀ (X : Set obj), X ∈ F → ∀ (Y : Set obj), Y ∈ G → X ∪ Y ∈ H)',
-        proposition: '⋂₀ H ⊆ ⋂₀ F ∪ ⋂₀ G',
-        goalLabel: '⋂₀ H ⊆ (⋂₀ F) ∪ (⋂₀ G)',
-        claims: ['∃ X, X ∈ F ∧ ¬x₀ ∈ X', '∃ Y, Y ∈ G ∧ ¬x₀ ∈ Y', 'x₀ ∈ ⋂₀ F'],
+        proposition: '⋂ H ⊆ ⋂ F ∪ ⋂ G',
+        goalLabel: '⋂H ⊆ (⋂F) ∪ (⋂G)',
+        claims: ['∃ X, X ∈ F ∧ ¬x₀ ∈ X', '∃ Y, Y ∈ G ∧ ¬x₀ ∈ Y', 'x₀ ∈ ⋂ F'],
         introduction: `# בונוס: חיתוך של משפחות
 
-**תרגיל 17** (עבודה 1, 2026א, שאלה 4): אם X ∪ Y ∈ H לכל X ∈ F ולכל Y ∈ G, אז ⋂₀ H ⊆ (⋂₀ F) ∪ (⋂₀ G).
+**תרגיל 17** (עבודה 1, 2026א, שאלה 4): אם X ∪ Y ∈ H לכל X ∈ F ולכל Y ∈ G, אז ⋂H ⊆ (⋂F) ∪ (⋂G).
 זו ההוכחה הקשה ביותר ביחידה: היא דורשת הוכחה בשלילה, ושתי טענות עזר.`,
-        hints: ['הוכיחו את ה"או" בשלילה. מ־¬x₀ ∈ ⋂₀ F הוכיחו את טענת העזר ∃X (X ∈ F ∧ ¬x₀ ∈ X), וכך גם ל־G. אחר כך הציבו את שתי הקבוצות בהנחה על H.'],
+        hints: ['הוכיחו את ה"או" בשלילה. מ־¬x₀ ∈ ⋂F הוכיחו את טענת העזר ∃X (X ∈ F ∧ ¬x₀ ∈ X), וכך גם ל־G. אחר כך הציבו את שתי הקבוצות בהנחה על H.'],
         conclusion: 'סיימתם את יחידה 10, ואת הקורס! בתרגיל האחרון השתמשתם כמעט בכל מה שלמדתם: הוכחה בשלילה, שקילויות, כמתים, קבוצות, משפחות של קבוצות וטענות עזר.',
-        startXml: goalXml('⋂₀ H ⊆ (⋂₀ F) ∪ (⋂₀ G)', '∀X (X ∈ F → (∀Y (Y ∈ G → X ∪ Y ∈ H)))'),
+        startXml: goalXml('⋂H ⊆ (⋂F) ∪ (⋂G)', '∀X (X ∈ F → (∀Y (Y ∈ G → X ∪ Y ∈ H)))'),
     }),
 ];

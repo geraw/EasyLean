@@ -208,7 +208,7 @@ const writeListRun = (words) => {
         return left;
     };
     const write = (node, parent, side) => {
-        if (node.atom !== undefined) return /^[⋃⋂]₀ /.test(node.atom) ? `(${node.atom})` : node.atom;
+        if (node.atom !== undefined) return /^[⋃⋂] /.test(node.atom) ? `(${node.atom})` : node.atom;
         const text = `${write(node.left, node.op, 'left')} ${node.op} ${write(node.right, node.op, 'right')}`;
         const chain = node.op === '::' && parent === '::' && side === 'right';
         return parent && !chain ? `(${text})` : text;
@@ -220,8 +220,8 @@ const writeLists = (text) => {
     if (!/\+\+|::|∪|∆|∩|\\/.test(text)) return text;
     const separate = topLevelWords(text);
     if (!separate) return text;
-    // The union or intersection of a family is one operand: `⋃₀ F ∪ A` is (⋃₀ F) ∪ A.
-    const words = separate.reduce((merged, word) => (['⋃₀', '⋂₀'].includes(merged.at(-1)) ? [...merged.slice(0, -1), `${merged.at(-1)} ${word}`] : [...merged, word]), []);
+    // The union or intersection of a family is one operand: `⋃ F ∪ A` is (⋃ F) ∪ A.
+    const words = separate.reduce((merged, word) => (['⋃', '⋂'].includes(merged.at(-1)) ? [...merged.slice(0, -1), `${merged.at(-1)} ${word}`] : [...merged, word]), []);
     const result = [];
     for (let index = 0; index < words.length;) {
         if (isInfix(words[index + 1])) {
@@ -265,7 +265,9 @@ export const formatProofGoal = (text) => {
         return `${tokens[0]}(${tokens.slice(1).join(',')})`;
     }
     // Multiplication is written with a dot.
-    return writeLists(writeApplications(writePowerSets(normalized))).replace(/ \* /g, ' · ');
+    // The union and intersection of a family are written next to it, ⋃F, as
+    // in the textbooks: apart, ⋂ F reads like the binary ∩ with a side missing.
+    return writeLists(writeApplications(writePowerSets(normalized))).replace(/ \* /g, ' · ').replace(/([⋃⋂]) /g, '$1');
 };
 
 // The two sides of a formula whose main connective is `symbol` (one of
@@ -347,8 +349,8 @@ const SET_OPERATIONS = {
     'ᶜ': { lemma: 'easylean_mem_compl', name: 'המשלים', means: (t, [a]) => `¬${t} ∈ ${a}` },
     '∅': { lemma: 'easylean_mem_empty', name: 'הקבוצה הריקה', means: () => 'False' },
     '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
-    '⋃₀': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
-    '⋂₀': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
+    '⋃': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
+    '⋂': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
 };
 
 // The main operation of a set expression and its operands, or null for a set's name.
@@ -360,7 +362,7 @@ const mainSetOperation = (text) => {
     }
     if (set.endsWith('ᶜ')) return { operation: 'ᶜ', operands: [set.slice(0, -1).trim()] };
     if (set === '∅') return { operation: '∅', operands: [] };
-    const prefix = ['𝒫', '⋃₀', '⋂₀'].find((operation) => set.startsWith(`${operation} `) || set.startsWith(`${operation}(`));
+    const prefix = ['𝒫', '⋃', '⋂'].find((operation) => set.startsWith(`${operation} `) || set.startsWith(`${operation}(`));
     return prefix ? { operation: prefix, operands: [set.slice(prefix.length).trim()] } : null;
 };
 

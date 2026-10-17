@@ -607,7 +607,7 @@ const UNIT7 = [
     },
     async (page, log) => {
         const i = await drag(page, 'subset_intro', { goal: true });
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃F', log);
         const w = await drag(page, 'exists_intro', { after: u }); await choose(page, w, 'TERM', 'A'); log(await phrase(page, w));
         const s = await drag(page, 'and_intro', { after: w });
         await drag(page, 'exact', { into: s, input: 'LEFT' });
@@ -615,7 +615,7 @@ const UNIT7 = [
     },
     async (page, log) => {
         const i = await drag(page, 'subset_intro', { goal: true });
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋂₀ F', log);
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋂F', log);
         const e = await drag(page, 'forall_elim', { after: u }); await choose(page, e, 'FORALL', '∀S (S ∈ F → x₀ ∈ S)'); await choose(page, e, 'TERM', 'A'); log(await phrase(page, e));
         const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(A ∈ F → x₀ ∈ A)'); await choose(page, f, 'PREMISE', 'A ∈ F');
         await drag(page, 'exact', { after: f });
@@ -623,7 +623,7 @@ const UNIT7 = [
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const i = await drag(page, 'subset_intro', { after: a }); log(await phrase(page, i));
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃F', log);
         const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃S (S ∈ F ∧ x₀ ∈ S)'); log(await phrase(page, x));
         const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(S₀ ∈ F ∧ x₀ ∈ S₀)');
         const e = await drag(page, 'forall_elim', { after: d }); await choose(page, e, 'FORALL', '∀S (S ∈ F → S ⊆ A)'); await choose(page, e, 'TERM', 'S₀'); log(await phrase(page, e));
@@ -846,7 +846,7 @@ const UNIT10 = {
         const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
         const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
         const i = await drag(page, 'subset_intro', { after: a }); log(await phrase(page, i));
-        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃₀ F', log);
+        const u = await unfold(page, { after: i }, 'x₀ ∈ ⋃F', log);
         const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃S (S ∈ F ∧ x₀ ∈ S)');
         const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(S₀ ∈ F ∧ x₀ ∈ S₀)');
         const e1 = await drag(page, 'subset_elim', { after: d }); await choose(page, e1, 'SUBSET', 'F ⊆ 𝒫(A)'); await choose(page, e1, 'MEMBER', 'S₀ ∈ F');
@@ -857,13 +857,13 @@ const UNIT10 = {
         const j = await drag(page, 'subset_intro', { after: b }); log(await phrase(page, j));
         const v = await unfold(page, { after: j }, 'X₀ ∈ 𝒫(A)', log);
         const j2 = await drag(page, 'subset_intro', { after: v }); log(await phrase(page, j2));
-        const c = await drag(page, 'claim', { after: j2 }); await choose(page, c, 'CLAIM', 'x₀ ∈ ⋃₀ F'); log(await phrase(page, c));
-        const w = await unfold(page, { into: c, input: 'PROOF' }, 'x₀ ∈ ⋃₀ F', log);
+        const c = await drag(page, 'claim', { after: j2 }); await choose(page, c, 'CLAIM', 'x₀ ∈ ⋃F'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, 'x₀ ∈ ⋃F', log);
         const y = await drag(page, 'exists_intro', { after: w }); await choose(page, y, 'TERM', 'X₀');
         const s = await drag(page, 'and_intro', { after: y });
         await drag(page, 'exact', { into: s, input: 'LEFT' });
         await drag(page, 'exact', { into: s, input: 'RIGHT' });
-        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', '⋃₀ F ⊆ A'); await choose(page, m, 'MEMBER', 'x₀ ∈ ⋃₀ F');
+        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', '⋃F ⊆ A'); await choose(page, m, 'MEMBER', 'x₀ ∈ ⋃F');
         await drag(page, 'exact', { after: m });
     },
     16: async (page, log) => {

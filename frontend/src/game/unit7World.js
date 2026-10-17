@@ -29,8 +29,8 @@ const claimInfo = {
 };
 
 const powerset = { symbol: 'קבוצת החזקה', doc: 'X ∈ 𝒫(A) פירושו X ⊆ A: האיברים של קבוצת החזקה הם תתי־הקבוצות של A.' };
-const sUnion = { symbol: 'איחוד של משפחה', doc: 'x₀ ∈ ⋃₀ F פירושו ∃S (S ∈ F ∧ x₀ ∈ S): x₀ שייך לאחת הקבוצות במשפחה.' };
-const sInter = { symbol: 'חיתוך של משפחה', doc: 'x₀ ∈ ⋂₀ F פירושו ∀S (S ∈ F → x₀ ∈ S): x₀ שייך לכל הקבוצות במשפחה.' };
+const sUnion = { symbol: 'איחוד של משפחה', doc: 'x₀ ∈ ⋃F פירושו ∃S (S ∈ F ∧ x₀ ∈ S): x₀ שייך לאחת הקבוצות במשפחה.' };
+const sInter = { symbol: 'חיתוך של משפחה', doc: 'x₀ ∈ ⋂F פירושו ∀S (S ∈ F → x₀ ∈ S): x₀ שייך לכל הקבוצות במשפחה.' };
 
 const level = (number, fields) => ({
     id: `unit7-${number}`,
@@ -145,71 +145,71 @@ export const unit7Levels = [
         name: 'unit7_l5_sunion',
         variableLine: FAMILY,
         params: '(hA : A ∈ F)',
-        proposition: 'A ⊆ ⋃₀ F',
-        goalLabel: 'A ⊆ ⋃₀ F',
+        proposition: 'A ⊆ ⋃ F',
+        goalLabel: 'A ⊆ ⋃F',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
         toolboxBlocks: ['subset_intro', 'unfold', 'exists_intro', 'and_intro', 'exact'],
         introduction: `# איחוד של משפחה
 
-F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃₀ F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋃₀ F\` פירושו שקיימת קבוצה S ב־F כך ש־x₀ ∈ S.
+F היא *משפחה* של קבוצות: קבוצה שהאיברים שלה הם קבוצות. \`⋃F\` הוא האיחוד של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋃F\` פירושו שקיימת קבוצה S ב־F כך ש־x₀ ∈ S.
 
 אם A היא אחת הקבוצות במשפחה, היא מוכלת באיחוד. אחרי פתיחת ההגדרה המטרה היא טענת "קיים", כמו ביחידה 4, והעד הוא A עצמה.`,
         newDefinitions: [sUnion],
         hints: [
-            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ונוכיח x₀ ∈ ⋃₀ F.`,
-            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו את המטרה x₀ ∈ ⋃₀ F. נשאר להוכיח ∃S (S ∈ F ∧ x₀ ∈ S).`,
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ A ונוכיח x₀ ∈ ⋃F.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו את המטרה x₀ ∈ ⋃F. נשאר להוכיח ∃S (S ∈ F ∧ x₀ ∈ S).`,
             `הוסיפו את הבלוק ${EXISTS_INTRO_BLOCK}, ובחרו בו את A.`,
             `הוכיחו את ה"וגם" בשני חלקים: בכל חלק, מה שמוכיחים כבר בידינו.`,
         ],
         conclusion: `איחוד של משפחה הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: הקבוצה מהמשפחה שהאיבר שייך אליה.`,
-        startXml: goalXml('A ⊆ ⋃₀ F', 'A ∈ F'),
+        startXml: goalXml('A ⊆ ⋃F', 'A ∈ F'),
     }),
     level(6, {
         title: 'חיתוך של משפחה',
         name: 'unit7_l6_sinter',
         variableLine: FAMILY,
         params: '(hA : A ∈ F)',
-        proposition: '⋂₀ F ⊆ A',
-        goalLabel: '⋂₀ F ⊆ A',
+        proposition: '⋂ F ⊆ A',
+        goalLabel: '⋂F ⊆ A',
         assumptions: [{ name: 'hA', prop: 'A ∈ F' }],
         toolboxBlocks: ['subset_intro', 'unfold', 'forall_elim', 'forward', 'apply_rule', 'exact'],
         introduction: `# חיתוך של משפחה
 
-\`⋂₀ F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋂₀ F\` פירושו שלכל קבוצה S ב־F מתקיים x₀ ∈ S.
+\`⋂F\` הוא החיתוך של כל הקבוצות במשפחה: לפי ההגדרה, \`x₀ ∈ ⋂F\` פירושו שלכל קבוצה S ב־F מתקיים x₀ ∈ S.
 
 אם A היא אחת הקבוצות במשפחה, החיתוך מוכל בה. אחרי פתיחת ההגדרה יש בידינו טענת "לכל", ומציבים בה את A, כמו ביחידה 4.`,
         newDefinitions: [sInter],
         hints: [
-            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ ⋂₀ F ונוכיח x₀ ∈ A.`,
-            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ ⋂₀ F. עכשיו כתוב בו: פירושו ∀S (S ∈ F → x₀ ∈ S).`,
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: יהי x₀ ∈ ⋂F ונוכיח x₀ ∈ A.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו x₀ ∈ ⋂F. עכשיו כתוב בו: פירושו ∀S (S ∈ F → x₀ ∈ S).`,
             `הוסיפו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו את ה"לכל" ואת A. עכשיו כתוב בו: נובע (A ∈ F → x₀ ∈ A).`,
             `הוסיפו את הבלוק "מהגרירה ? ומ־?" עם A ∈ F → x₀ ∈ A ועם A ∈ F. x₀ ∈ A בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
             'או אחורה: לפי הגרירה A ∈ F → x₀ ∈ A, כדי להוכיח x₀ ∈ A די להוכיח A ∈ F, וזה בידינו.',
         ],
         conclusion: `חיתוך של משפחה הוא טענת "לכל", ולכן משתמשים בו בהצבה: כאן הצבתם קבוצה, A.`,
-        startXml: goalXml('⋂₀ F ⊆ A', 'A ∈ F'),
+        startXml: goalXml('⋂F ⊆ A', 'A ∈ F'),
     }),
     level(7, {
         title: 'תרגיל מסכם: איחוד מוכל',
         name: 'unit7_l7_sunion_subset',
         variableLine: FAMILY,
         params: '',
-        proposition: '(∀ S, S ∈ F → S ⊆ A) → ⋃₀ F ⊆ A',
-        goalLabel: '((∀S (S ∈ F → S ⊆ A)) → (⋃₀ F ⊆ A))',
+        proposition: '(∀ S, S ∈ F → S ⊆ A) → ⋃ F ⊆ A',
+        goalLabel: '((∀S (S ∈ F → S ⊆ A)) → (⋃F ⊆ A))',
         toolboxBlocks: ['assume', 'subset_intro', 'unfold', 'exists_elim', 'and_elim', 'forall_elim', 'forward', 'subset_elim', 'exact'],
         introduction: `# תרגיל מסכם: איחוד מוכל
 
 אם כל הקבוצות במשפחה מוכלות ב־A, גם האיחוד שלהן מוכל ב־A.
 
-ניקח איבר x₀ של ⋃₀ F. לפי ההגדרה, x₀ שייך לאחת הקבוצות במשפחה, אבל לא ידוע לאיזו: זו טענת "קיים", ולכן נקבל ממנה קבוצה S₀ כזאת, כמו ביחידה 4.
+ניקח איבר x₀ של ⋃F. לפי ההגדרה, x₀ שייך לאחת הקבוצות במשפחה, אבל לא ידוע לאיזו: זו טענת "קיים", ולכן נקבל ממנה קבוצה S₀ כזאת, כמו ביחידה 4.
 אחר כך מציבים את S₀ בהנחה על כל הקבוצות במשפחה, ומשתמשים בהכלה שמתקבלת.`,
         hints: [
-            `נניח את התנאי, ואחר כך ${SUBSET_INTRO_BLOCK}: יהי x₀ ∈ ⋃₀ F ונוכיח x₀ ∈ A.`,
-            `פתחו את ההגדרה בהנחה x₀ ∈ ⋃₀ F, ואחר כך ${EXISTS_ELIM_BLOCK} עם ∃S (S ∈ F ∧ x₀ ∈ S): יהי S₀ כך ש־(S₀ ∈ F ∧ x₀ ∈ S₀).`,
+            `נניח את התנאי, ואחר כך ${SUBSET_INTRO_BLOCK}: יהי x₀ ∈ ⋃F ונוכיח x₀ ∈ A.`,
+            `פתחו את ההגדרה בהנחה x₀ ∈ ⋃F, ואחר כך ${EXISTS_ELIM_BLOCK} עם ∃S (S ∈ F ∧ x₀ ∈ S): יהי S₀ כך ש־(S₀ ∈ F ∧ x₀ ∈ S₀).`,
             `${AND_ELIM_BLOCK} עם S₀ ∈ F ∧ x₀ ∈ S₀. אחר כך ${FORALL_ELIM_BLOCK} עם ההנחה ועם S₀: נובע (S₀ ∈ F → S₀ ⊆ A).`,
             `מהגרירה S₀ ∈ F → S₀ ⊆ A ומ־S₀ ∈ F נובע S₀ ⊆ A. לבסוף ${SUBSET_ELIM_BLOCK} עם S₀ ⊆ A ועם x₀ ∈ S₀.`,
         ],
         conclusion: `סיימתם את יחידה 7! בהוכחה השתמשתם בכל הכלים: הכלה, הגדרות, "קיים", "לכל" וגרירה, והפעם העצמים היו קבוצות.`,
-        startXml: goalXml('((∀S (S ∈ F → S ⊆ A)) → (⋃₀ F ⊆ A))'),
+        startXml: goalXml('((∀S (S ∈ F → S ⊆ A)) → (⋃F ⊆ A))'),
     }),
 ];

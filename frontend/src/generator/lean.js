@@ -48,9 +48,9 @@ postfix:max "ᶜ" => Set.compl
 def Set.powerset (A : Set α) : Set (Set α) := fun B => B ⊆ A
 prefix:100 "𝒫 " => Set.powerset
 def Set.sUnion (F : Set (Set α)) : Set α := fun x => ∃ S, S ∈ F ∧ x ∈ S
-prefix:110 "⋃₀ " => Set.sUnion
+prefix:110 "⋃ " => Set.sUnion
 def Set.sInter (F : Set (Set α)) : Set α := fun x => ∀ S, S ∈ F → x ∈ S
-prefix:110 "⋂₀ " => Set.sInter
+prefix:110 "⋂ " => Set.sInter
 theorem easylean_mem_inter {α : Type u} {A B : Set α} {x : α} : x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B := Iff.rfl
 theorem easylean_mem_union {α : Type u} {A B : Set α} {x : α} : x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B := Iff.rfl
 theorem easylean_mem_diff {α : Type u} {A B : Set α} {x : α} : x ∈ A \\ B ↔ x ∈ A ∧ ¬ x ∈ B := Iff.rfl
@@ -58,8 +58,8 @@ theorem easylean_mem_symmDiff {α : Type u} {A B : Set α} {x : α} : x ∈ A �
 theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ ¬ x ∈ A := Iff.rfl
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl
-theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃₀ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
-theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂₀ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
+theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
+theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
 theorem easylean_subset_intro {α : Type u} {A B : Set α} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h
 theorem easylean_subset_elim {α : Type u} {A B : Set α} {x : α} (h : A ⊆ B) (hx : x ∈ A) : x ∈ B := h x hx
 theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B ⊆ A) : A = B :=
