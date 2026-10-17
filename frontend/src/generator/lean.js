@@ -9,7 +9,11 @@ export const leanGenerator = new Blockly.Generator('LEAN');
 // Type), an implication over statements (a Prop). A negation is P → ⊥, but
 // it is proved with its own move, as in the textbooks, so easylean_assume
 // refuses it, also when the goal is one only by a definition (x₀ ∈ Aᶜ).
+// easylean_goal_only drops the assumptions in hand (they have no names, so
+// they are named one by one and cleared), for the arithmetic and algebra
+// moves that work from the goal alone.
 export const LEAN_PRELUDE = `theorem easylean_imp_intro {p q : Prop} (h : p → q) : p → q := h
+macro "easylean_goal_only" : tactic => \`(tactic| repeat (rename_i easylean_h; clear easylean_h))
 macro "easylean_assume" : tactic => \`(tactic| ((first | fail_if_success show ¬ _ | fail "easylean: the goal is a negation"); refine easylean_imp_intro (fun _ => ?_)))
 theorem easylean_mp {p q : Prop} (h : p → q) (hp : p) : q := h hp
 theorem easylean_forall_intro {α : Type u} {p : α → Prop} (h : ∀ x, p x) : ∀ x, p x := h

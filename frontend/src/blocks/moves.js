@@ -1038,19 +1038,36 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Arithmetic and algebra close a goal that follows from them (and the
-    // assumptions); they do not unfold definitions.
+    // Arithmetic and algebra close a goal that follows from them; they do not
+    // unfold definitions. Each comes in two moves, so that using what is in
+    // hand is never hidden: from the goal alone (after an explicit
+    // substitution by an induction hypothesis, say), or, when the block says
+    // so, with the assumptions in hand (an inequality cannot be substituted).
     Blockly.Blocks['calc'] = {
         init() {
             this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט.');
-            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), גם בעזרת מה שבידינו. לא פותח הגדרות.');
+            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), מהמטרה לבדה, בלי מה שבידינו. לא פותח הגדרות.');
+        },
+    };
+
+    Blockly.Blocks['calc_hyps'] = {
+        init() {
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו.');
+            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות) בעזרת ההנחות שבידינו, למשל אי־שוויון שאי אפשר להחליף לפיו. לא פותח הגדרות.');
         },
     };
 
     Blockly.Blocks['algebra'] = {
         init() {
-            this.appendDummyInput().appendField('המטרה נובעת לפי אלגברה.');
-            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים), גם בעזרת מה שבידינו. לא פותח הגדרות.');
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מאלגברה.');
+            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים), מהמטרה לבדה, בלי מה שבידינו. לא פותח הגדרות.');
+        },
+    };
+
+    Blockly.Blocks['algebra_hyps'] = {
+        init() {
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מאלגברה ומההנחות שבידינו.');
+            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים) בעזרת ההנחות שבידינו. לא פותח הגדרות.');
         },
     };
 };
@@ -1221,9 +1238,13 @@ leanGenerator.forBlock['unfold_function'] = (block) => {
     return `${copy}  ${lemmas.length === 1 ? `rewrite [${lemmas[0]}]${at}` : `first ${lemmas.map((lemma) => `| rewrite [${lemma}]${at}`).join(' ')}`}\n`;
 };
 
-leanGenerator.forBlock['calc'] = () => '  omega\n';
+leanGenerator.forBlock['calc'] = () => '  easylean_goal_only; omega\n';
 
-leanGenerator.forBlock['algebra'] = () => '  grind\n';
+leanGenerator.forBlock['calc_hyps'] = () => '  omega\n';
+
+leanGenerator.forBlock['algebra'] = () => '  easylean_goal_only; grind\n';
+
+leanGenerator.forBlock['algebra_hyps'] = () => '  grind\n';
 
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {

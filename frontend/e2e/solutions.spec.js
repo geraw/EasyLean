@@ -91,6 +91,20 @@ test('a move that changes a statement writes what it gives, in the goal or in ha
     await expect.poll(() => resultText(page, inHand)).toBe('ונקבל P(a)');
 });
 
+test('arithmetic from the goal alone does not use the induction hypothesis', async ({ page }) => {
+    const unit9 = UNITS.find(({ unit }) => unit === 9);
+    await openLevel(page, unit9.world, 1);
+    await clearProof(page);
+    const unfold = (name) => ['unfold_function', { FUNCTION: name }];
+    await buildProof(page, [['induction', { VARIABLE: 'l' }, {
+        NIL: [unfold('append'), unfold('length'), ['calc']],
+        CONS: [unfold('append'), unfold('length'), unfold('length'), ['calc']],
+    }]]);
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    await expect(page.getByText('החשבון לבדו לא מספיק').first()).toBeVisible();
+    await expect(page.getByText('הצלחה!')).toHaveCount(0);
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);

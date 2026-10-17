@@ -341,7 +341,7 @@ describe('the moves of unit 8', () => {
             '  | succ n _ =>',
             '    rewrite [double]',
             '    rewrite [‹double n = n + n›]',
-            '    omega',
+            '    easylean_goal_only; omega',
         ].join('\n'));
     });
 });
@@ -412,11 +412,11 @@ describe('the proof state before each move', () => {
         const source = buildMoveStatesSource(workspace, level);
         expect(source.code.match(/^theorem unit1_l1_identity_before_\d/gm)).toHaveLength(2);
         expect(source.code.match(/^theorem easylean_mp /gm)).toHaveLength(1);
-        // Lean's output for this code (lines 10-11 and 12-13).
+        // Lean's output for this code (lines 11-12 and 13-14).
         const output = [
-            'proof.lean:11:8: error: don\'t know how to synthesize placeholder', 'context:', 'P : Prop', '⊢ P → P',
-            'proof.lean:10:50: error: unsolved goals', 'P : Prop', '⊢ P → P',
-            'proof.lean:12:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
+            'proof.lean:12:8: error: don\'t know how to synthesize placeholder', 'context:', 'P : Prop', '⊢ P → P',
+            'proof.lean:11:50: error: unsolved goals', 'P : Prop', '⊢ P → P',
+            'proof.lean:13:50: error: unsolved goals', 'P : Prop', 'x✝ : P', '⊢ P',
         ].join('\n');
         const states = readMoveStates(output, source);
         expect(states.get(blocks[0].id)).toEqual({ assumptions: [], objects: [], sets: [], goal: 'P → P' });

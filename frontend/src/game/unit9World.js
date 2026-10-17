@@ -18,6 +18,7 @@ const UNFOLD_BLOCK = '"לפי הגדרת ? נפתח את המטרה"';
 const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
 const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
 const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
+const CALC_HYPS_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו."';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const structuralInductionInfo = {
@@ -91,7 +92,7 @@ export const unit9Levels = [
         proposition: 'List.length (l ++ m) = List.length l + List.length m',
         goalLabel: 'length(l ++ m) = length(l) + length(m)',
         objects: [{ name: 'l', type: 'רשימה' }, { name: 'm', type: 'רשימה' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'calc'],
         introduction: `# האורך של שרשור
 
 האורך מוגדר גם הוא לפי מבנה הרשימה: \`length([]) = 0\`, ו־\`length(a :: l) = length(l) + 1\`.
@@ -100,7 +101,8 @@ export const unit9Levels = [
         hints: [
             'אינדוקציה על l.',
             `בבסיס: ${UNFOLD_BLOCK} עם ++, ואחריו אותו בלוק עם length, ולבסוף ${CALC_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם ++, ואחר כך פעמיים עם length: פעם בצד שמאל ופעם בצד ימין. החשבון משלים בעזרת הנחת האינדוקציה: ${CALC_BLOCK}`,
+            `בצעד: ${UNFOLD_BLOCK} עם ++, ואחר כך פעמיים עם length: פעם בצד שמאל ופעם בצד ימין.`,
+            `עכשיו ${REWRITE_BLOCK} עם הנחת האינדוקציה length(l ++ m) = length(l) + length(m), "את length(l ++ m) ב־length(l) + length(m)", במטרה. מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
         ],
         conclusion: 'length(l ++ m) = length(l) + length(m) לכל שתי רשימות. האינדוקציה הייתה על הרשימה שההגדרות "מפרקות", ו־m נשארה קבועה לאורך כל ההוכחה.',
         startXml: goalXml('length(l ++ m) = length(l) + length(m)'),
@@ -135,7 +137,7 @@ export const unit9Levels = [
         proposition: 'leaves t = nodes t + 1',
         goalLabel: 'leaves(t) = nodes(t) + 1',
         objects: [{ name: 't', type: 'עץ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'calc'],
         introduction: `# עצים: עלים וצמתים
 
 *עץ בינארי* בנוי בשתי דרכים: \`leaf\`, עלה, או \`node(l,r)\`, צומת עם שני ילדים, העצים l ו־r.
@@ -146,7 +148,8 @@ export const unit9Levels = [
         hints: [
             `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו t. בראש הצעד כתוב: נניח leaves(l) = nodes(l) + 1 ו־leaves(r) = nodes(r) + 1, ונוכיח leaves(node(l,r)) = nodes(node(l,r)) + 1.`,
             `בבסיס: ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם leaves, ואחריו עם nodes. החשבון משלים בעזרת שתי הנחות האינדוקציה: ${CALC_BLOCK}`,
+            `בצעד: ${UNFOLD_BLOCK} עם leaves, ואחריו עם nodes.`,
+            `עכשיו החליפו לפי שתי הנחות האינדוקציה: ${REWRITE_BLOCK} עם leaves(l) = nodes(l) + 1, ואחריו עם leaves(r) = nodes(r) + 1, במטרה. מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
         ],
         conclusion: 'בכל עץ בינארי יש עלה אחד יותר מצמתים. בצעד השתמשתם בשתי הנחות אינדוקציה, אחת לכל ילד.',
         startXml: goalXml('leaves(t) = nodes(t) + 1'),
@@ -159,16 +162,17 @@ export const unit9Levels = [
         proposition: 'height t ≤ nodes t',
         goalLabel: 'height(t) ≤ nodes(t)',
         objects: [{ name: 't', type: 'עץ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'calc', 'calc_hyps'],
         introduction: `# הגובה
 
 הגובה של עץ הוא אורך המסלול הארוך ביותר מהשורש לעלה: \`height(leaf) = 0\`, ו־\`height(node(l,r)) = max(height(l),height(r)) + 1\`.
-נוכיח שהגובה לא גדול ממספר הצמתים. החשבון יודע מה זה max, אבל לא את ההגדרות של height ו־nodes, ולכן פותחים אותן קודם.`,
+נוכיח שהגובה לא גדול ממספר הצמתים. החשבון יודע מה זה max, אבל לא את ההגדרות של height ו־nodes, ולכן פותחים אותן קודם.
+הפעם הנחות האינדוקציה הן אי־שוויונות, ואי אפשר להחליף לפיהן. לכן בצעד החשבון משתמש בהן: ${CALC_HYPS_BLOCK}`,
         newDefinitions: [height],
         hints: [
             'אינדוקציה על t.',
             `בבסיס: ${UNFOLD_BLOCK} עם height, ואחריו עם nodes, ולבסוף ${CALC_BLOCK}`,
-            `בצעד אותו דבר: פתחו את height ואת nodes, והחשבון משלים בעזרת שתי הנחות האינדוקציה.`,
+            `בצעד: פתחו את height ואת nodes, ואחר כך ${CALC_HYPS_BLOCK}`,
         ],
         conclusion: 'height(t) ≤ nodes(t) לכל עץ. אינדוקציה מוכיחה גם אי־שוויונות, כמו ביחידה 8.',
         startXml: goalXml('height(t) ≤ nodes(t)'),
@@ -203,7 +207,7 @@ export const unit9Levels = [
         proposition: 'opening φ = closing φ',
         goalLabel: 'opening(φ) = closing(φ)',
         objects: [{ name: 'φ', type: 'נוסחה' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'exact', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'exact'],
         introduction: `# נוסחאות: סוגריים מאוזנים
 
 גם נוסחאות של לוגיקה הן מבנים: נוסחה היא פסוק \`atom(i)\`, או שלילה של נוסחה, \`neg(φ)\` (נכתבת ¬φ), או "וגם" של שתי נוסחאות, \`conj(φ,ψ)\` (נכתבת (φ ∧ ψ), עם סוגריים).
@@ -215,7 +219,7 @@ export const unit9Levels = [
             `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו φ. יש בו שלושה חלקים: פסוק, ¬ ו־∧.`,
             `בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: ${UNFOLD_BLOCK} עם opening, ואחריו עם closing. מה שנשאר הוא בדיוק הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בצעד של ∧: פתחו את opening ואת closing, והחשבון משלים: ${CALC_BLOCK}`,
+            `בצעד של ∧: פתחו את opening ואת closing, והחליפו לפי שתי הנחות האינדוקציה: "את opening(φ) ב־closing(φ)", ו"את opening(ψ) ב־closing(ψ)". עכשיו שני הצדדים זהים: ${RFL_BLOCK}`,
         ],
         conclusion: 'בכל נוסחה הסוגריים מאוזנים. זו הדוגמה הקלסית לאינדוקציה על נוסחאות (Enderton): מוכיחים לפסוקים, ומראים שכל קשר שומר על התכונה.',
         startXml: goalXml('opening(φ) = closing(φ)'),
@@ -228,7 +232,7 @@ export const unit9Levels = [
         proposition: 'atoms φ = binaries φ + 1',
         goalLabel: 'atoms(φ) = binaries(φ) + 1',
         objects: [{ name: 'φ', type: 'נוסחה' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'exact', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'exact', 'calc'],
         introduction: `# פסוקים וקשרים
 
 בנוסחה (p₁ ∧ ¬p₂) יש שני פסוקים וקשר בינארי אחד. נוכיח שבכל נוסחה יש פסוק אחד יותר מקשרים בינאריים: atoms(φ) = binaries(φ) + 1.
@@ -237,7 +241,7 @@ export const unit9Levels = [
         hints: [
             `אינדוקציה על φ. בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: פתחו את atoms ואת binaries; מה שנשאר הוא הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בצעד של ∧: פתחו את atoms ואת binaries, והחשבון משלים: ${CALC_BLOCK}`,
+            `בצעד של ∧: פתחו את atoms ואת binaries, והחליפו לפי שתי הנחות האינדוקציה, "את atoms(φ) ב־binaries(φ) + 1" ו"את atoms(ψ) ב־binaries(ψ) + 1". מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
         ],
         conclusion: 'atoms(φ) = binaries(φ) + 1 לכל נוסחה. Rosen מביא טענות כאלה כדוגמאות לאינדוקציה מבנית על נוסחאות.',
         startXml: goalXml('atoms(φ) = binaries(φ) + 1'),
@@ -250,7 +254,7 @@ export const unit9Levels = [
         proposition: 'atoms φ = binaries φ + 1',
         goalLabel: 'atoms(φ) = binaries(φ) + 1',
         objects: [{ name: 'φ', type: 'נוסחה' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'exact', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'exact', 'calc'],
         introduction: `# בונוס: כל הקשרים
 
 עכשיו לנוסחאות יש גם "או", \`disj(φ,ψ)\`, וגרירה, \`imp(φ,ψ)\`. אותה טענה, אבל לאינדוקציה יש חמישה חלקים: בסיס, וצעד לכל קשר.
@@ -259,7 +263,7 @@ export const unit9Levels = [
         hints: [
             `אינדוקציה על φ. בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: פתחו את atoms ואת binaries; מה שנשאר הוא הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בכל אחד משלושת הצעדים של ∧, ∨ ו־→: פתחו את atoms ואת binaries, והחשבון משלים: ${CALC_BLOCK}`,
+            `בכל אחד משלושת הצעדים של ∧, ∨ ו־→: פתחו את atoms ואת binaries, החליפו לפי שתי הנחות האינדוקציה, ו־${CALC_BLOCK}`,
         ],
         conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! באינדוקציה מבנית יש חלק לכל דרך לבנות את המבנה: כשמוסיפים קשר לשפה, מוסיפים צעד להוכחה.`,
         startXml: goalXml('atoms(φ) = binaries(φ) + 1'),

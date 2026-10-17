@@ -27,7 +27,9 @@ const setEq = (first, second) => ['set_eq', {}, { FIRST: first, SECOND: second }
 const unfold = (statement) => ['unfold', { STATEMENT: statement }];
 const rfl = ['rfl'];
 const calc = ['calc'];
+const calcHyps = ['calc_hyps'];
 const algebra = ['algebra'];
+const algebraHyps = ['algebra_hyps'];
 const rewrite = (equation, direction, target = '__goal__') => ['rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
 const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
@@ -35,6 +37,8 @@ const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BA
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
 // Structural induction (unit 9): a part for each way the structure is built.
 const inductionOn = (variable, parts) => ['induction', { VARIABLE: variable }, parts];
+// The step of a binary connective in 9.8 and 9.9: by both induction hypotheses, then arithmetic.
+const ihs = [rewrite('atoms φ = binaries φ + 1', 'FORWARD'), rewrite('atoms ψ = binaries ψ + 1', 'FORWARD'), calc];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -282,14 +286,14 @@ export const UNITS = [
             ],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('double'), rfl], [unfoldFunction('double'), rewrite('double n = n + n', 'FORWARD'), calc])] }],
             [{ label: 'פתרון', steps: [induction('n', [rfl], [unfoldFunction('add'), rewrite('0 + n = n', 'FORWARD'), rfl])] }],
-            [{ label: 'פתרון', steps: [assume, calc] }],
-            [{ label: 'פתרון', steps: [induction('n', [calc], [unfoldFunction('pow'), calc])] }],
-            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebra])] }],
+            [{ label: 'פתרון', steps: [assume, calcHyps] }],
+            [{ label: 'פתרון', steps: [induction('n', [calc], [unfoldFunction('pow'), calcHyps])] }],
+            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebraHyps])] }],
             [{
                 label: 'פתרון',
                 steps: [induction('n', [orIntro('LEFT'), existsIntro('0'), rfl], [orCases('(∃ j, n = 2 * j) ∨ ∃ j, n = 2 * j + 1',
-                    [existsElim('∃ j, n = 2 * j'), orIntro('RIGHT'), existsIntro('j₀'), calc],
-                    [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calc])])],
+                    [existsElim('∃ j, n = 2 * j'), orIntro('RIGHT'), existsIntro('j₀'), calcHyps],
+                    [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calcHyps])])],
             }],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('oddSum'), rfl], [unfoldFunction('oddSum'), rewrite('oddSum n = n * n', 'FORWARD'), algebra])] }],
         ],
@@ -303,7 +307,8 @@ export const UNITS = [
                 label: 'פתרון',
                 steps: [inductionOn('l', {
                     NIL: [unfoldFunction('append'), unfoldFunction('length'), calc],
-                    CONS: [unfoldFunction('append'), unfoldFunction('length'), unfoldFunction('length'), calc],
+                    CONS: [unfoldFunction('append'), unfoldFunction('length'), unfoldFunction('length'),
+                        rewrite('List.length (l ++ m) = List.length l + List.length m', 'FORWARD'), calc],
                 })],
             }],
             [{
@@ -313,12 +318,18 @@ export const UNITS = [
                     CONS: [unfoldFunction('append'), unfoldFunction('append'), unfoldFunction('append'), rewrite('l ++ (m ++ k) = l ++ m ++ k', 'FORWARD'), rfl],
                 })],
             }],
-            [{ label: 'פתרון', steps: [inductionOn('t', { LEAF: [rfl], NODE: [unfoldFunction('leaves'), unfoldFunction('nodes'), calc] })] }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('t', {
+                    LEAF: [rfl],
+                    NODE: [unfoldFunction('leaves'), unfoldFunction('nodes'), rewrite('leaves l = nodes l + 1', 'FORWARD'), rewrite('leaves r = nodes r + 1', 'FORWARD'), calc],
+                })],
+            }],
             [{
                 label: 'פתרון',
                 steps: [inductionOn('t', {
                     LEAF: [unfoldFunction('height'), unfoldFunction('nodes'), calc],
-                    NODE: [unfoldFunction('height'), unfoldFunction('nodes'), calc],
+                    NODE: [unfoldFunction('height'), unfoldFunction('nodes'), calcHyps],
                 })],
             }],
             [{
@@ -333,7 +344,7 @@ export const UNITS = [
                 steps: [inductionOn('φ', {
                     ATOM: [rfl],
                     NEG: [unfoldFunction('opening'), unfoldFunction('closing'), close],
-                    CONJ: [unfoldFunction('opening'), unfoldFunction('closing'), calc],
+                    CONJ: [unfoldFunction('opening'), unfoldFunction('closing'), rewrite('opening φ = closing φ', 'FORWARD'), rewrite('opening ψ = closing ψ', 'FORWARD'), rfl],
                 })],
             }],
             [{
@@ -341,7 +352,7 @@ export const UNITS = [
                 steps: [inductionOn('φ', {
                     ATOM: [rfl],
                     NEG: [unfoldFunction('atoms'), unfoldFunction('binaries'), close],
-                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
                 })],
             }],
             [{
@@ -349,9 +360,9 @@ export const UNITS = [
                 steps: [inductionOn('φ', {
                     ATOM: [rfl],
                     NEG: [unfoldFunction('atoms'), unfoldFunction('binaries'), close],
-                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
-                    DISJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
-                    IMP: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
+                    DISJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
+                    IMP: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
                 })],
             }],
         ],

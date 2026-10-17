@@ -17,7 +17,9 @@ const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
 const INDUCTION_BLOCK = '"נוכיח באינדוקציה על ?"';
 const UNFOLD_BLOCK = '"לפי הגדרת ? נפתח את המטרה"';
 const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
-const ALGEBRA_BLOCK = '"המטרה נובעת לפי אלגברה."';
+const CALC_HYPS_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו."';
+const ALGEBRA_BLOCK = '"נכונות המטרה נובעת מאלגברה."';
+const ALGEBRA_HYPS_BLOCK = '"נכונות המטרה נובעת מאלגברה ומההנחות שבידינו."';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const rflInfo = {
@@ -38,11 +40,19 @@ const unfoldInfo = {
 };
 const calcInfo = {
     name: 'חשבון',
-    doc: 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), גם בעזרת מה שבידינו. הוא לא פותח הגדרות.',
+    doc: 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), מהמטרה לבדה: הוא לא משתמש במה שבידינו, ולא פותח הגדרות. כדי להשתמש בהנחת האינדוקציה, מחליפים לפיה קודם.',
+};
+const calcHypsInfo = {
+    name: 'חשבון בעזרת ההנחות',
+    doc: 'כמו "נכונות המטרה נובעת מחשבון פשוט", אבל בעזרת ההנחות שבידינו. משתמשים בו כשאי אפשר להחליף לפי ההנחה, למשל כשהיא אי־שוויון.',
 };
 const algebraInfo = {
     name: 'אלגברה',
-    doc: 'סוגר מטרה שדורשת אלגברה, כמו פתיחת סוגריים וכינוס איברים, גם בעזרת מה שבידינו. הוא לא פותח הגדרות.',
+    doc: 'סוגר מטרה שדורשת אלגברה, כמו פתיחת סוגריים וכינוס איברים, מהמטרה לבדה: הוא לא משתמש במה שבידינו, ולא פותח הגדרות.',
+};
+const algebraHypsInfo = {
+    name: 'אלגברה בעזרת ההנחות',
+    doc: 'כמו "נכונות המטרה נובעת מאלגברה", אבל בעזרת ההנחות שבידינו. משתמשים בו כשאי אפשר להחליף לפי ההנחה, כי היא לא מופיעה במטרה כמו שהיא.',
 };
 const definition = (symbol, doc) => ({ symbol, doc });
 
@@ -209,14 +219,16 @@ export const unit8Levels = [
         proposition: '(n + 1 ≤ n) → (n + 1 + 1 ≤ n + 1)',
         goalLabel: '((n + 1 ≤ n) → (n + 1 + 1 ≤ n + 1))',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['assume', 'calc'],
+        toolboxBlocks: ['assume', 'calc_hyps'],
+        newTacticsBlocks: ['calc_hyps'],
+        newTacticsInfo: [calcHypsInfo],
         introduction: `# צעד בלי בסיס
 
 נסתכל על הטענה P(n): \`n + 1 ≤ n\`. היא *לא* נכונה: אף מספר לא גדול מעצמו.
 ובכל זאת, הצעד שלה נכון: אם P(n), אז P(n + 1). הוכיחו את הצעד הזה.`,
         hints: [
             'נניח את התנאי, n + 1 ≤ n.',
-            `נכונות המטרה נובעת מחשבון פשוט ממה שבידינו: ${CALC_BLOCK}`,
+            `התנאי הוא אי־שוויון, ולכן אי אפשר להחליף לפיו; נכונות המטרה נובעת מחשבון פשוט בעזרתו: ${CALC_HYPS_BLOCK}`,
         ],
         conclusion: `הצעד נכון, אבל הטענה P(n) לא נכונה לאף n, כי הבסיס, 0 + 1 ≤ 0, לא נכון.
 צעד לבד לא מספיק: בלי בסיס אין מאיפה להתחיל, והשרשרת "מ־0 ל־1, מ־1 ל־2" לא מתחילה בכלל.`,
@@ -229,15 +241,15 @@ export const unit8Levels = [
         proposition: 'n + 1 ≤ 2 ^ n',
         goalLabel: 'n + 1 ≤ 2 ^ n',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'calc'],
+        toolboxBlocks: ['induction', 'unfold_function', 'calc', 'calc_hyps'],
         introduction: `# אינדוקציה ואי־שוויון
 
 אינדוקציה מוכיחה גם אי־שוויונות. נוכיח ש־\`n + 1 ≤ 2^n\` לכל n.
-בצעד, פתחו את הגדרת החזקה, \`2^(n + 1) = 2^n · 2\`, ואז נכונות המטרה נובעת מחשבון פשוט מהנחת האינדוקציה.`,
+בצעד, פתחו את הגדרת החזקה, \`2^(n + 1) = 2^n · 2\`. הנחת האינדוקציה היא אי־שוויון, ואי אפשר להחליף לפיה, ולכן החשבון משתמש בה: ${CALC_HYPS_BLOCK}`,
         newDefinitions: [definition('החזקה', '2^0 = 1, ו־2^(n + 1) = 2^n · 2.')],
         hints: [
             `אינדוקציה על n. בבסיס, 0 + 1 ≤ 2^0 נובע מחשבון פשוט: ${CALC_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם החזקה; עכשיו נכונות המטרה נובעת מחשבון פשוט מהנחת האינדוקציה.`,
+            `בצעד: ${UNFOLD_BLOCK} עם החזקה, ואחריו ${CALC_HYPS_BLOCK}`,
         ],
         conclusion: `הנחת האינדוקציה אומרת ש־n + 1 ≤ 2^n, והכפלה ב־2 נותנת את הצעד.`,
         startXml: goalXml('n + 1 ≤ 2 ^ n'),
@@ -249,17 +261,17 @@ export const unit8Levels = [
         proposition: '2 * sumTo n = n * (n + 1)',
         goalLabel: '2 · sumTo(n) = n · (n + 1)',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'algebra'],
+        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'algebra_hyps'],
         introduction: `# סכום המספרים
 
 \`sumTo(n)\` הוא הסכום \`0 + 1 + ... + n\`. הוא מוגדר ברקורסיה: \`sumTo(0) = 0\`, ו־\`sumTo(n + 1) = sumTo(n) + (n + 1)\`.
-נוכיח את הנוסחה הקלאסית: פעמיים הסכום הוא n · (n + 1). בצעד צריך אלגברה (פתיחת סוגריים), ולכן יש כאן גם הבלוק ${ALGEBRA_BLOCK}`,
-        newTacticsBlocks: ['algebra'],
-        newTacticsInfo: [algebraInfo],
+נוכיח את הנוסחה הקלאסית: פעמיים הסכום הוא n · (n + 1). בצעד צריך אלגברה (פתיחת סוגריים). הנחת האינדוקציה מדברת על 2 · sumTo(n), אבל אחרי פתיחת ההגדרה המטרה מדברת על 2 · (sumTo(n) + (n + 1)), ולכן אי אפשר להחליף לפיה: האלגברה משתמשת בה, ${ALGEBRA_HYPS_BLOCK}`,
+        newTacticsBlocks: ['algebra_hyps'],
+        newTacticsInfo: [algebraHypsInfo],
         newDefinitions: [definition('sumTo', 'sumTo(0) = 0, ו־sumTo(n + 1) = sumTo(n) + (n + 1).')],
         hints: [
             `אינדוקציה על n. בבסיס: ${UNFOLD_BLOCK} עם sumTo, ואחריו ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם sumTo; עכשיו המטרה נובעת לפי אלגברה מהנחת האינדוקציה.`,
+            `בצעד: ${UNFOLD_BLOCK} עם sumTo, ואחריו ${ALGEBRA_HYPS_BLOCK}`,
         ],
         conclusion: `זו הנוסחה ש־Gauss מצא, לפי הסיפור, בגיל צעיר: \`0 + 1 + ... + n = n(n + 1)/2\`. האינדוקציה מוכיחה אותה לכל n.`,
         startXml: goalXml('2 · sumTo(n) = n · (n + 1)'),
@@ -271,7 +283,7 @@ export const unit8Levels = [
         proposition: '(∃ j, n = 2 * j) ∨ (∃ j, n = 2 * j + 1)',
         goalLabel: '(∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1))',
         objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'or_elim', 'or_intro', 'exists_elim', 'exists_intro', 'rfl', 'calc'],
+        toolboxBlocks: ['induction', 'or_elim', 'or_intro', 'exists_elim', 'exists_intro', 'rfl', 'calc_hyps'],
         introduction: `# תרגיל מסכם: זוגי או אי־זוגי
 
 כל מספר טבעי הוא זוגי (\`n = 2 · j\`) או אי־זוגי (\`n = 2 · j + 1\`). נוכיח זאת באינדוקציה, יחד עם הכלים של יחידות 2 ו־4.
@@ -281,7 +293,7 @@ export const unit8Levels = [
         hints: [
             `אינדוקציה על n. בבסיס: די להוכיח את הצד הראשון, ∃j (0 = 2 · j); בחרו את העד 0 (בכתיבה ידנית), ואחריו ${RFL_BLOCK}`,
             'בצעד: חלקו למקרים לפי הנחת האינדוקציה. במקרה הזוגי: לפי ה"קיים" ∃j (n = 2 · j), יהי j₀ כזה; די להוכיח את הצד השני, והעד הוא j₀.',
-            `במקרה האי־זוגי: יהי j₀ עם n = 2 · j₀ + 1; די להוכיח את הצד הראשון, והעד הוא j₀ + 1 (בכתיבה ידנית). בכל מקרה ${CALC_BLOCK}`,
+            `במקרה האי־זוגי: יהי j₀ עם n = 2 · j₀ + 1; די להוכיח את הצד הראשון, והעד הוא j₀ + 1 (בכתיבה ידנית). בכל מקרה החשבון משתמש במה שידוע על j₀: ${CALC_HYPS_BLOCK}`,
         ],
         conclusion: `אינדוקציה עובדת יחד עם כל הכלים הקודמים: כאן הנחת האינדוקציה הייתה "או", ובכל מקרה בחרתם עד ל"קיים".
 בשלב הבונוס תוכיחו נוסחה נוספת לסכום.`,
@@ -298,7 +310,10 @@ export const unit8Levels = [
         introduction: `# בונוס: סכום האי־זוגיים
 
 \`oddSum(n)\` הוא סכום n המספרים האי־זוגיים הראשונים: \`1 + 3 + 5 + ...\`. הוא מוגדר ברקורסיה: \`oddSum(0) = 0\`, ו־\`oddSum(n + 1) = oddSum(n) + (2n + 1)\`.
-הסכום הוא תמיד ריבוע: \`1 = 1\`, \`1 + 3 = 4\`, \`1 + 3 + 5 = 9\`. הוכיחו שזה נכון לכל n.`,
+הסכום הוא תמיד ריבוע: \`1 = 1\`, \`1 + 3 = 4\`, \`1 + 3 + 5 = 9\`. הוכיחו שזה נכון לכל n.
+כאן אפשר להחליף לפי הנחת האינדוקציה, ואחר כך מספיקה אלגברה מהמטרה לבדה: ${ALGEBRA_BLOCK}`,
+        newTacticsBlocks: ['algebra'],
+        newTacticsInfo: [algebraInfo],
         newDefinitions: [definition('oddSum', 'oddSum(0) = 0, ו־oddSum(n + 1) = oddSum(n) + (2n + 1).')],
         hints: [
             `אינדוקציה על n. בבסיס: ${UNFOLD_BLOCK} עם oddSum, ואחריו ${RFL_BLOCK}`,

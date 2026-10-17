@@ -611,20 +611,20 @@ const UNIT8 = [
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        await drag(page, 'calc', { after: a });
+        await drag(page, 'calc_hyps', { after: a });
     },
     async (page, log) => {
         const i = await induction(page, log);
         await drag(page, 'calc', { into: i, input: 'BASE' });
         const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'החזקה');
-        await drag(page, 'calc', { after: u });
+        await drag(page, 'calc_hyps', { after: u });
     },
     async (page, log) => {
         const i = await induction(page, log);
         const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'sumTo');
         await drag(page, 'rfl', { after: b });
         const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'sumTo');
-        await drag(page, 'algebra', { after: u });
+        await drag(page, 'algebra_hyps', { after: u });
     },
     async (page, log) => {
         const i = await induction(page, log);
@@ -638,7 +638,7 @@ const UNIT8 = [
             const v = await drag(page, 'exists_intro', { after: s });
             if (witness === 'j₀') await choose(page, v, 'TERM', witness); else await typeIn(page, v, 'TERM', witness);
             log(await phrase(page, v));
-            await drag(page, 'calc', { after: v });
+            await drag(page, 'calc_hyps', { after: v });
         }
     },
     async (page, log) => {
@@ -675,7 +675,9 @@ const UNIT9 = [
     async (page, log) => {
         const i = await inductionOn(page, 'l', log);
         await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NIL' }, ['++', 'length']) });
-        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'CONS' }, ['++', 'length', 'length']) });
+        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', 'length', 'length']);
+        const r = await rewrite(page, { after: u }, 'length(l ++ m) = length(l) + length(m)', 'את length(l ++ m) ב־length(l) + length(m)', 'המטרה', log);
+        await drag(page, 'calc', { after: r });
     },
     async (page, log) => {
         const i = await inductionOn(page, 'l', log);
@@ -687,12 +689,15 @@ const UNIT9 = [
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
         await drag(page, 'rfl', { into: i, input: 'LEAF' });
-        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['leaves', 'nodes']) });
+        const u = await unfoldAll(page, { into: i, input: 'NODE' }, ['leaves', 'nodes']);
+        const r1 = await rewrite(page, { after: u }, 'leaves(l) = nodes(l) + 1', 'את leaves(l) ב־nodes(l) + 1', 'המטרה', log);
+        const r2 = await rewrite(page, { after: r1 }, 'leaves(r) = nodes(r) + 1', 'את leaves(r) ב־nodes(r) + 1', 'המטרה', log);
+        await drag(page, 'calc', { after: r2 });
     },
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
         await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'LEAF' }, ['height', 'nodes']) });
-        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['height', 'nodes']) });
+        await drag(page, 'calc_hyps', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['height', 'nodes']) });
     },
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
@@ -702,11 +707,18 @@ const UNIT9 = [
         const r2 = await rewrite(page, { after: r1 }, 'mirror(mirror(r)) = r', 'את mirror(mirror(r)) ב־r', 'המטרה', log);
         await drag(page, 'rfl', { after: r2 });
     },
-    ...[['opening', 'closing', ['CONJ']], ['atoms', 'binaries', ['CONJ']], ['atoms', 'binaries', ['CONJ', 'DISJ', 'IMP']]].map(([first, second, binary]) => async (page, log) => {
+    // The step of a binary connective: unfold both, replace by both
+    // hypotheses (shown as "את atoms(φ) ב־binaries(φ) + 1"), then the last move.
+    ...[['opening', 'closing', ['CONJ'], (x) => `closing(${x})`, 'rfl'], ['atoms', 'binaries', ['CONJ'], (x) => `binaries(${x}) + 1`, 'calc'],
+        ['atoms', 'binaries', ['CONJ', 'DISJ', 'IMP'], (x) => `binaries(${x}) + 1`, 'calc']].map(([first, second, binary, value, last]) => async (page, log) => {
         const i = await inductionOn(page, 'φ', log);
         await drag(page, 'rfl', { into: i, input: 'ATOM' });
         await drag(page, 'exact', { after: await unfoldAll(page, { into: i, input: 'NEG' }, [first, second]) });
-        for (const input of binary) await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input }, [first, second]) });
+        for (const input of binary) {
+            let after = await unfoldAll(page, { into: i, input }, [first, second]);
+            for (const x of ['φ', 'ψ']) after = await rewrite(page, { after }, `${first}(${x}) = ${value(x)}`, `את ${first}(${x}) ב־${value(x)}`, 'המטרה', log);
+            await drag(page, last, { after });
+        }
     }),
 ];
 
