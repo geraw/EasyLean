@@ -6,6 +6,9 @@ import { openGoals } from './proofState';
 // The proof state before each move, from one Lean check: the proof cut right
 // before each move becomes its own theorem, all after one shared header.
 // Each theorem's messages are read on their own, with their own line numbers.
+// Moves that write what they give (setStateAfter: unfolding a definition,
+// replacing by an equality or an equivalence) also get the state right after
+// them, from a theorem cut there.
 
 // Declarations of the level's vocabulary (P Q : Prop) are not assumptions.
 const isDeclaration = (prop) => /^(Prop|Type|Sort)\b|→ Prop$/.test(prop.trim());
@@ -16,9 +19,10 @@ export const buildMoveStatesSource = (workspace, level, preamble = '') => {
     let header = null;
     let line = 0; // lines of the combined code so far
     const bodies = [];
-    const segments = moves.map((move, index) => {
-        const name = `${level.name}_before_${index}`;
-        const source = generateGameLeanSource(workspace, { ...level, name }, preamble, { includeFallback: false, untilBlockId: move.id });
+    const cuts = moves.flatMap((move) => [{ move, after: false }, ...(move.setStateAfter ? [{ move, after: true }] : [])]);
+    const segments = cuts.map(({ move, after }, index) => {
+        const name = `${level.name}_${after ? 'after' : 'before'}_${index}`;
+        const source = generateGameLeanSource(workspace, { ...level, name }, preamble, { includeFallback: false, untilBlockId: move.id, includeUntilBlock: after });
         const start = source.code.indexOf(`\ntheorem ${name} `) + 1;
         if (header === null) {
             header = source.code.slice(0, start);
@@ -30,7 +34,7 @@ export const buildMoveStatesSource = (workspace, level, preamble = '') => {
         const bodyLines = body.split('\n').length - 1;
         bodies.push(body);
         line += bodyLines;
-        return { blockId: move.id, offset: firstLine - ownFirstLine, firstLine, lastLine: line, stateLine: source.stateLine };
+        return { blockId: move.id, after, offset: firstLine - ownFirstLine, firstLine, lastLine: line, stateLine: source.stateLine };
     });
     return { code: header + bodies.join(''), segments };
 };
@@ -47,13 +51,15 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
 const objectsOf = (assumptions) => {
     const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
     // Natural numbers (n : ℕ), and lists, trees and formulas (unit 9), are objects too.
-    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\b/.test(prop.trim());
+    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim());
     const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
     const names = (test) => assumptions.filter(test).flatMap(({ name }) => name.split(/\s+/));
     return { objects: names(isObject), sets: names(isSet), isThing: (a) => isObject(a) || isSet(a) };
 };
 
-// blockId → { assumptions, objects, sets, goal } before that move, for the moves Lean got to.
+// blockId → { assumptions, objects, sets, goal } before that move, for the moves
+// Lean got to; and `${blockId}:after` → the state right after it, for the moves
+// that write what they give (and that Lean accepted).
 export const readMoveStates = (output, { segments }) => {
     const messages = parseLeanMessages(output);
     const states = new Map();
@@ -63,7 +69,7 @@ export const readMoveStates = (output, { segments }) => {
         const goal = openGoals(own, segment.stateLine).at(-1);
         if (!goal) return;
         const { objects, sets, isThing } = objectsOf(goal.assumptions);
-        states.set(segment.blockId, {
+        states.set(segment.after ? `${segment.blockId}:after` : segment.blockId, {
             assumptions: [...new Set(goal.assumptions.filter((a) => !isDeclaration(a.prop) && !isThing(a)).map(({ prop }) => prop))],
             objects,
             sets,
@@ -80,6 +86,7 @@ export const applyMoveStates = (workspace, states) => {
         Blockly.Events.disable();
         try {
             block.setStateBefore(states.get(block.id) || null);
+            block.setStateAfter?.(states.get(`${block.id}:after`) || null);
         } finally {
             Blockly.Events.enable();
         }

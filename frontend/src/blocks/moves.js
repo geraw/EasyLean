@@ -434,6 +434,28 @@ const followState = {
     },
 };
 
+// A move that changes a statement writes what it gives, as a written proof
+// does ("ונקבל ..."), from Lean's state right after it (see moveStates.js): on
+// the goal, what is left to prove; on a statement in hand, the new one, which
+// joins the assumptions. Until Lean has checked the move, "ונקבל …".
+const followResult = {
+    ...followState,
+    setStateAfter(state) {
+        this.stateAfter = state;
+        this.updateText();
+    },
+};
+const appendResult = (block) => appendPhrase(block, block.appendDummyInput('RESULTROW'), 'RESULT');
+const setResult = (block, target) => {
+    const after = block.stateAfter;
+    if (after && target === GOAL && after.goal) {
+        setPhrase(block, ['ונקבל שצריך להוכיח', { formula: after.goal }], 'RESULT');
+        return;
+    }
+    const added = after && target !== GOAL && after.assumptions.filter((statement) => !(block.stateBefore?.assumptions || []).includes(statement)).at(-1);
+    setPhrase(block, added ? ['ונקבל', { formula: added }] : ['ונקבל …'], 'RESULT');
+};
+
 export const defineMoveBlocks = () => {
     // Closing the goal: something in hand says exactly the goal. Lean looks
     // for it among everything in hand, so the student does not point to it.
@@ -925,11 +947,14 @@ export const defineMoveBlocks = () => {
             this.appendDummyInput()
                 .appendField('בתוך')
                 .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
+            appendResult(this);
             move(this, 'מותר להחליף טענה בטענה ששקולה לה, גם בתוך טענה גדולה יותר: במטרה, או בטענה שבידינו, ואז התוצאה מצטרפת להנחות.');
+            this.updateText();
         },
-        ...followState,
+        ...followResult,
         updateText() {
             this.getField('DIRECTION')?.refreshText();
+            setResult(this, this.getFieldValue('TARGET'));
         },
     };
 
@@ -945,11 +970,14 @@ export const defineMoveBlocks = () => {
             this.appendDummyInput()
                 .appendField('בתוך')
                 .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
+            appendResult(this);
             move(this, 'אם a = b, אפשר להחליף את a ב־b, או את b ב־a, במטרה או בטענה שבידינו. בטענה שבידינו, התוצאה מצטרפת להנחות.');
+            this.updateText();
         },
-        ...followState,
+        ...followResult,
         updateText() {
             this.getField('DIRECTION')?.refreshText();
+            setResult(this, this.getFieldValue('TARGET'));
         },
     };
 
@@ -991,14 +1019,22 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Unfolding a definition in the goal.
+    // Unfolding a definition, in the goal or in a statement in hand (whose
+    // result joins it).
     Blockly.Blocks['unfold_function'] = {
         init() {
             this.appendDummyInput()
                 .appendField('לפי הגדרת')
                 .appendField(new FieldFunction(), 'FUNCTION')
-                .appendField('נפתח את המטרה');
-            move(this, 'פותח במטרה את ההגדרה של הפונקציה: למשל double(n + 1) הופך ל־double(n) + 2, ו־leaves(node(l,r)) הופך ל־leaves(l) + leaves(r).');
+                .appendField('נפתח את')
+                .appendField(new FieldAssumption({ goalOption: true }), 'TARGET');
+            appendResult(this);
+            move(this, 'פותח את ההגדרה של הפונקציה, במטרה או בטענה שבידינו: למשל double(n + 1) הופך ל־double(n) + 2, ו־leaves(node(l,r)) הופך ל־leaves(l) + leaves(r).');
+            this.updateText();
+        },
+        ...followResult,
+        updateText() {
+            setResult(this, this.getFieldValue('TARGET'));
         },
     };
 
@@ -1006,7 +1042,7 @@ export const defineMoveBlocks = () => {
     // assumptions); they do not unfold definitions.
     Blockly.Blocks['calc'] = {
         init() {
-            this.appendDummyInput().appendField('המטרה נובעת מחשבון פשוט.');
+            this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט.');
             move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), גם בעזרת מה שבידינו. לא פותח הגדרות.');
         },
     };
@@ -1174,10 +1210,15 @@ leanGenerator.forBlock['rewrite'] = (block) => {
 
 leanGenerator.forBlock['induction'] = (block) => `  induction ${block.getFieldValue('VARIABLE')} with\n`;
 
+// In a statement in hand, on a copy of it, as `rewrite` (unit 8) does.
 leanGenerator.forBlock['unfold_function'] = (block) => {
     const lemmas = functionOf(block.getFieldValue('FUNCTION'))?.[2];
     if (!lemmas) return '  skip\n';
-    return lemmas.length === 1 ? `  rewrite [${lemmas[0]}]\n` : `  first ${lemmas.map((lemma) => `| rewrite [${lemma}]`).join(' ')}\n`;
+    const target = block.getFieldValue('TARGET');
+    const onGoal = !target || target === GOAL;
+    const at = onGoal ? '' : ' at this';
+    const copy = onGoal ? '' : `  have := ‹${target}›\n`;
+    return `${copy}  ${lemmas.length === 1 ? `rewrite [${lemmas[0]}]${at}` : `first ${lemmas.map((lemma) => `| rewrite [${lemma}]${at}`).join(' ')}`}\n`;
 };
 
 leanGenerator.forBlock['calc'] = () => '  omega\n';

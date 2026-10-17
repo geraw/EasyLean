@@ -383,10 +383,29 @@ describe('the moves of unit 9', () => {
         setLevelStructure();
         expect(leanGenerator.blockToCode(inStructure(unit9Levels[0], [['unfold_function', { FUNCTION: 'append' }]]).blocks[0]))
             .toBe('  first | rewrite [List.nil_append] | rewrite [List.cons_append]\n');
+        // In a statement in hand, on a copy of it, which joins the assumptions.
+        expect(leanGenerator.blockToCode(inStructure(unit9Levels[3], [['unfold_function', { FUNCTION: 'leaves', TARGET: 'leaves t = 3' }]]).blocks[0]))
+            .toBe('  have := ‹leaves t = 3›\n  rewrite [leaves] at this\n');
     });
 });
 
 describe('the proof state before each move', () => {
+    it('lists lists by name, and a statement about a list as an assumption', () => {
+        const output = [
+            'proof.lean:2:0: error: unsolved goals',
+            'α : Type', 'm : List α', 'a : α', 'l : List α',
+            'tail_ih✝ : List.length (l ++ m) = List.length l + List.length m',
+            '⊢ List.length (l ++ m) + 1 = List.length l + 1 + List.length m',
+        ].join('\n');
+        const states = readMoveStates(output, { segments: [{ blockId: 'move', after: false, offset: 0, firstLine: 1, lastLine: 9, stateLine: 2 }] });
+        expect(states.get('move')).toEqual({
+            assumptions: ['List.length (l ++ m) = List.length l + List.length m'],
+            objects: ['m', 'a', 'l'],
+            sets: [],
+            goal: 'List.length (l ++ m) + 1 = List.length l + 1 + List.length m',
+        });
+    });
+
     it('comes from one check, a theorem per move', () => {
         const level = unit1Levels[0];
         const { workspace, blocks } = solved(level, UNITS[1].levels[0][0].steps);

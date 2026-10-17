@@ -17,7 +17,7 @@ const INDUCTION_BLOCK = '"נוכיח באינדוקציה על ?"';
 const UNFOLD_BLOCK = '"לפי הגדרת ? נפתח את המטרה"';
 const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
 const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
-const CALC_BLOCK = '"המטרה נובעת מחשבון פשוט."';
+const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const structuralInductionInfo = {

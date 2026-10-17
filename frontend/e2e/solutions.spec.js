@@ -71,6 +71,26 @@ test('after a long introduction, the button to the next level can be reached', a
     await expect(page.getByRole('heading', { level: 1 })).toContainText('שלב 2/9');
 });
 
+// The result row of a move that changes a statement (see setResult in blocks/moves.js).
+const resultText = (page, blockId) => page.evaluate((id) => {
+    const block = window.__easyleanWorkspace.getBlockById(id);
+    return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`RESULT${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069]/g, '');
+}, blockId);
+
+test('a move that changes a statement writes what it gives, in the goal or in hand', async ({ page }) => {
+    const unit9 = UNITS.find(({ unit }) => unit === 9);
+    await openLevel(page, unit9.world, 0);
+    await clearProof(page);
+    const [, , unfold, rewrite] = await buildProof(page, unit9.levels[0][0].steps);
+    await expect.poll(() => resultText(page, unfold)).toBe('ונקבל שצריך להוכיח a :: (l ++ []) = a :: l');
+    await expect.poll(() => resultText(page, rewrite)).toBe('ונקבל שצריך להוכיח a :: l = a :: l');
+    const unit8 = UNITS.find(({ unit }) => unit === 8);
+    await openLevel(page, unit8.world, 2);
+    await clearProof(page);
+    const [inHand] = await buildProof(page, unit8.levels[2][0].steps);
+    await expect.poll(() => resultText(page, inHand)).toBe('ונקבל P(a)');
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);

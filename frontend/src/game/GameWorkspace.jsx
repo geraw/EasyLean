@@ -351,7 +351,7 @@ const GameWorkspace = ({
     const renderGoal = ({ assumptions: all, goal }, spacing) => {
         const domains = new Set(all.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
         // Lists, trees and formulas (unit 9) are objects too.
-        const isObject = ({ prop }) => domains.has(prop.trim()) || ['Tree', 'Formula'].includes(prop.trim()) || /^List\b/.test(prop.trim());
+        const isObject = ({ prop }) => domains.has(prop.trim()) || ['Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim());
         const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
         // Sets of objects (A : Set obj), and families of sets, are listed by name too.
         const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
