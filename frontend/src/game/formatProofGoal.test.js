@@ -95,6 +95,15 @@ describe('formatProofGoal with the functions of unit 8', () => {
     });
 });
 
+describe('formatProofGoal with the structures of unit 9', () => {
+    it('writes functions and the ways structures are built as applied to their arguments', () => {
+        expect(formatProofGoal('mirror (mirror (node l r)) = (node l r)')).toBe('mirror(mirror(node(l,r))) = node(l,r)');
+        expect(formatProofGoal('List.length (l ++ m) = List.length l + List.length m')).toBe('length(l ++ m) = length(l) + length(m)');
+        expect(formatProofGoal('max (height l) (height r) + 1 ≤ nodes t')).toBe('max(height(l),height(r)) + 1 ≤ nodes(t)');
+        expect(formatProofGoal('a :: (l ++ []) = a :: l')).toBe('a :: (l ++ []) = a :: l');
+    });
+});
+
 describe('formatProofGoal with power sets', () => {
     it('writes the set in parentheses, also a single one', () => {
         expect(formatProofGoal('X₀ ∈ 𝒫 A')).toBe('X₀ ∈ 𝒫(A)');

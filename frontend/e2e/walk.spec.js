@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-8, as their hints describe each level:
+// A student's walk through units 3-9, as their hints describe each level:
 // blocks dragged from the toolbox with the mouse, and fields chosen only
 // among the options their menu shows. (The solutions in solutions.spec.js
 // are built directly, which does not catch a hint that cannot be followed.) SHOTS=<dir> saves a screenshot of each level; WHERE=1
@@ -651,6 +651,65 @@ const UNIT8 = [
     },
 ];
 
+// Each level of unit 9, as its hints describe it.
+const inductionOn = async (page, variable, log) => {
+    const i = await drag(page, 'induction', { goal: true });
+    await choose(page, i, 'VARIABLE', variable);
+    log(await phrase(page, i));
+    return i;
+};
+// Unfolds the given functions, one after the other, at the start of a part.
+const unfoldAll = async (page, where, names) => {
+    let last = null;
+    for (const name of names) last = await unfoldFunction(page, last ? { after: last } : where, name);
+    return last;
+};
+const UNIT9 = [
+    async (page, log) => {
+        const i = await inductionOn(page, 'l', log);
+        await drag(page, 'rfl', { into: i, input: 'NIL' });
+        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++']);
+        const r = await rewrite(page, { after: u }, 'l ++ [] = l', 'את l ++ [] ב־l', 'המטרה', log);
+        await drag(page, 'rfl', { after: r });
+    },
+    async (page, log) => {
+        const i = await inductionOn(page, 'l', log);
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NIL' }, ['++', 'length']) });
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'CONS' }, ['++', 'length', 'length']) });
+    },
+    async (page, log) => {
+        const i = await inductionOn(page, 'l', log);
+        await drag(page, 'rfl', { into: i, input: 'NIL' });
+        const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', '++', '++']);
+        const r = await rewrite(page, { after: u }, 'l ++ (m ++ k) = l ++ m ++ k', 'את l ++ (m ++ k) ב־l ++ m ++ k', 'המטרה', log);
+        await drag(page, 'rfl', { after: r });
+    },
+    async (page, log) => {
+        const i = await inductionOn(page, 't', log);
+        await drag(page, 'rfl', { into: i, input: 'LEAF' });
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['leaves', 'nodes']) });
+    },
+    async (page, log) => {
+        const i = await inductionOn(page, 't', log);
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'LEAF' }, ['height', 'nodes']) });
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['height', 'nodes']) });
+    },
+    async (page, log) => {
+        const i = await inductionOn(page, 't', log);
+        await drag(page, 'rfl', { into: i, input: 'LEAF' });
+        const u = await unfoldAll(page, { into: i, input: 'NODE' }, ['mirror', 'mirror']);
+        const r1 = await rewrite(page, { after: u }, 'mirror(mirror(l)) = l', 'את mirror(mirror(l)) ב־l', 'המטרה', log);
+        const r2 = await rewrite(page, { after: r1 }, 'mirror(mirror(r)) = r', 'את mirror(mirror(r)) ב־r', 'המטרה', log);
+        await drag(page, 'rfl', { after: r2 });
+    },
+    ...[['opening', 'closing', ['CONJ']], ['atoms', 'binaries', ['CONJ']], ['atoms', 'binaries', ['CONJ', 'DISJ', 'IMP']]].map(([first, second, binary]) => async (page, log) => {
+        const i = await inductionOn(page, 'φ', log);
+        await drag(page, 'rfl', { into: i, input: 'ATOM' });
+        await drag(page, 'exact', { after: await unfoldAll(page, { into: i, input: 'NEG' }, [first, second]) });
+        for (const input of binary) await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input }, [first, second]) });
+    }),
+];
+
 const UNITS = [
     { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
     { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
@@ -658,6 +717,7 @@ const UNITS = [
     { unit: 6, world: 'יחידה 6 - קבוצות', walks: UNIT6 },
     { unit: 7, world: 'יחידה 7 - קבוצות של קבוצות', walks: UNIT7 },
     { unit: 8, world: 'יחידה 8 - שוויון ואינדוקציה', walks: UNIT8 },
+    { unit: 9, world: 'יחידה 9 - אינדוקציה מבנית', walks: UNIT9 },
 ];
 
 for (const { unit, world, walks } of UNITS) {

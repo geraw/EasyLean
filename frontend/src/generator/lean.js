@@ -92,3 +92,55 @@ theorem easylean_add_succ (n m : Nat) : n + (m + 1) = (n + m) + 1 := rfl
 // sub-proof and the line that opens that part in Lean (at the move's
 // indentation). The moves add their own (see blocks/moves.js).
 export const leanBranches = {};
+
+// Unit 9: structures defined by construction, placed before the proofs of the
+// levels that do induction on them (level.structure), with the functions
+// defined on them by recursion. Lean prints `node l r` and `List.length l`,
+// not `l.node r` or `l.length`, so that they read as functions of their
+// arguments (see writeApplications in game/formatProofGoal.js).
+const PRINT_AS_FUNCTIONS = 'set_option pp.fieldNotation false\n';
+const TREE = `inductive Tree where
+  | leaf : Tree
+  | node : Tree → Tree → Tree
+open Tree
+def leaves : Tree → Nat
+  | leaf => 1
+  | node l r => leaves l + leaves r
+def nodes : Tree → Nat
+  | leaf => 0
+  | node l r => nodes l + nodes r + 1
+def height : Tree → Nat
+  | leaf => 0
+  | node l r => max (height l) (height r) + 1
+def mirror : Tree → Tree
+  | leaf => leaf
+  | node l r => node (mirror r) (mirror l)
+`;
+const formula = (connectives) => `inductive Formula where
+  | atom : Nat → Formula
+  | neg : Formula → Formula
+${connectives.map((name) => `  | ${name} : Formula → Formula → Formula`).join('\n')}
+open Formula
+def opening : Formula → Nat
+  | atom _ => 0
+  | neg φ => opening φ
+${connectives.map((name) => `  | ${name} φ ψ => opening φ + opening ψ + 1`).join('\n')}
+def closing : Formula → Nat
+  | atom _ => 0
+  | neg φ => closing φ
+${connectives.map((name) => `  | ${name} φ ψ => closing φ + closing ψ + 1`).join('\n')}
+def atoms : Formula → Nat
+  | atom _ => 1
+  | neg φ => atoms φ
+${connectives.map((name) => `  | ${name} φ ψ => atoms φ + atoms ψ`).join('\n')}
+def binaries : Formula → Nat
+  | atom _ => 0
+  | neg φ => binaries φ
+${connectives.map((name) => `  | ${name} φ ψ => binaries φ + binaries ψ + 1`).join('\n')}
+`;
+export const STRUCTURE_PRELUDES = {
+    List: PRINT_AS_FUNCTIONS,
+    Tree: PRINT_AS_FUNCTIONS + TREE,
+    Formula: PRINT_AS_FUNCTIONS + formula(['conj']),
+    Formula5: PRINT_AS_FUNCTIONS + formula(['conj', 'disj', 'imp']),
+};

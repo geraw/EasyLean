@@ -57,6 +57,20 @@ test('a negation is not used as an implication, since it has its own moves', asy
     await expect(page.getByText('היא שלילה, ולא גרירה. כדי להגיע לסתירה משלילה').first()).toBeVisible();
 });
 
+test('after a long introduction, the button to the next level can be reached', async ({ page }) => {
+    await page.setViewportSize({ width: 1900, height: 900 });
+    const unit9 = UNITS.find(({ unit }) => unit === 9);
+    await openLevel(page, unit9.world, 0);
+    await clearProof(page);
+    await buildProof(page, unit9.levels[0][0].steps);
+    await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
+    const next = page.getByRole('button', { name: 'לשלב הבא' });
+    await next.scrollIntoViewIfNeeded();
+    await expect(next).toBeInViewport();
+    await next.click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('שלב 2/9');
+});
+
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT1, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);

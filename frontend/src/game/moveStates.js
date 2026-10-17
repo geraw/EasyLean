@@ -46,8 +46,8 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
 // assumptions: they are things we have, not claims.
 const objectsOf = (assumptions) => {
     const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
-    // Natural numbers (n : ℕ) are objects too.
-    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ'].includes(prop.trim());
+    // Natural numbers (n : ℕ), and lists, trees and formulas (unit 9), are objects too.
+    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\b/.test(prop.trim());
     const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
     const names = (test) => assumptions.filter(test).flatMap(({ name }) => name.split(/\s+/));
     return { objects: names(isObject), sets: names(isSet), isThing: (a) => isObject(a) || isSet(a) };

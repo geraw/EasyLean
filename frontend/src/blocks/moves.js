@@ -275,15 +275,81 @@ class FieldLawDirection extends Blockly.FieldDropdown {
     }
 }
 
-// The functions of unit 8 defined by recursion, and the definitions of
-// addition and power: their names, and the equation that unfolds them.
-const FUNCTIONS = [
-    ['double', 'double', 'double'],
-    ['sumTo', 'sumTo', 'sumTo'],
-    ['oddSum', 'oddSum', 'oddSum'],
-    ['החיבור', 'add', 'easylean_add_succ'],
-    ['החזקה', 'pow', 'Nat.pow_succ'],
+// The structures that induction is on, each by the ways it is built (units 8
+// and 9): a part of the proof for each, headed by what is proved in it. A
+// part's case in Lean names the parts of the structure (args) and the
+// induction hypotheses (one _ each, found by their statement); the structure's
+// own parts that are like it get the variable's name, as Logic and Proof
+// keeps n in the step ("נניח P(n) ונוכיח P(n + 1)").
+const other = (variable, name, instead) => (variable === name ? instead : name);
+const STRUCTURES = {
+    Nat: [
+        { input: 'BASE', ctor: 'zero', args: () => [], hypotheses: () => [], term: () => '0' },
+        { input: 'STEP', ctor: 'succ', args: (v) => [v], hypotheses: (v) => [v], term: (v) => `${v} + 1` },
+    ],
+    List: [
+        { input: 'NIL', ctor: 'nil', args: () => [], hypotheses: () => [], term: () => '[]' },
+        { input: 'CONS', ctor: 'cons', args: (v) => [other(v, 'a', 'b'), v], hypotheses: (v) => [v], term: (v) => `${other(v, 'a', 'b')} :: ${v}` },
+    ],
+    Tree: [
+        { input: 'LEAF', ctor: 'leaf', args: () => [], hypotheses: () => [], term: () => 'leaf' },
+        { input: 'NODE', ctor: 'node', args: () => ['l', 'r'], hypotheses: () => ['l', 'r'], term: () => 'node l r' },
+    ],
+};
+const formulaCases = (connectives) => [
+    { input: 'ATOM', ctor: 'atom', args: () => ['i'], hypotheses: () => [], term: () => 'atom i' },
+    { input: 'NEG', ctor: 'neg', args: (v) => [v], hypotheses: (v) => [v], term: (v) => `neg ${v}` },
+    ...connectives.map((ctor) => ({
+        input: ctor.toUpperCase(), ctor,
+        args: (v) => [v, other(v, 'ψ', 'χ')], hypotheses: (v) => [v, other(v, 'ψ', 'χ')], term: (v) => `${ctor} ${v} ${other(v, 'ψ', 'χ')}`,
+    })),
 ];
+STRUCTURES.Formula = formulaCases(['conj']);
+const TYPICAL_NAMES = { Nat: 'n', List: 'l', Tree: 't', Formula: 'φ', Formula5: 'φ' };
+STRUCTURES.Formula5 = formulaCases(['conj', 'disj', 'imp']);
+
+// The structure the level's induction is on (level.structure), set when the
+// level is loaded: the induction move's parts are its cases.
+let levelStructure = 'Nat';
+export const setLevelStructure = (structure = 'Nat') => { levelStructure = STRUCTURES[structure] ? structure : 'Nat'; };
+
+// The functions defined by recursion, and the definitions of addition and
+// power (units 8 and 9): their names, the structure they are defined on, and
+// the equations that unfold them (the first that applies).
+const FUNCTIONS = [
+    ['double', 'double', ['double'], 'Nat'],
+    ['sumTo', 'sumTo', ['sumTo'], 'Nat'],
+    ['oddSum', 'oddSum', ['oddSum'], 'Nat'],
+    ['החיבור', 'add', ['easylean_add_succ'], 'Nat'],
+    ['החזקה', 'pow', ['Nat.pow_succ'], 'Nat'],
+    ['++', 'append', ['List.nil_append', 'List.cons_append'], 'List'],
+    ['length', 'length', ['List.length'], 'List'],
+    ['leaves', 'leaves', ['leaves'], 'Tree'],
+    ['nodes', 'nodes', ['nodes'], 'Tree'],
+    ['height', 'height', ['height'], 'Tree'],
+    ['mirror', 'mirror', ['mirror'], 'Tree'],
+    ['opening', 'opening', ['opening'], 'Formula'],
+    ['closing', 'closing', ['closing'], 'Formula'],
+    ['atoms', 'atoms', ['atoms'], 'Formula'],
+    ['binaries', 'binaries', ['binaries'], 'Formula'],
+];
+const functionOf = (value) => FUNCTIONS.find(([, candidate]) => candidate === value);
+const structureFunctions = () => FUNCTIONS.filter(([, , , structure]) => structure === levelStructure.replace(/5$/, ''));
+
+// The function whose definition to unfold: a menu of those of the level's structure.
+class FieldFunction extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const values = [...structureFunctions().map(([, value]) => value), this.getValue()].filter((value, index, all) => functionOf(value) && all.indexOf(value) === index);
+            return [[PLACEHOLDER, PLACEHOLDER], ...values.map((value) => [functionOf(value)[0], value])];
+        });
+    }
+
+    // Any function, also one set before the level's structure is (a test, a saved proof).
+    doClassValidation_(value) {
+        return value === PLACEHOLDER || functionOf(value) ? value : null;
+    }
+}
 
 const MOVE_COLOUR = 160;
 
@@ -889,27 +955,39 @@ export const defineMoveBlocks = () => {
 
     // Induction on a natural number: the base 0, and the step from n to n + 1,
     // each in a part headed by what is proved in it.
+    // Induction (units 8 and 9): a part for each way the level's structure is
+    // built, a basis for each one without parts like it, and a step, with an
+    // induction hypothesis for each part like it, for each of the others.
     Blockly.Blocks['induction'] = {
         init() {
             this.appendDummyInput()
                 .appendField('נוכיח באינדוקציה על')
                 .appendField(new FieldAssumption({ objects: true }), 'VARIABLE');
-            appendPart(this, 'BASE');
-            appendPart(this, 'STEP');
-            move(this, 'כדי להוכיח טענה לכל מספר טבעי n: מוכיחים אותה עבור 0 (בסיס), ומוכיחים שאם היא נכונה עבור n אז היא נכונה עבור n + 1 (צעד).');
+            this.structure = levelStructure;
+            STRUCTURES[this.structure].forEach(({ input }) => appendPart(this, input));
+            move(this, this.structure === 'Nat'
+                ? 'כדי להוכיח טענה לכל מספר טבעי n: מוכיחים אותה עבור 0 (בסיס), ומוכיחים שאם היא נכונה עבור n אז היא נכונה עבור n + 1 (צעד).'
+                : 'כדי להוכיח טענה על כל המבנים מסוג מסוים: מוכיחים אותה לכל דרך לבנות מבנה, בהנחה שהיא נכונה לחלקים שהוא בנוי מהם (הנחות האינדוקציה).');
             this.updateText();
         },
         ...followState,
         updateText() {
             const variable = this.getFieldValue('VARIABLE');
             const goal = this.stateBefore?.goal;
-            if (!filled(variable) || !goal) {
-                setPartHeading(this, 'BASE', ['בסיס: נוכיח את הטענה עבור 0']);
-                setPartHeading(this, 'STEP', ['צעד: נניח שהטענה נכונה עבור n ונוכיח אותה עבור n + 1']);
-                return;
-            }
-            setPartHeading(this, 'BASE', ['בסיס: נוכיח', { formula: substitute(goal, variable, '0') }]);
-            setPartHeading(this, 'STEP', ['צעד: נניח', { formula: goal }, 'ונוכיח', { formula: substitute(goal, variable, `${variable} + 1`) }]);
+            STRUCTURES[this.structure].forEach((part) => {
+                const label = part.hypotheses('x').length ? 'צעד:' : 'בסיס:';
+                if (!filled(variable) || !goal) {
+                    const name = TYPICAL_NAMES[this.structure];
+                    const parts = part.hypotheses(name).map((inner) => shown(inner)).join(' ו־');
+                    setPartHeading(this, part.input, [parts
+                        ? `${label} נניח שהטענה נכונה עבור ${parts} ונוכיח אותה עבור ${shown(part.term(name))}`
+                        : `${label} נוכיח את הטענה עבור ${shown(part.term(name))}`]);
+                    return;
+                }
+                const hypotheses = part.hypotheses(variable).flatMap((name, index) => [...(index ? ['ו־'] : []), { formula: substitute(goal, variable, name) }]);
+                const proved = { formula: substitute(goal, variable, part.term(variable)) };
+                setPartHeading(this, part.input, hypotheses.length ? [`${label} נניח`, ...hypotheses, 'ונוכיח', proved] : [`${label} נוכיח`, proved]);
+            });
         },
     };
 
@@ -918,9 +996,9 @@ export const defineMoveBlocks = () => {
         init() {
             this.appendDummyInput()
                 .appendField('לפי הגדרת')
-                .appendField(new Blockly.FieldDropdown([[PLACEHOLDER, PLACEHOLDER], ...FUNCTIONS.map(([name, value]) => [name, value])]), 'FUNCTION')
+                .appendField(new FieldFunction(), 'FUNCTION')
                 .appendField('נפתח את המטרה');
-            move(this, 'פותח במטרה את ההגדרה של הפונקציה: למשל double(n + 1) הופך ל־double(n) + 2.');
+            move(this, 'פותח במטרה את ההגדרה של הפונקציה: למשל double(n + 1) הופך ל־double(n) + 2, ו־leaves(node(l,r)) הופך ל־leaves(l) + leaves(r).');
         },
     };
 
@@ -1097,8 +1175,9 @@ leanGenerator.forBlock['rewrite'] = (block) => {
 leanGenerator.forBlock['induction'] = (block) => `  induction ${block.getFieldValue('VARIABLE')} with\n`;
 
 leanGenerator.forBlock['unfold_function'] = (block) => {
-    const lemma = FUNCTIONS.find(([, value]) => value === block.getFieldValue('FUNCTION'))?.[2];
-    return lemma ? `  rewrite [${lemma}]\n` : '  skip\n';
+    const lemmas = functionOf(block.getFieldValue('FUNCTION'))?.[2];
+    if (!lemmas) return '  skip\n';
+    return lemmas.length === 1 ? `  rewrite [${lemmas[0]}]\n` : `  first ${lemmas.map((lemma) => `| rewrite [${lemma}]`).join(' ')}\n`;
 };
 
 leanGenerator.forBlock['calc'] = () => '  omega\n';
@@ -1107,11 +1186,14 @@ leanGenerator.forBlock['algebra'] = () => '  grind\n';
 
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {
-    // The step keeps the variable's name: "assume it for n, prove it for n + 1".
-    induction: (block) => [
-        { input: 'BASE', header: '| zero =>' },
-        { input: 'STEP', header: `| succ ${block.getFieldValue('VARIABLE')} _ =>` },
-    ],
+    // A case for each way the structure is built (see STRUCTURES).
+    induction: (block) => {
+        const variable = block.getFieldValue('VARIABLE');
+        return STRUCTURES[block.structure || 'Nat'].map((part) => ({
+            input: part.input,
+            header: `| ${[part.ctor, ...part.args(variable), ...part.hypotheses(variable).map(() => '_')].join(' ')} =>`,
+        }));
+    },
     set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
     and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],

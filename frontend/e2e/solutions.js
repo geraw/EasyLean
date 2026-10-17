@@ -33,6 +33,8 @@ const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
 const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
+// Structural induction (unit 9): a part for each way the structure is built.
+const inductionOn = (variable, parts) => ['induction', { VARIABLE: variable }, parts];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -290,6 +292,68 @@ export const UNITS = [
                     [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calc])])],
             }],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('oddSum'), rfl], [unfoldFunction('oddSum'), rewrite('oddSum n = n * n', 'FORWARD'), algebra])] }],
+        ],
+    },
+    {
+        unit: 9,
+        world: 'יחידה 9 - אינדוקציה מבנית',
+        levels: [
+            [{ label: 'פתרון', steps: [inductionOn('l', { NIL: [rfl], CONS: [unfoldFunction('append'), rewrite('l ++ [] = l', 'FORWARD'), rfl] })] }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('l', {
+                    NIL: [unfoldFunction('append'), unfoldFunction('length'), calc],
+                    CONS: [unfoldFunction('append'), unfoldFunction('length'), unfoldFunction('length'), calc],
+                })],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('l', {
+                    NIL: [rfl],
+                    CONS: [unfoldFunction('append'), unfoldFunction('append'), unfoldFunction('append'), rewrite('l ++ (m ++ k) = l ++ m ++ k', 'FORWARD'), rfl],
+                })],
+            }],
+            [{ label: 'פתרון', steps: [inductionOn('t', { LEAF: [rfl], NODE: [unfoldFunction('leaves'), unfoldFunction('nodes'), calc] })] }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('t', {
+                    LEAF: [unfoldFunction('height'), unfoldFunction('nodes'), calc],
+                    NODE: [unfoldFunction('height'), unfoldFunction('nodes'), calc],
+                })],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('t', {
+                    LEAF: [rfl],
+                    NODE: [unfoldFunction('mirror'), unfoldFunction('mirror'), rewrite('mirror (mirror l) = l', 'FORWARD'), rewrite('mirror (mirror r) = r', 'FORWARD'), rfl],
+                })],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('φ', {
+                    ATOM: [rfl],
+                    NEG: [unfoldFunction('opening'), unfoldFunction('closing'), close],
+                    CONJ: [unfoldFunction('opening'), unfoldFunction('closing'), calc],
+                })],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('φ', {
+                    ATOM: [rfl],
+                    NEG: [unfoldFunction('atoms'), unfoldFunction('binaries'), close],
+                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                })],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [inductionOn('φ', {
+                    ATOM: [rfl],
+                    NEG: [unfoldFunction('atoms'), unfoldFunction('binaries'), close],
+                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                    DISJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                    IMP: [unfoldFunction('atoms'), unfoldFunction('binaries'), calc],
+                })],
+            }],
         ],
     },
 ];

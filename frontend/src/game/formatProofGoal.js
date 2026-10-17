@@ -94,6 +94,71 @@ const writePowerSets = (text) => {
     return result + text.slice(index);
 };
 
+// The functions of units 8 and 9, and the ways structures are built, applied
+// to their arguments as functions are written: `double (k + 1)` is
+// `double(k + 1)`, `mirror (node l r)` is `mirror(node(l,r))`, and Lean's
+// `List.length l` is `length(l)`.
+const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
+    'opening', 'closing', 'atoms', 'binaries', 'atom', 'neg', 'conj', 'disj', 'imp']);
+const NAME = /^[\p{L}\p{N}_'₀-₉]+/u;
+const closingOf = (text, start) => {
+    const open = text[start];
+    const close = open === '(' ? ')' : ']';
+    let depth = 0;
+    for (let index = start; index < text.length; index += 1) {
+        if (text[index] === open) depth += 1;
+        if (text[index] === close) depth -= 1;
+        if (depth === 0) return index;
+    }
+    return -1;
+};
+// An argument at `start`: a name, or a group in parentheses or brackets.
+const argumentAt = (text, start) => {
+    if (text[start] === '(' || text[start] === '[') {
+        const end = closingOf(text, start);
+        if (end < 0) return null;
+        const inner = writeApplications(text.slice(start + 1, end));
+        return { text: text[start] === '(' ? inner : `[${inner}]`, end: end + 1 };
+    }
+    const name = text.slice(start).match(NAME)?.[0];
+    return name && !FUNCTION_NAMES.has(name) ? { text: name, end: start + name.length } : null;
+};
+const writeApplications = (text) => {
+    const source = text.replace(/\bList\.length\b/g, 'length');
+    let result = '';
+    let index = 0;
+    while (index < source.length) {
+        // A function applied to its arguments needs no parentheses of its own:
+        // `(node l r)` is `node(l,r)`.
+        const argumentList = /[\p{L}\p{N}_'₀-₉)]$/u.test(source.slice(0, index));
+        const end = source[index] === '(' && !argumentList ? closingOf(source, index) : -1;
+        if (end > 0) {
+            const inner = writeApplications(source.slice(index + 1, end));
+            const application = inner.match(/^[\p{L}_][\p{L}\p{N}_'₀-₉]*\(/u);
+            result += application && closingOf(inner, application[0].length - 1) === inner.length - 1 ? inner : `(${inner})`;
+            index = end + 1;
+            continue;
+        }
+        const name = source.slice(index).match(NAME)?.[0];
+        const atWordStart = !index || !NAME.test(source[index - 1]);
+        if (!name || !atWordStart) {
+            result += name && !atWordStart ? name : source[index];
+            index += name && !atWordStart ? name.length : 1;
+            continue;
+        }
+        index += name.length;
+        const args = [];
+        while (FUNCTION_NAMES.has(name) && source[index] === ' ') {
+            const argument = argumentAt(source, index + 1);
+            if (!argument) break;
+            args.push(argument.text);
+            index = argument.end;
+        }
+        result += args.length ? `${name}(${args.join(',')})` : name;
+    }
+    return result;
+};
+
 export const formatProofGoal = (text) => {
     const normalized = stripOuterParentheses(text || '');
     for (const [symbol, spellings] of CONNECTIVES) {
@@ -118,10 +183,8 @@ export const formatProofGoal = (text) => {
     if (tokens.length > 1 && tokens.every((token) => /^[\p{L}_][\p{L}\p{N}_']*$/u.test(token))) {
         return `${tokens[0]}(${tokens.slice(1).join(',')})`;
     }
-    // The functions of unit 8 inside an equation: `double (k + 1)` is
-    // `double(k + 1)`; multiplication is written with a dot.
-    return writePowerSets(normalized).replace(/ \* /g, ' · ').replace(/\b(double|sumTo|oddSum) (\([^()]*\)|[\p{L}\p{N}_]+)/gu,
-        (_, name, argument) => `${name}(${argument.replace(/^\((.*)\)$/, '$1')})`);
+    // Multiplication is written with a dot.
+    return writeApplications(writePowerSets(normalized)).replace(/ \* /g, ' · ');
 };
 
 // The two sides of a formula whose main connective is `symbol` (one of

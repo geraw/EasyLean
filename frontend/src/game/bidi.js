@@ -6,13 +6,14 @@
 const LRI = '\u2066';
 const PDI = '\u2069';
 
-// A run of formula characters (names, connectives, quantifiers, parentheses,
+// A run of formula characters (names, also Greek ones, connectives,
+// quantifiers, parentheses, brackets and :: of lists,
 // commas between arguments as in R(x,y), spaces) from
 // its first to its last name, ⊥ or parenthesis; a trailing space or
 // punctuation before the Hebrew stays outside. Only runs with a logical
 // symbol are formulas: a lone name like P reads the same either way.
-const FORMULA_RUN = /[A-Za-z0-9(¬⊥∀∃∅𝒫⋃⋂][A-Za-z0-9()¬⊥∧∨→↔∀∃, ∈∉⊆∩∪∅ᶜ\\=𝒫⋃⋂₀+*·^≤≥<>∣]*[A-Za-z0-9)⊥∅ᶜ₀]|[¬⊥∅]/gu;
-const LOGICAL_SYMBOL = /[¬⊥∧∨→↔∀∃∈∉⊆∩∪∅ᶜ\\=𝒫⋃⋂+*·^≤≥<>∣]/u;
+const FORMULA_RUN = /[A-Za-zα-ω0-9([¬⊥∀∃∅𝒫⋃⋂](?:[A-Za-zα-ω0-9()[\]¬⊥∧∨→↔∀∃, ∈∉⊆∩∪∅ᶜ\\=𝒫⋃⋂₀+*·^≤≥<>∣]|::)*[A-Za-zα-ω0-9)\]⊥∅ᶜ₀]|[¬⊥∅]/gu;
+const LOGICAL_SYMBOL = /[¬⊥∧∨→↔∀∃∈∉⊆∩∪∅ᶜ\\=𝒫⋃⋂+*·^≤≥<>∣[]|::/u;
 
 const count = (text, char) => text.split(char).length - 1;
 

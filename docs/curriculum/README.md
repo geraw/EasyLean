@@ -26,6 +26,7 @@
 | 6 | [06-sets.md](06-sets.md) | קבוצות |
 | 7 | [07-sets-of-sets.md](07-sets-of-sets.md) | קבוצות של קבוצות: קבוצת החזקה ומשפחות |
 | 8 | [08-equality-and-induction.md](08-equality-and-induction.md) | שוויון ואינדוקציה |
+| 9 | [09-structural-induction.md](09-structural-induction.md) | אינדוקציה מבנית: רשימות, עצים ונוסחאות |
 
 | מסמך כללי | תוכן |
 |---|---|

@@ -26,6 +26,14 @@ RUN npm ci --omit=dev
 
 COPY --chown=node . .
 
+# Only lean_project/ needs to be writable (temporary proof files). The rest
+# of the app is root-owned, so code run by Lean cannot alter the server.
+USER root
+RUN chown -R root:root /home/node/app \
+    && chmod -R go-w /home/node/app \
+    && chown node:node /home/node/app/lean_project
+USER node
+
 # Cloud Run sets PORT itself; this is the default elsewhere.
 ENV PORT=8080
 EXPOSE 8080

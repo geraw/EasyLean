@@ -5,7 +5,7 @@ import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
 import { generateGameLeanCode } from './gameLeanCode';
 import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
-import { defineMoveBlocks, phraseOf, setLevelLaws } from '../blocks/moves';
+import { defineMoveBlocks, phraseOf, setLevelLaws, setLevelStructure } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
@@ -16,11 +16,12 @@ import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
 import { unit7Levels } from './unit7World';
 import { unit8Levels } from './unit8World';
+import { unit9Levels } from './unit9World';
 import { UNITS } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels];
+const worlds = [unit0Levels, unit1Levels, unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels, unit9Levels];
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -342,6 +343,46 @@ describe('the moves of unit 8', () => {
             '    rewrite [‹double n = n + n›]',
             '    omega',
         ].join('\n'));
+    });
+});
+
+describe('the moves of unit 9', () => {
+    const inStructure = (level, steps) => {
+        setLevelStructure(level.structure);
+        try {
+            return solved(level, steps);
+        } finally {
+            setLevelStructure();
+        }
+    };
+
+    it('open a part for each way the structure is built, with a hypothesis for each part like it', () => {
+        const level = unit9Levels[3];
+        const { workspace, blocks: [induction] } = inStructure(level, UNITS[9].levels[3][0].steps);
+        induction.setStateBefore({ assumptions: [], objects: ['t'], sets: [], goal: 'leaves t = nodes t + 1' });
+        expect(phraseOf(induction, 'LEAF_TEXT')).toBe('בסיס: נוכיח leaves(leaf) = nodes(leaf) + 1');
+        expect(phraseOf(induction, 'NODE_TEXT')).toBe('צעד: נניח leaves(l) = nodes(l) + 1 ו־ leaves(r) = nodes(r) + 1 ונוכיח leaves(node(l,r)) = nodes(node(l,r)) + 1');
+        const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
+        expect(code).toContain('inductive Tree where');
+        expect(code).toContain('  induction t with\n  | leaf =>\n');
+        expect(code).toContain('  | node l r _ _ =>\n');
+    });
+
+    it('keep the name of the part like the structure, as in unit 8', () => {
+        const lists = inStructure(unit9Levels[0], UNITS[9].levels[0][0].steps);
+        expect(generateGameLeanCode(lists.workspace, unit9Levels[0], '', { includeFallback: false })).toContain('  | cons a l _ =>\n');
+        const formulas = inStructure(unit9Levels[8], UNITS[9].levels[8][0].steps);
+        const code = generateGameLeanCode(formulas.workspace, unit9Levels[8], '', { includeFallback: false });
+        ['  | atom i =>', '  | neg φ _ =>', '  | conj φ ψ _ _ =>', '  | disj φ ψ _ _ =>', '  | imp φ ψ _ _ =>'].forEach((header) => expect(code).toContain(header));
+    });
+
+    it('offer to unfold the functions of the structure', () => {
+        const { blocks: [unfold] } = inStructure(unit9Levels[5], [['unfold_function']]);
+        setLevelStructure('Tree');
+        expect(unfold.getField('FUNCTION').getOptions(false).map(([, value]) => value)).toEqual(['?', 'leaves', 'nodes', 'height', 'mirror']);
+        setLevelStructure();
+        expect(leanGenerator.blockToCode(inStructure(unit9Levels[0], [['unfold_function', { FUNCTION: 'append' }]]).blocks[0]))
+            .toBe('  first | rewrite [List.nil_append] | rewrite [List.cons_append]\n');
     });
 });
 
