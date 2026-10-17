@@ -341,7 +341,7 @@ describe('the moves of unit 8', () => {
             '  | succ n _ =>',
             '    rewrite [double]',
             '    rewrite [‹double n = n + n›]',
-            '    easylean_goal_only; omega',
+            '    easylean_goal_only; first | omega | fail "easylean: arithmetic from the goal alone"',
         ].join('\n'));
     });
 });
@@ -429,6 +429,9 @@ describe('the explanations of the moves', () => {
     const explain = (message) => withoutIsolates(explainLeanMessage(message));
 
     it.each([
+        ['arithmetic from the goal alone, where it is not enough',
+            'easylean: arithmetic from the goal alone\nn : Nat\n⊢ n + 1 ≤ 2 ^ n * 2',
+            'החשבון מהמטרה לבדה לא מספיק כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו".'],
         ['replacing by a law a side that is not there',
             'easylean: no part of the form ¬(A ∨ B)\nP Q : Prop\n⊢ Q',
             'במקום שבחרתם אין חלק מהצורה ¬(A ∨ B), ולכן אין מה להחליף. בדקו את המקום ואת כיוון ההחלפה.'],

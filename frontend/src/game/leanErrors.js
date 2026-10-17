@@ -69,19 +69,24 @@ const EXPLANATIONS = [
     {
         // Unfolding a function definition where it cannot be unfolded.
         pattern: /^Failed to rewrite using equation theorems for `(.+?)`/,
-        explain: ([, name]) => `אין כאן מקום שאפשר לפתוח בו את ההגדרה של ${name}: היא נפתחת רק על 0 או על משהו מהצורה n + 1.`,
+        explain: ([, name]) => `אין כאן מקום שאפשר לפתוח בו את ההגדרה של ${name}: היא נפתחת רק על משהו שבנוי באחת הדרכים שבהגדרה, כמו 0 או n + 1, או [] או a :: l.`,
+    },
+    {
+        // Arithmetic and algebra from the goal alone (see the moves calc and algebra).
+        pattern: /^easylean: (arithmetic|algebra) from the goal alone/,
+        explain: ([, kind]) => `${kind === 'arithmetic' ? 'החשבון מהמטרה לבדה לא מספיק' : 'האלגברה מהמטרה לבדה לא מספיקה'} כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת ${kind === 'arithmetic' ? 'מחשבון פשוט' : 'מאלגברה'} ומההנחות שבידינו".`,
     },
     {
         pattern: /^omega could not prove the goal/,
-        explain: () => 'החשבון לבדו לא מספיק כדי להוכיח את המטרה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה?',
+        explain: () => 'החשבון לא מספיק כדי להוכיח את המטרה, גם בעזרת ההנחות שבידינו. אולי צריך קודם לפתוח הגדרה?',
     },
     {
         pattern: /^`grind` failed/,
-        explain: () => 'האלגברה לבדה לא מספיקה כדי להוכיח את המטרה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה?',
+        explain: () => 'האלגברה לא מספיקה כדי להוכיח את המטרה, גם בעזרת ההנחות שבידינו. אולי צריך קודם לפתוח הגדרה?',
     },
     {
         pattern: /^Tactic `induction` failed/,
-        explain: () => 'אינדוקציה אפשרית רק על מספר טבעי. בחרו בבלוק את המספר שעליו הטענה מדברת.',
+        explain: () => 'אינדוקציה אפשרית על מספר טבעי, או על מבנה כמו רשימה, עץ או נוסחה. בחרו בבלוק את המשתנה שעליו הטענה מדברת.',
     },
     {
         // Unfolding a definition that is not there, or substituting a side

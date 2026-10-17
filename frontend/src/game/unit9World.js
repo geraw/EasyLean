@@ -219,7 +219,7 @@ export const unit9Levels = [
             `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו φ. יש בו שלושה חלקים: פסוק, ¬ ו־∧.`,
             `בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: ${UNFOLD_BLOCK} עם opening, ואחריו עם closing. מה שנשאר הוא בדיוק הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בצעד של ∧: פתחו את opening ואת closing, והחליפו לפי שתי הנחות האינדוקציה: "את opening(φ) ב־closing(φ)", ו"את opening(ψ) ב־closing(ψ)". עכשיו שני הצדדים זהים: ${RFL_BLOCK}`,
+            `בצעד של ∧: פתחו את opening ואת closing, ואחר כך ${REWRITE_BLOCK} פעמיים, לפי שתי הנחות האינדוקציה: "את opening(φ) ב־closing(φ)", ו"את opening(ψ) ב־closing(ψ)". עכשיו שני הצדדים זהים: ${RFL_BLOCK}`,
         ],
         conclusion: 'בכל נוסחה הסוגריים מאוזנים. זו הדוגמה הקלסית לאינדוקציה על נוסחאות (Enderton): מוכיחים לפסוקים, ומראים שכל קשר שומר על התכונה.',
         startXml: goalXml('opening(φ) = closing(φ)'),
@@ -241,7 +241,7 @@ export const unit9Levels = [
         hints: [
             `אינדוקציה על φ. בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: פתחו את atoms ואת binaries; מה שנשאר הוא הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בצעד של ∧: פתחו את atoms ואת binaries, והחליפו לפי שתי הנחות האינדוקציה, "את atoms(φ) ב־binaries(φ) + 1" ו"את atoms(ψ) ב־binaries(ψ) + 1". מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
+            `בצעד של ∧: פתחו את atoms ואת binaries, ואחר כך ${REWRITE_BLOCK} פעמיים, לפי שתי הנחות האינדוקציה: "את atoms(φ) ב־binaries(φ) + 1" ו"את atoms(ψ) ב־binaries(ψ) + 1". מה שנשאר הוא חשבון: ${CALC_BLOCK}`,
         ],
         conclusion: 'atoms(φ) = binaries(φ) + 1 לכל נוסחה. Rosen מביא טענות כאלה כדוגמאות לאינדוקציה מבנית על נוסחאות.',
         startXml: goalXml('atoms(φ) = binaries(φ) + 1'),
@@ -263,7 +263,7 @@ export const unit9Levels = [
         hints: [
             `אינדוקציה על φ. בבסיס: ${RFL_BLOCK}`,
             `בצעד של ¬: פתחו את atoms ואת binaries; מה שנשאר הוא הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בכל אחד משלושת הצעדים של ∧, ∨ ו־→: פתחו את atoms ואת binaries, החליפו לפי שתי הנחות האינדוקציה, ו־${CALC_BLOCK}`,
+            `בכל אחד משלושת הצעדים של ∧, ∨ ו־→: פתחו את atoms ואת binaries, ${REWRITE_BLOCK} פעמיים לפי שתי הנחות האינדוקציה, ו־${CALC_BLOCK}`,
         ],
         conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! באינדוקציה מבנית יש חלק לכל דרך לבנות את המבנה: כשמוסיפים קשר לשפה, מוסיפים צעד להוכחה.`,
         startXml: goalXml('atoms(φ) = binaries(φ) + 1'),

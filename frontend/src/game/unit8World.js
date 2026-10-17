@@ -52,7 +52,7 @@ const algebraInfo = {
 };
 const algebraHypsInfo = {
     name: 'אלגברה בעזרת ההנחות',
-    doc: 'כמו "נכונות המטרה נובעת מאלגברה", אבל בעזרת ההנחות שבידינו. משתמשים בו כשאי אפשר להחליף לפי ההנחה, כי היא לא מופיעה במטרה כמו שהיא.',
+    doc: 'סוגר מטרה שדורשת אלגברה, כמו פתיחת סוגריים וכינוס איברים, בעזרת ההנחות שבידינו. משתמשים בו כשאי אפשר להחליף לפי ההנחה, כי היא לא מופיעה במטרה כמו שהיא. הוא לא פותח הגדרות.',
 };
 const definition = (symbol, doc) => ({ symbol, doc });
 
@@ -190,7 +190,7 @@ export const unit8Levels = [
             `בבסיס: ${UNFOLD_BLOCK} עם double, ואחריו ${RFL_BLOCK}.`,
             `בצעד: ${UNFOLD_BLOCK} עם double. אחר כך ${REWRITE_BLOCK} עם הנחת האינדוקציה double(n) = n + n, "את double(n) ב־n + n", במטרה. לבסוף ${CALC_BLOCK}`,
         ],
-        conclusion: `הוכחתם בסיס וצעד, ולכן הטענה נכונה לכל n. שימו לב שהחשבון לבדו לא הספיק: הוא לא פותח את ההגדרה של double.`,
+        conclusion: `הוכחתם בסיס וצעד, ולכן הטענה נכונה לכל n. שימו לב שהחשבון לבדו לא הספיק: הוא לא פותח את ההגדרה של double, ולא משתמש בהנחת האינדוקציה עד שמחליפים לפיה.`,
         startXml: goalXml('double(n) = n + n'),
     }),
     level(6, {
@@ -317,7 +317,7 @@ export const unit8Levels = [
         newDefinitions: [definition('oddSum', 'oddSum(0) = 0, ו־oddSum(n + 1) = oddSum(n) + (2n + 1).')],
         hints: [
             `אינדוקציה על n. בבסיס: ${UNFOLD_BLOCK} עם oddSum, ואחריו ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם oddSum, החליפו לפי הנחת האינדוקציה "את oddSum(n) ב־n · n" במטרה, ואז ${ALGEBRA_BLOCK}`,
+            `בצעד: ${UNFOLD_BLOCK} עם oddSum, ${REWRITE_BLOCK} עם הנחת האינדוקציה, "את oddSum(n) ב־n · n", במטרה, ואז ${ALGEBRA_BLOCK}`,
         ],
         conclusion: `סיימתם את יחידה 8, כולל שלב הבונוס! סכום n האי־זוגיים הראשונים הוא n²: כל אי־זוגי מוסיף "מסגרת" לריבוע הקודם.`,
         startXml: goalXml('oddSum(n) = n · n'),

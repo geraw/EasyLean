@@ -1238,11 +1238,12 @@ leanGenerator.forBlock['unfold_function'] = (block) => {
     return `${copy}  ${lemmas.length === 1 ? `rewrite [${lemmas[0]}]${at}` : `first ${lemmas.map((lemma) => `| rewrite [${lemma}]${at}`).join(' ')}`}\n`;
 };
 
-leanGenerator.forBlock['calc'] = () => '  easylean_goal_only; omega\n';
+// From the goal alone, with its own message when that is not enough (see leanErrors.js).
+leanGenerator.forBlock['calc'] = () => '  easylean_goal_only; first | omega | fail "easylean: arithmetic from the goal alone"\n';
 
 leanGenerator.forBlock['calc_hyps'] = () => '  omega\n';
 
-leanGenerator.forBlock['algebra'] = () => '  easylean_goal_only; grind\n';
+leanGenerator.forBlock['algebra'] = () => '  easylean_goal_only; first | grind | fail "easylean: algebra from the goal alone"\n';
 
 leanGenerator.forBlock['algebra_hyps'] = () => '  grind\n';
 

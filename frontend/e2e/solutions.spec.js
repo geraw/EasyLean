@@ -101,7 +101,7 @@ test('arithmetic from the goal alone does not use the induction hypothesis', asy
         CONS: [unfold('append'), unfold('length'), unfold('length'), ['calc']],
     }]]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-    await expect(page.getByText('החשבון לבדו לא מספיק').first()).toBeVisible();
+    await expect(page.getByText('החשבון מהמטרה לבדה לא מספיק').first()).toBeVisible();
     await expect(page.getByText('הצלחה!')).toHaveCount(0);
 });
 
