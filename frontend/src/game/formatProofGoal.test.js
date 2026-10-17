@@ -101,6 +101,9 @@ describe('formatProofGoal with the structures of unit 9', () => {
         expect(formatProofGoal('List.length (l ++ m) = List.length l + List.length m')).toBe('length(l ++ m) = length(l) + length(m)');
         expect(formatProofGoal('max (height l) (height r) + 1 ≤ nodes t')).toBe('max(height(l),height(r)) + 1 ≤ nodes(t)');
         expect(formatProofGoal('a :: (l ++ []) = a :: l')).toBe('a :: (l ++ []) = a :: l');
+        // The grouping of ++ and :: shows, though Lean prints it without parentheses.
+        expect(formatProofGoal('l ++ (m ++ k) = l ++ m ++ k')).toBe('l ++ (m ++ k) = (l ++ m) ++ k');
+        expect(formatProofGoal('a :: l ++ m ++ k = (a :: l)')).toBe('((a :: l) ++ m) ++ k = a :: l');
     });
 });
 

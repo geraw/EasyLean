@@ -159,6 +159,77 @@ const writeApplications = (text) => {
     return result;
 };
 
+// Lists (unit 9): Lean prints `(l ++ m) ++ k` as `l ++ m ++ k`, and `(a :: l)
+// ++ m` as `a :: l ++ m`, by the precedence of ++ and ::. The display writes
+// the parentheses of every ++ that is inside another one, and of a :: inside
+// a ++, so that the grouping shows; and a whole side of an equation needs
+// none of its own: `x = (a :: l)` is `x = a :: l`.
+const RELATIONS = new Set(['=', '≠', '≤', '<', '≥', '>']);
+const LIST_OPERATORS = new Set(['++', '::']);
+// The words of a text at its top level: groups in parentheses or brackets are
+// one word each, with their insides written as lists too.
+const topLevelWords = (text) => {
+    const words = [];
+    let word = '';
+    for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        if (char === '(' || char === '[') {
+            const end = closingOf(text, index);
+            if (end < 0) return null;
+            word += `${char}${writeLists(text.slice(index + 1, end))}${text[end]}`;
+            index = end;
+        } else if (char === ' ') {
+            if (word) words.push(word);
+            word = '';
+        } else {
+            word += char;
+        }
+    }
+    if (word) words.push(word);
+    return words;
+};
+// A run atom (op atom)* of :: and ++, parsed by their precedence (:: binds
+// tighter, and to the right; ++ to the left), and written with parentheses.
+const writeListRun = (words) => {
+    const consOf = (start) => (words[start + 1] === '::' ? { op: '::', left: words[start], right: consOf(start + 2) } : { atom: words[start] });
+    const size = (node) => (node.atom !== undefined ? 1 : size(node.right) + 2);
+    let index = 0;
+    let tree = consOf(0);
+    index = size(tree);
+    while (words[index] === '++') {
+        const right = consOf(index + 1);
+        tree = { op: '++', left: tree, right };
+        index += 1 + size(right);
+    }
+    const write = (node, inside) => {
+        if (node.atom !== undefined) return node.atom;
+        const text = node.op === '::' ? `${node.left} :: ${write(node.right, '::')}` : `${write(node.left, '++')} ++ ${write(node.right, '++')}`;
+        return inside === '++' ? `(${text})` : text;
+    };
+    return write(tree, null);
+};
+const enclosedGroup = (word) => word.startsWith('(') && closingOf(word, 0) === word.length - 1;
+const writeLists = (text) => {
+    if (!/\+\+|::/.test(text)) return text;
+    const words = topLevelWords(text);
+    if (!words) return text;
+    const result = [];
+    for (let index = 0; index < words.length;) {
+        if (LIST_OPERATORS.has(words[index + 1])) {
+            let end = index + 1;
+            while (LIST_OPERATORS.has(words[end])) end += 2;
+            result.push(writeListRun(words.slice(index, end)));
+            index = end;
+        } else {
+            const word = words[index];
+            const alone = (index === 0 || RELATIONS.has(words[index - 1])) && (index === words.length - 1 || RELATIONS.has(words[index + 1]));
+            result.push(alone && enclosedGroup(word) && /\+\+|::/.test(word) ? word.slice(1, -1) : word);
+            index += 1;
+        }
+    }
+    return result.join(' ');
+};
+
 export const formatProofGoal = (text) => {
     const normalized = stripOuterParentheses(text || '');
     for (const [symbol, spellings] of CONNECTIVES) {
@@ -184,7 +255,7 @@ export const formatProofGoal = (text) => {
         return `${tokens[0]}(${tokens.slice(1).join(',')})`;
     }
     // Multiplication is written with a dot.
-    return writeApplications(writePowerSets(normalized)).replace(/ \* /g, ' · ');
+    return writeLists(writeApplications(writePowerSets(normalized))).replace(/ \* /g, ' · ');
 };
 
 // The two sides of a formula whose main connective is `symbol` (one of

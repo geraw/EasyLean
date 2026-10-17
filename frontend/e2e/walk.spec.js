@@ -681,7 +681,7 @@ const UNIT9 = [
         const i = await inductionOn(page, 'l', log);
         await drag(page, 'rfl', { into: i, input: 'NIL' });
         const u = await unfoldAll(page, { into: i, input: 'CONS' }, ['++', '++', '++']);
-        const r = await rewrite(page, { after: u }, 'l ++ (m ++ k) = l ++ m ++ k', 'את l ++ (m ++ k) ב־l ++ m ++ k', 'המטרה', log);
+        const r = await rewrite(page, { after: u }, 'l ++ (m ++ k) = (l ++ m) ++ k', 'את l ++ (m ++ k) ב־(l ++ m) ++ k', 'המטרה', log);
         await drag(page, 'rfl', { after: r });
     },
     async (page, log) => {

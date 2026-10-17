@@ -75,7 +75,7 @@ export const unit9Levels = [
         newTacticsInfo: [structuralInductionInfo],
         newDefinitions: [lists, append],
         hints: [
-            `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו l. בראש החלקים כתוב: בסיס: נוכיח [] ++ [] = []; צעד: נניח l ++ [] = l ונוכיח a :: l ++ [] = a :: l.`,
+            `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו l. בראש החלקים כתוב: בסיס: נוכיח [] ++ [] = []; צעד: נניח l ++ [] = l ונוכיח (a :: l) ++ [] = a :: l.`,
             `בבסיס: ${RFL_BLOCK}`,
             `בצעד: ${UNFOLD_BLOCK} עם ++. עכשיו המטרה היא a :: (l ++ []) = a :: l. אחר כך ${REWRITE_BLOCK} עם הנחת האינדוקציה l ++ [] = l, "את l ++ [] ב־l", במטרה, ולבסוף ${RFL_BLOCK}`,
         ],
@@ -122,7 +122,7 @@ export const unit9Levels = [
         hints: [
             `אינדוקציה על l. בבסיס: ${RFL_BLOCK}`,
             `בצעד: ${UNFOLD_BLOCK} עם ++, שלוש פעמים. כל פעם נפתח שרשור אחד שמתחיל ב־a :: l.`,
-            `עכשיו המטרה היא a :: (l ++ (m ++ k)) = a :: (l ++ m ++ k): ${REWRITE_BLOCK} עם הנחת האינדוקציה, "את l ++ (m ++ k) ב־l ++ m ++ k", במטרה, ולבסוף ${RFL_BLOCK}`,
+            `עכשיו המטרה היא a :: (l ++ (m ++ k)) = a :: ((l ++ m) ++ k): ${REWRITE_BLOCK} עם הנחת האינדוקציה, "את l ++ (m ++ k) ב־(l ++ m) ++ k", במטרה, ולבסוף ${RFL_BLOCK}`,
         ],
         conclusion: 'השרשור אסוציאטיבי. בצעד פתחתם את ההגדרה שלוש פעמים, ורק אז הנחת האינדוקציה התאימה למה שנשאר להוכיח.',
         startXml: goalXml('l ++ (m ++ k) = (l ++ m) ++ k'),
