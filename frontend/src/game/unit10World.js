@@ -8,9 +8,11 @@ import { goalXml } from './levelXml';
 
 export const unit10WorldName = 'יחידה 10 - תרגילים מסכמים';
 
-// All the moves, in drawers by kind.
+// All the moves, in drawers by kind, in the order of the units: the moves
+// for any goal, then a drawer for each kind of statement.
 const DRAWERS = [
-    { name: 'כללי', blocks: ['exact', 'assume', 'apply_rule', 'forward', 'claim'] },
+    { name: 'כללי', blocks: ['exact', 'claim'] },
+    { name: 'גרירה', blocks: ['assume', 'apply_rule', 'forward'] },
     { name: '"וגם", "או", "אם ורק אם"', blocks: ['and_elim', 'and_intro', 'and_combine', 'or_intro', 'or_elim', 'iff_intro', 'iff_elim'] },
     { name: 'שלילה וסתירה', blocks: ['not_intro', 'not_elim', 'contradiction', 'exfalso', 'by_contradiction'] },
     { name: 'כמתים', blocks: ['forall_intro', 'forall_elim', 'exists_intro', 'exists_elim'] },
