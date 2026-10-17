@@ -74,7 +74,12 @@ const EXPLANATIONS = [
     {
         // Arithmetic and algebra from the goal alone (see the moves calc and algebra).
         pattern: /^easylean: (arithmetic|algebra) from the goal alone/,
-        explain: ([, kind]) => `${kind === 'arithmetic' ? 'החשבון מהמטרה לבדה לא מספיק' : 'האלגברה מהמטרה לבדה לא מספיקה'} כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת ${kind === 'arithmetic' ? 'מחשבון פשוט' : 'מאלגברה'} ומההנחות שבידינו".`,
+        explain: ([, kind]) => `${kind === 'arithmetic' ? 'החשבון מהמטרה לבדה לא מספיק' : 'האלגברה מהמטרה לבדה לא מספיקה'} כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת ${kind === 'arithmetic' ? 'מחשבון פשוט' : 'מאלגברה'} ומ־ ?", ובוחרים בו את ההנחה.`,
+    },
+    {
+        // Arithmetic and algebra with the chosen assumptions (see the moves calc_hyps and algebra_hyps).
+        pattern: /^easylean: (arithmetic|algebra) from the chosen assumptions/,
+        explain: ([, kind]) => `${kind === 'arithmetic' ? 'החשבון לא מספיק' : 'האלגברה לא מספיקה'} כדי להוכיח את המטרה, גם בעזרת ההנחות שבחרתם. אולי צריך לבחור הנחה אחרת, או עוד הנחה, או קודם לפתוח הגדרה?`,
     },
     {
         pattern: /^omega could not prove the goal/,

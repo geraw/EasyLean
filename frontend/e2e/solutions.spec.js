@@ -123,12 +123,12 @@ test('a move that uses an induction hypothesis says so', async ({ page }) => {
     await openLevel(page, unit(9).world, 4);
     await clearProof(page);
     const steps = await buildProof(page, unit(9).levels[4][0].steps);
-    await expect.poll(() => blockText(page, steps.at(-1))).toBe('נכונות המטרה נובעת מחשבון פשוט ומהנחות האינדוקציה.');
-    // Outside an induction, the moves read as before.
+    await expect.poll(() => blockText(page, steps.at(-1))).toBe('נכונות המטרה נובעת מחשבון פשוט / ומהנחות האינדוקציה height(l) ≤ nodes(l) / ו־height(r) ≤ nodes(r) / \u00a0');
+    // Outside an induction, the moves read as before (the assumptions they use, by their statements).
     await openLevel(page, unit(8).world, 6);
     await clearProof(page);
     const [, calc] = await buildProof(page, unit(8).levels[6][0].steps);
-    await expect.poll(() => blockText(page, calc)).toBe('נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו.');
+    await expect.poll(() => blockText(page, calc)).toBe('נכונות המטרה נובעת מחשבון פשוט / ומ־ n + 1 ≤ n / \u00a0');
     await openLevel(page, unit(8).world, 2);
     await clearProof(page);
     const [byEquality] = await buildProof(page, unit(8).levels[2][0].steps);

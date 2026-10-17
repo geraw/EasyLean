@@ -99,7 +99,7 @@ const writePowerSets = (text) => {
 // `double(k + 1)`, `mirror (node l r)` is `mirror(node(l,r))`, and Lean's
 // `List.length l` is `length(l)`.
 const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
-    'opening', 'closing', 'atoms', 'binaries', 'atom', 'neg', 'conj', 'disj', 'imp']);
+    'opening', 'closing', 'atoms', 'binaries', 'negations', 'depth', 'atom', 'neg', 'conj']);
 const NAME = /^[\p{L}\p{N}_'₀-₉]+/u;
 const closingOf = (text, start) => {
     const open = text[start];

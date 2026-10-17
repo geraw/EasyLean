@@ -5,7 +5,7 @@ import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
 import { generateGameLeanCode } from './gameLeanCode';
 import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
-import { defineMoveBlocks, phraseOf, setLevelLaws, setLevelStructure } from '../blocks/moves';
+import { defineMoveBlocks, headingOf, phraseOf, setLevelLaws, setLevelStructure } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
@@ -324,7 +324,7 @@ describe('the moves of unit 8', () => {
         const level = unit8Levels[4];
         const { workspace, blocks: [induction] } = solved(level, UNITS[8].levels[4][0].steps);
         induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
-        expect([phraseOf(induction, 'BASE_TEXT'), phraseOf(induction, 'STEP_TEXT')])
+        expect([headingOf(induction, 'BASE'), headingOf(induction, 'STEP')])
             .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  induction n with',
@@ -336,6 +336,19 @@ describe('the moves of unit 8', () => {
             '    rewrite [‹double n = n + n›]',
             '    easylean_goal_only; first | omega | fail "easylean: arithmetic from the goal alone"',
         ].join('\n'));
+    });
+});
+
+describe('arithmetic and algebra with chosen assumptions', () => {
+    it('take one more field for each assumption chosen, and use only those', () => {
+        const { blocks: [calc] } = solved(unit8Levels[9], [['calc_hyps', { FACT: 'n = 2 * j₀', AND1: 'm = 1' }]]);
+        expect(calc.getFieldValue('AND2')).toBe('__none__');
+        expect(calc.getField('AND3')).toBeNull();
+        expect(leanGenerator.blockToCode(calc)).toBe('  have easylean_fact1 := ‹n = 2 * j₀›; have easylean_fact2 := ‹m = 1›; revert easylean_fact1 easylean_fact2; easylean_goal_only; intros; first | omega | fail "easylean: arithmetic from the chosen assumptions"\n');
+        // Stopping earlier drops the fields after it.
+        calc.setFieldValue('__none__', 'AND1');
+        expect(calc.getField('AND2')).toBeNull();
+        expect(leanGenerator.blockToCode(calc)).toBe('  have easylean_fact1 := ‹n = 2 * j₀›; revert easylean_fact1; easylean_goal_only; intros; first | omega | fail "easylean: arithmetic from the chosen assumptions"\n');
     });
 });
 
@@ -353,8 +366,8 @@ describe('the moves of unit 9', () => {
         const level = unit9Levels[3];
         const { workspace, blocks: [induction] } = inStructure(level, UNITS[9].levels[3][0].steps);
         induction.setStateBefore({ assumptions: [], objects: ['t'], sets: [], goal: 'leaves t = nodes t + 1' });
-        expect(phraseOf(induction, 'LEAF_TEXT')).toBe('בסיס: נוכיח leaves(leaf) = nodes(leaf) + 1');
-        expect(phraseOf(induction, 'NODE_TEXT')).toBe('צעד: נניח leaves(l) = nodes(l) + 1 ו־ leaves(r) = nodes(r) + 1 ונוכיח leaves(node(l,r)) = nodes(node(l,r)) + 1');
+        expect(headingOf(induction, 'LEAF')).toBe('בסיס: נוכיח leaves(leaf) = nodes(leaf) + 1');
+        expect(headingOf(induction, 'NODE')).toBe('צעד: נניח leaves(l) = nodes(l) + 1 ו־ leaves(r) = nodes(r) + 1 ונוכיח leaves(node(l,r)) = nodes(node(l,r)) + 1');
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('inductive Tree where');
         expect(code).toContain('  induction t with\n  | leaf =>\n');
@@ -366,7 +379,7 @@ describe('the moves of unit 9', () => {
         expect(generateGameLeanCode(lists.workspace, unit9Levels[0], '', { includeFallback: false })).toContain('  | cons a l _ =>\n');
         const formulas = inStructure(unit9Levels[8], UNITS[9].levels[8][0].steps);
         const code = generateGameLeanCode(formulas.workspace, unit9Levels[8], '', { includeFallback: false });
-        ['  | atom i =>', '  | neg φ _ =>', '  | conj φ ψ _ _ =>', '  | disj φ ψ _ _ =>', '  | imp φ ψ _ _ =>'].forEach((header) => expect(code).toContain(header));
+        ['  | atom i =>', '  | neg φ _ =>', '  | conj φ ψ _ _ =>'].forEach((header) => expect(code).toContain(header));
     });
 
     it('offer to unfold the functions of the structure', () => {
@@ -427,7 +440,7 @@ describe('the explanations of the moves', () => {
     it.each([
         ['arithmetic from the goal alone, where it is not enough',
             'easylean: arithmetic from the goal alone\nn : Nat\n⊢ n + 1 ≤ 2 ^ n * 2',
-            'החשבון מהמטרה לבדה לא מספיק כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו".'],
+            'החשבון מהמטרה לבדה לא מספיק כדי להוכיח אותה. אולי צריך קודם לפתוח הגדרה, או להחליף לפי הנחת האינדוקציה? אם אי אפשר להחליף לפי ההנחה (למשל כשהיא אי־שוויון), משתמשים בבלוק "נכונות המטרה נובעת מחשבון פשוט ומ־ ?", ובוחרים בו את ההנחה.'],
         ['replacing by a law a side that is not there',
             'easylean: no part of the form ¬(A ∨ B)\nP Q : Prop\n⊢ Q',
             'במקום שבחרתם אין חלק מהצורה ¬(A ∨ B), ולכן אין מה להחליף. בדקו את המקום ואת כיוון ההחלפה.'],

@@ -35,6 +35,9 @@ const target = async (page, where) => {
         const svg = ws.getParentSvg().getBoundingClientRect();
         const y = svg.top + ws.getOriginOffsetInPixels().y + connection.y * ws.scale;
         if (y > svg.bottom - 200 || y < svg.top + 100) ws.scroll(ws.scrollX, ws.scrollY - (y - (svg.top + svg.height / 2)));
+        // A wide block (long part headings) can put the place beyond a side.
+        const x = svg.left + ws.getOriginOffsetInPixels().x + connection.x * ws.scale;
+        if (x < svg.left + 250 || x > svg.right - 100) ws.scroll(ws.scrollX - (x - (svg.left + svg.width / 2)), ws.scrollY);
     }, where);
     await page.waitForTimeout(300);
     return targetPoint(page, where);
@@ -560,6 +563,14 @@ const UNIT7 = [
     },
 ];
 
+// Arithmetic or algebra with the assumptions it uses, chosen as their menus show them.
+const fromFacts = async (page, type, where, facts, log) => {
+    const c = await drag(page, type, where);
+    for (const [index, fact] of facts.entries()) await choose(page, c, index ? `AND${index}` : 'FACT', index ? `ו־${fact}` : fact);
+    log(await phrase(page, c));
+    return c;
+};
+
 // Each level of unit 8, as its hints describe it.
 const rewrite = async (page, where, equation, direction, target, log) => {
     const r = await drag(page, 'rewrite', where);
@@ -613,20 +624,20 @@ const UNIT8 = [
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        await drag(page, 'calc_hyps', { after: a });
+        await fromFacts(page, 'calc_hyps', { after: a }, ['n + 1 ≤ n'], log);
     },
     async (page, log) => {
         const i = await induction(page, log);
         await drag(page, 'calc', { into: i, input: 'BASE' });
         const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'החזקה');
-        await drag(page, 'calc_hyps', { after: u });
+        await fromFacts(page, 'calc_hyps', { after: u }, ['n + 1 ≤ 2 ^ n'], log);
     },
     async (page, log) => {
         const i = await induction(page, log);
         const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'sumTo');
         await drag(page, 'rfl', { after: b });
         const u = await unfoldFunction(page, { into: i, input: 'STEP' }, 'sumTo');
-        await drag(page, 'algebra_hyps', { after: u });
+        await fromFacts(page, 'algebra_hyps', { after: u }, ['2 · sumTo(n) = n · (n + 1)'], log);
     },
     async (page, log) => {
         const i = await induction(page, log);
@@ -634,13 +645,13 @@ const UNIT8 = [
         const w = await drag(page, 'exists_intro', { after: o }); await typeIn(page, w, 'TERM', '0'); log(await phrase(page, w));
         await drag(page, 'rfl', { after: w });
         const k = await drag(page, 'or_elim', { into: i, input: 'STEP' }); await choose(page, k, 'OR', '((∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1)))'); log(await phrase(page, k));
-        for (const [part, exists, side, witness] of [['LEFT', '∃j (n = 2 · j)', '∃j (n + 1 = 2 · j + 1)', 'j₀'], ['RIGHT', '∃j (n = 2 · j + 1)', '∃j (n + 1 = 2 · j)', 'j₀ + 1']]) {
+        for (const [part, exists, side, witness, known] of [['LEFT', '∃j (n = 2 · j)', '∃j (n + 1 = 2 · j + 1)', 'j₀', 'n = 2 · j₀'], ['RIGHT', '∃j (n = 2 · j + 1)', '∃j (n + 1 = 2 · j)', 'j₀ + 1', 'n = 2 · j₀ + 1']]) {
             const x = await drag(page, 'exists_elim', { into: k, input: part }); await choose(page, x, 'EXISTS', exists); log(await phrase(page, x));
             const s = await drag(page, 'or_intro', { after: x }); await choose(page, s, 'SIDE', side);
             const v = await drag(page, 'exists_intro', { after: s });
             if (witness === 'j₀') await choose(page, v, 'TERM', witness); else await typeIn(page, v, 'TERM', witness);
             log(await phrase(page, v));
-            await drag(page, 'calc_hyps', { after: v });
+            await fromFacts(page, 'calc_hyps', { after: v }, [known], log);
         }
     },
     async (page, log) => {
@@ -699,7 +710,7 @@ const UNIT9 = [
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
         await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'LEAF' }, ['height', 'nodes']) });
-        await drag(page, 'calc_hyps', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['height', 'nodes']) });
+        await fromFacts(page, 'calc_hyps', { after: await unfoldAll(page, { into: i, input: 'NODE' }, ['height', 'nodes']) }, ['height(l) ≤ nodes(l)', 'height(r) ≤ nodes(r)'], log);
     },
     async (page, log) => {
         const i = await inductionOn(page, 't', log);
@@ -711,8 +722,8 @@ const UNIT9 = [
     },
     // The step of a binary connective: unfold both, replace by both
     // hypotheses (shown as "את atoms(φ) ב־binaries(φ) + 1"), then the last move.
-    ...[['opening', 'closing', ['CONJ'], (x) => `closing(${x})`, 'rfl'], ['atoms', 'binaries', ['CONJ'], (x) => `binaries(${x}) + 1`, 'calc'],
-        ['atoms', 'binaries', ['CONJ', 'DISJ', 'IMP'], (x) => `binaries(${x}) + 1`, 'calc']].map(([first, second, binary, value, last]) => async (page, log) => {
+    ...[['opening', 'closing', ['CONJ'], (x) => `closing(${x})`, 'rfl'], ['atoms', 'binaries', ['CONJ'], (x) => `binaries(${x}) + 1`, 'calc']]
+        .map(([first, second, binary, value, last]) => async (page, log) => {
         const i = await inductionOn(page, 'φ', log);
         await drag(page, 'rfl', { into: i, input: 'ATOM' });
         await drag(page, 'exact', { after: await unfoldAll(page, { into: i, input: 'NEG' }, [first, second]) });
@@ -722,6 +733,15 @@ const UNIT9 = [
             await drag(page, last, { after });
         }
     }),
+    async (page, log) => {
+        const i = await inductionOn(page, 'φ', log);
+        const unfolds = ['depth', 'binaries', 'negations'];
+        await drag(page, 'calc', { after: await unfoldAll(page, { into: i, input: 'ATOM' }, unfolds) });
+        const hypothesis = (x) => `depth(${x}) ≤ binaries(${x}) + negations(${x})`;
+        for (const [input, facts] of [['NEG', [hypothesis('φ')]], ['CONJ', [hypothesis('φ'), hypothesis('ψ')]]]) {
+            await fromFacts(page, 'calc_hyps', { after: await unfoldAll(page, { into: i, input }, unfolds) }, facts, log);
+        }
+    },
 ];
 
 const UNITS = [

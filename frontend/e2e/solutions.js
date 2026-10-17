@@ -27,9 +27,11 @@ const setEq = (first, second) => ['set_eq', {}, { FIRST: first, SECOND: second }
 const unfold = (statement) => ['unfold', { STATEMENT: statement }];
 const rfl = ['rfl'];
 const calc = ['calc'];
-const calcHyps = ['calc_hyps'];
+// With the assumptions it uses, by their statements: the first, then each more.
+const withFacts = (type) => (fact, ...more) => [type, { FACT: fact, ...Object.fromEntries(more.map((other, index) => [`AND${index + 1}`, other])) }];
+const calcHyps = withFacts('calc_hyps');
 const algebra = ['algebra'];
-const algebraHyps = ['algebra_hyps'];
+const algebraHyps = withFacts('algebra_hyps');
 const rewrite = (equation, direction, target = '__goal__') => ['rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
 const unfoldFunction = (name) => ['unfold_function', { FUNCTION: name }];
 // One part only (in Lean's spelling, as the menu offers it).
@@ -39,7 +41,7 @@ const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BA
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
 // Structural induction (unit 9): a part for each way the structure is built.
 const inductionOn = (variable, parts) => ['induction', { VARIABLE: variable }, parts];
-// The step of a binary connective in 9.8 and 9.9: by both induction hypotheses, then arithmetic.
+// The step of ∧ in 9.8: by both induction hypotheses, then arithmetic.
 const ihs = [rewrite('atoms φ = binaries φ + 1', 'FORWARD'), rewrite('atoms ψ = binaries ψ + 1', 'FORWARD'), calc];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
@@ -288,14 +290,14 @@ export const UNITS = [
             ],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('double'), rfl], [unfoldFunction('double'), rewrite('double n = n + n', 'FORWARD'), calc])] }],
             [{ label: 'פתרון', steps: [induction('n', [rfl], [unfoldFunction('add'), rewrite('0 + n = n', 'FORWARD'), rfl])] }],
-            [{ label: 'פתרון', steps: [assume, calcHyps] }],
-            [{ label: 'פתרון', steps: [induction('n', [calc], [unfoldFunction('pow'), calcHyps])] }],
-            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebraHyps])] }],
+            [{ label: 'פתרון', steps: [assume, calcHyps('n + 1 ≤ n')] }],
+            [{ label: 'פתרון', steps: [induction('n', [calc], [unfoldFunction('pow'), calcHyps('n + 1 ≤ 2 ^ n')])] }],
+            [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('sumTo'), rfl], [unfoldFunction('sumTo'), algebraHyps('2 * sumTo n = n * (n + 1)')])] }],
             [{
                 label: 'פתרון',
                 steps: [induction('n', [orIntro('LEFT'), existsIntro('0'), rfl], [orCases('(∃ j, n = 2 * j) ∨ ∃ j, n = 2 * j + 1',
-                    [existsElim('∃ j, n = 2 * j'), orIntro('RIGHT'), existsIntro('j₀'), calcHyps],
-                    [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calcHyps])])],
+                    [existsElim('∃ j, n = 2 * j'), orIntro('RIGHT'), existsIntro('j₀'), calcHyps('n = 2 * j₀')],
+                    [existsElim('∃ j, n = 2 * j + 1'), orIntro('LEFT'), existsIntro('j₀ + 1'), calcHyps('n = 2 * j₀ + 1')])])],
             }],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('oddSum'), rfl], [unfoldFunction('oddSum'), rewrite('oddSum n = n * n', 'FORWARD'), algebra])] }],
         ],
@@ -332,7 +334,7 @@ export const UNITS = [
                 label: 'פתרון',
                 steps: [inductionOn('t', {
                     LEAF: [unfoldFunction('height'), unfoldFunction('nodes'), calc],
-                    NODE: [unfoldFunction('height'), unfoldFunction('nodes'), calcHyps],
+                    NODE: [unfoldFunction('height'), unfoldFunction('nodes'), calcHyps('height l ≤ nodes l', 'height r ≤ nodes r')],
                 })],
             }],
             [{
@@ -362,11 +364,10 @@ export const UNITS = [
             [{
                 label: 'פתרון',
                 steps: [inductionOn('φ', {
-                    ATOM: [rfl],
-                    NEG: [unfoldFunction('atoms'), unfoldFunction('binaries'), close],
-                    CONJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
-                    DISJ: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
-                    IMP: [unfoldFunction('atoms'), unfoldFunction('binaries'), ...ihs],
+                    ATOM: [unfoldFunction('depth'), unfoldFunction('binaries'), unfoldFunction('negations'), calc],
+                    NEG: [unfoldFunction('depth'), unfoldFunction('binaries'), unfoldFunction('negations'), calcHyps('depth φ ≤ binaries φ + negations φ')],
+                    CONJ: [unfoldFunction('depth'), unfoldFunction('binaries'), unfoldFunction('negations'),
+                        calcHyps('depth φ ≤ binaries φ + negations φ', 'depth ψ ≤ binaries ψ + negations ψ')],
                 })],
             }],
         ],

@@ -18,7 +18,7 @@ const UNFOLD_BLOCK = '"נשתמש בהגדרת ? כדי לשכתב ..."';
 const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
 const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
 const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
-const CALC_HYPS_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט ומההנחות שבידינו."';
+const CALC_HYPS_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט ומ־ ?"';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const structuralInductionInfo = {
@@ -36,7 +36,7 @@ const mirror = definition('mirror', 'mirror(leaf) = leaf, ו־mirror(node(l,r)) 
 const formulas = definition('נוסחאות', 'נוסחה היא atom(i) (הפסוק pᵢ), או neg(φ) (נכתבת ¬φ), או conj(φ,ψ) (נכתבת (φ ∧ ψ), עם סוגריים).');
 const parentheses = definition('opening ו־closing', 'מספר הסוגריים "(" ו־")" בנוסחה כתובה: opening(atom(i)) = 0, opening(neg(φ)) = opening(φ), opening(conj(φ,ψ)) = opening(φ) + opening(ψ) + 1, וכך גם closing.');
 const atomsAndBinaries = definition('atoms ו־binaries', 'מספר הפסוקים ומספר הקשרים הבינאריים בנוסחה: atoms(atom(i)) = 1, binaries(atom(i)) = 0; ¬ לא משנה אף אחד מהם; קשר בינארי מחבר את שני הצדדים ומוסיף 1 ל־binaries.');
-const moreConnectives = definition('קשרים נוספים', 'disj(φ,ψ) נכתבת (φ ∨ ψ), ו־imp(φ,ψ) נכתבת (φ → ψ). atoms ו־binaries מוגדרות עליהן כמו על conj.');
+const depthAndNegations = definition('depth ו־negations', 'העומק של נוסחה: depth(atom(i)) = 0, depth(neg(φ)) = depth(φ) + 1, ו־depth(conj(φ,ψ)) = max(depth(φ),depth(ψ)) + 1. מספר השלילות: negations(atom(i)) = 0, negations(neg(φ)) = negations(φ) + 1, ו־negations(conj(φ,ψ)) = negations(φ) + negations(ψ).');
 
 const LISTS = 'variable {α : Type}';
 
@@ -172,7 +172,7 @@ export const unit9Levels = [
         hints: [
             'אינדוקציה על t.',
             `בבסיס: ${UNFOLD_BLOCK} עם height, ואחריו עם nodes, ולבסוף ${CALC_BLOCK}`,
-            `בצעד: פתחו את height ואת nodes, ואחר כך ${CALC_HYPS_BLOCK}`,
+            `בצעד: פתחו את height ואת nodes, ואחר כך ${CALC_HYPS_BLOCK}, ובחרו בו את שתי הנחות האינדוקציה: height(l) ≤ nodes(l), ובשדה הבא height(r) ≤ nodes(r).`,
         ],
         conclusion: 'height(t) ≤ nodes(t) לכל עץ. אינדוקציה מוכיחה גם אי־שוויונות, כמו ביחידה 8.',
         startXml: goalXml('height(t) ≤ nodes(t)'),
@@ -247,25 +247,28 @@ export const unit9Levels = [
         startXml: goalXml('atoms(φ) = binaries(φ) + 1'),
     }),
     level(9, {
-        title: 'שלב בונוס: כל הקשרים',
-        name: 'unit9_l9_all_connectives',
-        structure: 'Formula5',
+        title: 'שלב בונוס: עומק של נוסחה',
+        name: 'unit9_l9_depth',
+        structure: 'Formula',
         params: '(φ : Formula)',
-        proposition: 'atoms φ = binaries φ + 1',
-        goalLabel: 'atoms(φ) = binaries(φ) + 1',
+        proposition: 'depth φ ≤ binaries φ + negations φ',
+        goalLabel: 'depth(φ) ≤ binaries(φ) + negations(φ)',
         objects: [{ name: 'φ', type: 'נוסחה' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'exact', 'calc'],
-        introduction: `# בונוס: כל הקשרים
+        toolboxBlocks: ['induction', 'unfold_function', 'calc', 'calc_hyps'],
+        introduction: `# בונוס: עומק של נוסחה
 
-עכשיו לנוסחאות יש גם "או", \`disj(φ,ψ)\`, וגרירה, \`imp(φ,ψ)\`. אותה טענה, אבל לאינדוקציה יש חמישה חלקים: בסיס, וצעד לכל קשר.
-החלקים של הקשרים הבינאריים דומים זה לזה: בכל דרך לבנות נוסחה צריך להראות שהטענה נשמרת.`,
-        newDefinitions: [moreConnectives],
+נוסחה היא מעין עץ: הפסוקים הם העלים, וכל קשר הוא צומת. *העומק* של נוסחה הוא אורך השרשרת הארוכה ביותר של קשרים, מהקשר הראשי ועד פסוק. למשל, העומק של ¬(p₁ ∧ p₂) הוא 2.
+נוכיח שהעומק לא גדול ממספר הקשרים בנוסחה: depth(φ) ≤ binaries(φ) + negations(φ).
+
+זו הטענה של שלב 5, הגובה של עץ, בשפה של נוסחאות. כמו שם, ב־∧ העומק מוגדר בעזרת max, והנחות האינדוקציה הן אי־שוויונות, ולכן אי אפשר להחליף לפיהן: החשבון משתמש בהן, ${CALC_HYPS_BLOCK}
+ובשלילה יש כאן חלק שלא היה בעצים: ¬ מוסיפה 1 לעומק, ו־1 לשלילות.`,
+        newDefinitions: [depthAndNegations],
         hints: [
-            `אינדוקציה על φ. בבסיס: ${RFL_BLOCK}`,
-            `בצעד של ¬: פתחו את atoms ואת binaries; מה שנשאר הוא הנחת האינדוקציה: ${CLOSE_BLOCK}`,
-            `בכל אחד משלושת הצעדים של ∧, ∨ ו־→: פתחו את atoms ואת binaries, ${REWRITE_BLOCK} פעמיים לפי שתי הנחות האינדוקציה, ו־${CALC_BLOCK}`,
+            `אינדוקציה על φ. בבסיס: ${UNFOLD_BLOCK} עם depth, ואחריו עם binaries ועם negations, ולבסוף ${CALC_BLOCK}`,
+            `בצעד של ¬: אותם שלושה שכתובים, ואחר כך ${CALC_HYPS_BLOCK} עם הנחת האינדוקציה depth(φ) ≤ binaries(φ) + negations(φ): השלילה מוסיפה 1 לשני הצדדים.`,
+            `בצעד של ∧: אותם שלושה שכתובים, ואחר כך ${CALC_HYPS_BLOCK} עם שתי הנחות האינדוקציה, של φ ושל ψ (השנייה בשדה "ו־" שאחרי הראשונה): יחד עם max הן נותנות את הצעד.`,
         ],
-        conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! באינדוקציה מבנית יש חלק לכל דרך לבנות את המבנה: כשמוסיפים קשר לשפה, מוסיפים צעד להוכחה.`,
-        startXml: goalXml('atoms(φ) = binaries(φ) + 1'),
+        conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! אותה שיטה, אינדוקציה מבנית, הוכיחה טענות על רשימות, על עצים ועל נוסחאות. בכל פעם היה חלק לכל דרך לבנות את המבנה, וכל דרך דרשה טיפול משלה: כאן ¬ ו־∧ הוסיפו לעומק כל אחת בדרכה.`,
+        startXml: goalXml('depth(φ) ≤ binaries(φ) + negations(φ)'),
     }),
 ];

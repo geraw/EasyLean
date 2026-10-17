@@ -141,10 +141,17 @@ def binaries : Formula → Nat
   | atom _ => 0
   | neg φ => binaries φ
 ${connectives.map((name) => `  | ${name} φ ψ => binaries φ + binaries ψ + 1`).join('\n')}
+def negations : Formula → Nat
+  | atom _ => 0
+  | neg φ => negations φ + 1
+${connectives.map((name) => `  | ${name} φ ψ => negations φ + negations ψ`).join('\n')}
+def depth : Formula → Nat
+  | atom _ => 0
+  | neg φ => depth φ + 1
+${connectives.map((name) => `  | ${name} φ ψ => max (depth φ) (depth ψ) + 1`).join('\n')}
 `;
 export const STRUCTURE_PRELUDES = {
     List: PRINT_AS_FUNCTIONS,
     Tree: PRINT_AS_FUNCTIONS + TREE,
     Formula: PRINT_AS_FUNCTIONS + formula(['conj']),
-    Formula5: PRINT_AS_FUNCTIONS + formula(['conj', 'disj', 'imp']),
 };

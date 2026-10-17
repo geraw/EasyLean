@@ -115,8 +115,8 @@ const UNFOLDS = {
     length: (node) => isApplication(node, ['List.length']) && (isAtom(node.args[0], '[]') || isCons(node.args[0])),
     ...Object.fromEntries(['leaves', 'nodes', 'height', 'mirror'].map((name) => [name,
         (node) => isApplication(node, [name]) && (isAtom(node.args[0], 'leaf') || isApplication(node.args[0], ['node']))])),
-    ...Object.fromEntries(['opening', 'closing', 'atoms', 'binaries'].map((name) => [name,
-        (node) => isApplication(node, [name]) && isApplication(node.args[0], ['atom', 'neg', 'conj', 'disj', 'imp'])])),
+    ...Object.fromEntries(['opening', 'closing', 'atoms', 'binaries', 'negations', 'depth'].map((name) => [name,
+        (node) => isApplication(node, [name]) && isApplication(node.args[0], ['atom', 'neg', 'conj'])])),
 };
 
 // The parts of a statement (in Lean's spelling) that the definition of a

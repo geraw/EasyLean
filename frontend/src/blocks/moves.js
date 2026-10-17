@@ -301,8 +301,7 @@ const formulaCases = (connectives) => [
     })),
 ];
 STRUCTURES.Formula = formulaCases(['conj']);
-const TYPICAL_NAMES = { Nat: 'n', List: 'l', Tree: 't', Formula: 'φ', Formula5: 'φ' };
-STRUCTURES.Formula5 = formulaCases(['conj', 'disj', 'imp']);
+const TYPICAL_NAMES = { Nat: 'n', List: 'l', Tree: 't', Formula: 'φ' };
 
 // The structure the level's induction is on (level.structure), set when the
 // level is loaded: the induction move's parts are its cases.
@@ -328,9 +327,11 @@ const FUNCTIONS = [
     ['closing', 'closing', ['closing'], 'Formula'],
     ['atoms', 'atoms', ['atoms'], 'Formula'],
     ['binaries', 'binaries', ['binaries'], 'Formula'],
+    ['negations', 'negations', ['negations'], 'Formula'],
+    ['depth', 'depth', ['depth'], 'Formula'],
 ];
 const functionOf = (value) => FUNCTIONS.find(([, candidate]) => candidate === value);
-const structureFunctions = () => FUNCTIONS.filter(([, , , structure]) => structure === levelStructure.replace(/5$/, ''));
+const structureFunctions = () => FUNCTIONS.filter(([, , , structure]) => structure === levelStructure);
 
 // Which part of the chosen place to unfold the definition in: a menu of the
 // parts it applies to there (see game/terms.js), one at a time, so that the
@@ -423,6 +424,29 @@ const setPhrase = (block, parts, prefix = 'PHRASE') => {
 
 const setPartHeading = (block, name, parts) => setPhrase(block, parts, `${name}_TEXT`);
 
+// A part headed by several lines (an induction step: "נניח" a line for each
+// hypothesis, then "ונוכיח"), so that the block does not grow wide: rows
+// above the part (shown only when used), and the part's own row last.
+const appendHeadedPart = (block, name, rows) => {
+    for (let row = 1; row <= rows; row += 1) appendPhrase(block, block.appendDummyInput(`${name}_ROW${row}`), `${name}_ROW${row}_TEXT`);
+    appendPart(block, name);
+};
+const setPartHeadingLines = (block, name, lines) => {
+    const above = lines.slice(0, -1);
+    for (let row = 1; block.getInput(`${name}_ROW${row}`); row += 1) {
+        const input = block.getInput(`${name}_ROW${row}`);
+        setPhrase(block, above[row - 1] || [], `${name}_ROW${row}_TEXT`);
+        if (input.isVisible() !== Boolean(above[row - 1])) input.setVisible(Boolean(above[row - 1]));
+    }
+    setPartHeading(block, name, lines.at(-1));
+};
+// A part's heading as students read it, all its lines (for tests).
+export const headingOf = (block, name) => [
+    ...Array.from({ length: 3 }, (_, index) => block.getInput(`${name}_ROW${index + 1}`)).filter((input) => input?.isVisible())
+        .map((input) => phraseOf(block, `${input.name}_TEXT`)),
+    phraseOf(block, `${name}_TEXT`),
+].join(' ');
+
 // The sentence as students read it, or a part's heading (for tests).
 export const phraseOf = (block, prefix = 'PHRASE') => Array.from({ length: PHRASE_LENGTH }, (_, index) => block.getFieldValue(`${prefix}${index}`))
     .filter(Boolean).join(' ').replace(/[\u2066\u2069]/g, '');
@@ -504,13 +528,73 @@ const setLabel = (block, name, text) => {
     }
 };
 
-// "ומההנחות שבידינו", or, in a step whose only assumptions in hand are its
-// induction hypotheses, "ומהנחת/ומהנחות האינדוקציה".
-const fromAssumptions = (block) => {
-    const inHand = block.stateBefore?.assumptions || [];
-    const hypotheses = inductionHypotheses(block);
-    if (!inHand.length || !inHand.every((statement) => hypotheses.some((hypothesis) => sameStatement(hypothesis, statement)))) return 'ומההנחות שבידינו.';
-    return inHand.length === 1 ? 'ומהנחת האינדוקציה.' : 'ומהנחות האינדוקציה.';
+// The assumptions that arithmetic or algebra is to use, chosen by their
+// statement: the first (FACT), then each more in a field of its own (AND1,
+// AND2, ...), the last of which is empty until one more is chosen, so that the
+// move says what it uses: "ומ־[A] [ו־B] [ו־C]", or "ומהנחת/ומהנחות האינדוקציה
+// ..." when they are induction hypotheses. The field that ends the list is
+// empty: only its arrow shows that one more can be chosen.
+const NONE = '__none__';
+const NONE_LABEL = '\u00a0';
+const andLabel = (value) => (value === NONE ? NONE_LABEL : isolateHebrew(`ו־${shown(value)}`));
+class FieldOtherAssumption extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const block = this.getSourceBlock();
+            const others = chosenFacts(block).filter((fact) => fact !== this.getValue());
+            const inHand = (block?.stateBefore?.assumptions || []).filter((statement) => !others.includes(statement));
+            const options = [[NONE_LABEL, NONE], ...inHand.map((statement) => [andLabel(statement), statement])];
+            const current = this.getValue() || NONE;
+            if (!options.some(([, value]) => value === current)) options.push([andLabel(current), current]);
+            return options;
+        });
+    }
+
+    doClassValidation_(value) {
+        return typeof value === 'string' && value.trim() ? value : null;
+    }
+
+    doValueUpdate_(value) {
+        super.doValueUpdate_(value);
+        this.selectedOption = [andLabel(value), value];
+        this.getSourceBlock()?.updateText?.();
+    }
+}
+const andFields = (block) => block.inputList.flatMap((input) => input.fieldRow).filter((field) => /^AND\d+$/.test(field.name || ''));
+// Each further assumption on a row of its own, so that the block does not grow wide.
+const appendAndRow = (block, number) => block.appendDummyInput(`ANDROW${number}`).appendField(new FieldOtherAssumption(), `AND${number}`);
+const chosenFacts = (block) => (block ? [block.getFieldValue('FACT'), ...andFields(block).map((field) => field.getValue())] : [])
+    .filter((value) => filled(value) && value !== NONE);
+// Keeps exactly one field that stops the list, after the chosen ones.
+const keepOneMoreField = (block) => {
+    if (!block.getInput('FROMROW')) return;
+    let fields = andFields(block);
+    const stop = fields.findIndex((field) => field.getValue() === NONE);
+    if (stop >= 0) fields.slice(stop + 1).forEach((field) => block.removeInput(`ANDROW${field.name.slice(3)}`));
+    fields = andFields(block);
+    if (!fields.length || fields.at(-1).getValue() !== NONE) appendAndRow(block, fields.length + 1);
+};
+const fromChosen = (block) => {
+    const facts = chosenFacts(block);
+    if (!facts.length || !facts.every((fact) => isInductionHypothesis(block, fact))) return 'ומ־';
+    return facts.length === 1 ? 'ומהנחת האינדוקציה' : 'ומהנחות האינדוקציה';
+};
+const appendFromChosen = (block, text) => {
+    block.appendDummyInput().appendField(text);
+    block.appendDummyInput('FROMROW')
+        .appendField(new Blockly.FieldLabel('ומ־'), 'FROM')
+        .appendField(new FieldAssumption(), 'FACT');
+    appendAndRow(block, 1);
+};
+// The number of fields of further assumptions, so that a copy of the block
+// (a drag from the toolbox, undo) has them before their values are set.
+const moreFieldsState = {
+    saveExtraState() {
+        return { more: andFields(this).length };
+    },
+    loadExtraState(state) {
+        for (let count = andFields(this).length; count < (state?.more || 1); count += 1) appendAndRow(this, count + 1);
+    },
 };
 
 const appendResult = (block) => appendPhrase(block, block.appendDummyInput('RESULTROW'), 'RESULT');
@@ -1066,7 +1150,7 @@ export const defineMoveBlocks = () => {
                 .appendField('נוכיח באינדוקציה על')
                 .appendField(new FieldAssumption({ objects: true }), 'VARIABLE');
             this.structure = levelStructure;
-            STRUCTURES[this.structure].forEach(({ input }) => appendPart(this, input));
+            STRUCTURES[this.structure].forEach((part) => appendHeadedPart(this, part.input, part.hypotheses('x').length));
             move(this, this.structure === 'Nat'
                 ? 'כדי להוכיח טענה לכל מספר טבעי n: מוכיחים אותה עבור 0 (בסיס), ומוכיחים שאם היא נכונה עבור n אז היא נכונה עבור n + 1 (צעד).'
                 : 'כדי להוכיח טענה על כל המבנים מסוג מסוים: מוכיחים אותה לכל דרך לבנות מבנה, בהנחה שהיא נכונה לחלקים שהוא בנוי מהם (הנחות האינדוקציה).');
@@ -1081,14 +1165,15 @@ export const defineMoveBlocks = () => {
                 if (!filled(variable) || !goal) {
                     const name = TYPICAL_NAMES[this.structure];
                     const parts = part.hypotheses(name).map((inner) => shown(inner)).join(' ו־');
-                    setPartHeading(this, part.input, [parts
-                        ? `${label} נניח שהטענה נכונה עבור ${parts} ונוכיח אותה עבור ${shown(part.term(name))}`
-                        : `${label} נוכיח את הטענה עבור ${shown(part.term(name))}`]);
+                    setPartHeadingLines(this, part.input, parts
+                        ? [[`${label} נניח שהטענה נכונה עבור ${parts}`], [`ונוכיח אותה עבור ${shown(part.term(name))}`]]
+                        : [[`${label} נוכיח את הטענה עבור ${shown(part.term(name))}`]]);
                     return;
                 }
-                const hypotheses = part.hypotheses(variable).flatMap((name, index) => [...(index ? ['ו־'] : []), { formula: substitute(goal, variable, name) }]);
+                // A line for each hypothesis, then what is proved.
+                const hypotheses = part.hypotheses(variable).map((name, index) => [index ? 'ו־' : `${label} נניח`, { formula: substitute(goal, variable, name) }]);
                 const proved = { formula: substitute(goal, variable, part.term(variable)) };
-                setPartHeading(this, part.input, hypotheses.length ? [`${label} נניח`, ...hypotheses, 'ונוכיח', proved] : [`${label} נוכיח`, proved]);
+                setPartHeadingLines(this, part.input, hypotheses.length ? [...hypotheses, ['ונוכיח', proved]] : [[`${label} נוכיח`, proved]]);
             });
         },
     };
@@ -1137,12 +1222,14 @@ export const defineMoveBlocks = () => {
 
     Blockly.Blocks['calc_hyps'] = {
         init() {
-            this.appendDummyInput().appendField('נכונות המטרה נובעת מחשבון פשוט').appendField(new Blockly.FieldLabel('ומההנחות שבידינו.'), 'FROM');
-            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות) בעזרת ההנחות שבידינו, למשל אי־שוויון שאי אפשר להחליף לפיו. לא פותח הגדרות.');
+            appendFromChosen(this, 'נכונות המטרה נובעת מחשבון פשוט');
+            move(this, 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות) בעזרת ההנחות שבוחרים בו, אחת או יותר, למשל אי־שוויון שאי אפשר להחליף לפיו. לא פותח הגדרות.');
         },
         ...followState,
+        ...moreFieldsState,
         updateText() {
-            setLabel(this, 'FROM', fromAssumptions(this));
+            keepOneMoreField(this);
+            setLabel(this, 'FROM', fromChosen(this));
         },
     };
 
@@ -1155,12 +1242,14 @@ export const defineMoveBlocks = () => {
 
     Blockly.Blocks['algebra_hyps'] = {
         init() {
-            this.appendDummyInput().appendField('נכונות המטרה נובעת מאלגברה').appendField(new Blockly.FieldLabel('ומההנחות שבידינו.'), 'FROM');
-            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים) בעזרת ההנחות שבידינו. לא פותח הגדרות.');
+            appendFromChosen(this, 'נכונות המטרה נובעת מאלגברה');
+            move(this, 'סוגר מטרה של אלגברה (פתיחת סוגריים, כינוס איברים) בעזרת ההנחות שבוחרים בו, אחת או יותר. לא פותח הגדרות.');
         },
         ...followState,
+        ...moreFieldsState,
         updateText() {
-            setLabel(this, 'FROM', fromAssumptions(this));
+            keepOneMoreField(this);
+            setLabel(this, 'FROM', fromChosen(this));
         },
     };
 };
@@ -1341,11 +1430,18 @@ leanGenerator.forBlock['unfold_function'] = (block) => {
 // From the goal alone, with its own message when that is not enough (see leanErrors.js).
 leanGenerator.forBlock['calc'] = () => '  easylean_goal_only; first | omega | fail "easylean: arithmetic from the goal alone"\n';
 
-leanGenerator.forBlock['calc_hyps'] = () => '  omega\n';
+// With the chosen assumptions only: copied, moved into the goal while the
+// assumptions in hand are dropped (easylean_goal_only), and brought back.
+const withChosen = (block) => {
+    const names = chosenFacts(block).map((fact, index) => [`easylean_fact${index + 1}`, fact]);
+    if (!names.length) return 'easylean_goal_only; ';
+    return `${names.map(([name, fact]) => `have ${name} := ‹${fact}›; `).join('')}revert ${names.map(([name]) => name).join(' ')}; easylean_goal_only; intros; `;
+};
+leanGenerator.forBlock['calc_hyps'] = (block) => `  ${withChosen(block)}first | omega | fail "easylean: arithmetic from the chosen assumptions"\n`;
 
 leanGenerator.forBlock['algebra'] = () => '  easylean_goal_only; first | grind | fail "easylean: algebra from the goal alone"\n';
 
-leanGenerator.forBlock['algebra_hyps'] = () => '  grind\n';
+leanGenerator.forBlock['algebra_hyps'] = (block) => `  ${withChosen(block)}first | grind | fail "easylean: algebra from the chosen assumptions"\n`;
 
 // The new assumption of each case has no name (_), and Lean finds it by its statement.
 Object.assign(leanBranches, {
