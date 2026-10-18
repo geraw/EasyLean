@@ -985,14 +985,14 @@ const RELATIONS = [
     },
     async (page, log) => {
         const i = await drag(page, 'subset_intro', { goal: true }); log(await phrase(page, i));
-        const u1 = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ S)⁻¹', log);
-        const u2 = await unfold(page, { after: u1 }, '(y₀, x₀) ∈ (R ∘ S)', log);
-        const x = await drag(page, 'exists_elim', { after: u2 }); await choose(page, x, 'EXISTS', '∃z ((y₀, z) ∈ S ∧ (z, x₀) ∈ R)'); log(await phrase(page, x));
-        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((y₀, z₀) ∈ S ∧ (z₀, x₀) ∈ R)');
-        const u3 = await unfold(page, { after: d }, '(x₀, y₀) ∈ (S⁻¹ ∘ R⁻¹)', log);
-        const w = await drag(page, 'exists_intro', { after: u3 }); await choose(page, w, 'TERM', 'z₀');
+        const u1 = await unfold(page, { after: i }, '(x₀, z₀) ∈ (R ∘ S)⁻¹', log);
+        const u2 = await unfold(page, { after: u1 }, '(z₀, x₀) ∈ (R ∘ S)', log);
+        const x = await drag(page, 'exists_elim', { after: u2 }); await choose(page, x, 'EXISTS', '∃y ((z₀, y) ∈ S ∧ (y, x₀) ∈ R)'); log(await phrase(page, x));
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((z₀, y₀) ∈ S ∧ (y₀, x₀) ∈ R)');
+        const u3 = await unfold(page, { after: d }, '(x₀, z₀) ∈ (S⁻¹ ∘ R⁻¹)', log);
+        const w = await drag(page, 'exists_intro', { after: u3 }); await choose(page, w, 'TERM', 'y₀');
         const s = await drag(page, 'and_intro', { after: w }); log(await phrase(page, s));
-        for (const [part, pair] of [['LEFT', '(x₀, z₀) ∈ R⁻¹'], ['RIGHT', '(z₀, y₀) ∈ S⁻¹']]) {
+        for (const [part, pair] of [['LEFT', '(x₀, y₀) ∈ R⁻¹'], ['RIGHT', '(y₀, z₀) ∈ S⁻¹']]) {
             const u = await unfold(page, { into: s, input: part }, pair, log);
             await drag(page, 'exact', { after: u });
         }
@@ -1001,11 +1001,11 @@ const RELATIONS = [
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const u = await unfold(page, { after: a }, 'reflexive(R)', log);
         const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
-        const g = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ R)', log);
-        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'y₀');
+        const g = await unfold(page, { after: i }, '(x₀, z₀) ∈ (R ∘ R)', log);
+        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'z₀');
         const s = await drag(page, 'and_intro', { after: w });
         await drag(page, 'exact', { into: s, input: 'LEFT' });
-        const e = await instantiate(page, { into: s, input: 'RIGHT' }, '∀x ((x, x) ∈ R)', ['y₀'], log);
+        const e = await instantiate(page, { into: s, input: 'RIGHT' }, '∀x ((x, x) ∈ R)', ['z₀'], log);
         await drag(page, 'exact', { after: e });
     },
     async (page, log) => {
@@ -1033,10 +1033,10 @@ const RELATIONS = [
         const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
         const u = await unfold(page, { after: a }, 'transitive(R)', log);
         const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
-        const v = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ R)', log);
-        const x = await drag(page, 'exists_elim', { after: v }); await choose(page, x, 'EXISTS', '∃z ((x₀, z) ∈ R ∧ (z, y₀) ∈ R)'); log(await phrase(page, x));
-        const e = await instantiate(page, { after: x }, TRANS('R'), ['x₀', 'z₀', 'y₀'], log);
-        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(((x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R) → (x₀, y₀) ∈ R)'); await choose(page, f, 'PREMISE', '((x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R)');
+        const v = await unfold(page, { after: i }, '(x₀, z₀) ∈ (R ∘ R)', log);
+        const x = await drag(page, 'exists_elim', { after: v }); await choose(page, x, 'EXISTS', '∃y ((x₀, y) ∈ R ∧ (y, z₀) ∈ R)'); log(await phrase(page, x));
+        const e = await instantiate(page, { after: x }, TRANS('R'), ['x₀', 'y₀', 'z₀'], log);
+        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(((x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R) → (x₀, z₀) ∈ R)'); await choose(page, f, 'PREMISE', '((x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R)');
         await drag(page, 'exact', { after: f });
         const b = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
         const g = await unfold(page, { after: b }, 'transitive(R)', log);
@@ -1121,25 +1121,25 @@ const RELATIONS = [
         for (let n = 0; n < 3; n += 1) last = await drag(page, 'forall_intro', { after: last });
         const a = await drag(page, 'assume', { after: last }); log(await phrase(page, a));
         last = await drag(page, 'and_elim', { after: a }); await choose(page, last, 'AND', '((x₀, y₀) ∈ (R ∘ S) ∧ (y₀, z₀) ∈ (R ∘ S))');
-        for (const [pair, exists, and] of [['(x₀, y₀)', '∃z ((x₀, z) ∈ S ∧ (z, y₀) ∈ R)', '((x₀, z₁) ∈ S ∧ (z₁, y₀) ∈ R)'], ['(y₀, z₀)', '∃z ((y₀, z) ∈ S ∧ (z, z₀) ∈ R)', '((y₀, z₂) ∈ S ∧ (z₂, z₀) ∈ R)']]) {
+        for (const [pair, exists, and] of [['(x₀, y₀)', '∃y ((x₀, y) ∈ S ∧ (y, y₀) ∈ R)', '((x₀, y₁) ∈ S ∧ (y₁, y₀) ∈ R)'], ['(y₀, z₀)', '∃y ((y₀, y) ∈ S ∧ (y, z₀) ∈ R)', '((y₀, y₂) ∈ S ∧ (y₂, z₀) ∈ R)']]) {
             const u = await unfold(page, { after: last }, `${pair} ∈ (R ∘ S)`, log);
             const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', exists);
             last = await drag(page, 'and_elim', { after: x }); await choose(page, last, 'AND', and);
         }
-        const c = await drag(page, 'claim', { after: last }); await choose(page, c, 'CLAIM', '(z₁, z₂) ∈ (S ∘ R)'); log(await phrase(page, c));
-        const w = await unfold(page, { into: c, input: 'PROOF' }, '(z₁, z₂) ∈ (S ∘ R)', log);
+        const c = await drag(page, 'claim', { after: last }); await choose(page, c, 'CLAIM', '(y₁, y₂) ∈ (S ∘ R)'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, '(y₁, y₂) ∈ (S ∘ R)', log);
         const y = await drag(page, 'exists_intro', { after: w }); await choose(page, y, 'TERM', 'y₀');
         const s = await drag(page, 'and_intro', { after: y });
         await drag(page, 'exact', { into: s, input: 'LEFT' });
         await drag(page, 'exact', { into: s, input: 'RIGHT' });
-        const r = await rewrite(page, { after: c }, 'R ∘ S = S ∘ R', 'את S ∘ R ב־R ∘ S', '(z₁, z₂) ∈ (S ∘ R)', log);
-        const u = await unfold(page, { after: r }, '(z₁, z₂) ∈ (R ∘ S)', log);
-        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃z ((z₁, z) ∈ S ∧ (z, z₂) ∈ R)');
-        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((z₁, z₃) ∈ S ∧ (z₃, z₂) ∈ R)');
+        const r = await rewrite(page, { after: c }, 'R ∘ S = S ∘ R', 'את S ∘ R ב־R ∘ S', '(y₁, y₂) ∈ (S ∘ R)', log);
+        const u = await unfold(page, { after: r }, '(y₁, y₂) ∈ (R ∘ S)', log);
+        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃y ((y₁, y) ∈ S ∧ (y, y₂) ∈ R)');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((y₁, y₃) ∈ S ∧ (y₃, y₂) ∈ R)');
         const g = await unfold(page, { after: d }, '(x₀, z₀) ∈ (R ∘ S)', log);
-        const v = await drag(page, 'exists_intro', { after: g }); await choose(page, v, 'TERM', 'z₃');
+        const v = await drag(page, 'exists_intro', { after: g }); await choose(page, v, 'TERM', 'y₃');
         const k = await drag(page, 'and_intro', { after: v }); log(await phrase(page, k));
-        for (const [part, rel, path] of [['LEFT', 'S', ['x₀', 'z₁', 'z₃']], ['RIGHT', 'R', ['z₃', 'z₂', 'z₀']]]) {
+        for (const [part, rel, path] of [['LEFT', 'S', ['x₀', 'y₁', 'y₃']], ['RIGHT', 'R', ['y₃', 'y₂', 'z₀']]]) {
             const e = await instantiate(page, { into: k, input: part }, TRANS(rel), path, log);
             const p = await drag(page, 'apply_rule', { after: e });
             await choose(page, p, 'RULE', `(((${path[0]}, ${path[1]}) ∈ ${rel} ∧ (${path[1]}, ${path[2]}) ∈ ${rel}) → (${path[0]}, ${path[2]}) ∈ ${rel})`);

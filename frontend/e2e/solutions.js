@@ -327,12 +327,12 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
-                steps: [subsetIntro, unfold('(x₀, y₀) ∈ (R ∘ S)⁻¹'), unfold('(y₀, x₀) ∈ R ∘ S'), existsElim('∃ z, (y₀, z) ∈ S ∧ (z, x₀) ∈ R'), andElim('(y₀, z₀) ∈ S ∧ (z₀, x₀) ∈ R'),
-                    unfold('(x₀, y₀) ∈ S⁻¹ ∘ R⁻¹'), existsIntro('z₀'), andIntro([unfold('(x₀, z₀) ∈ R⁻¹'), close], [unfold('(z₀, y₀) ∈ S⁻¹'), close])],
+                steps: [subsetIntro, unfold('(x₀, z₀) ∈ (R ∘ S)⁻¹'), unfold('(z₀, x₀) ∈ R ∘ S'), existsElim('∃ y, (z₀, y) ∈ S ∧ (y, x₀) ∈ R'), andElim('(z₀, y₀) ∈ S ∧ (y₀, x₀) ∈ R'),
+                    unfold('(x₀, z₀) ∈ S⁻¹ ∘ R⁻¹'), existsIntro('y₀'), andIntro([unfold('(x₀, y₀) ∈ R⁻¹'), close], [unfold('(y₀, z₀) ∈ S⁻¹'), close])],
             }],
             [{
                 label: 'פתרון',
-                steps: [assume, unfold('reflexive R'), subsetIntro, unfold('(x₀, y₀) ∈ R ∘ R'), existsIntro('y₀'), andIntro([close], [forallElim('∀ (x : obj), (x, x) ∈ R', 'y₀'), close])],
+                steps: [assume, unfold('reflexive R'), subsetIntro, unfold('(x₀, z₀) ∈ R ∘ R'), existsIntro('z₀'), andIntro([close], [forallElim('∀ (x : obj), (x, x) ∈ R', 'z₀'), close])],
             }],
             [{
                 label: 'פתרון',
@@ -345,9 +345,9 @@ export const UNITS = [
             [{
                 label: 'פתרון',
                 steps: [iffIntro(
-                    [assume, unfold('transitive R'), subsetIntro, unfold('(x₀, y₀) ∈ R ∘ R'), existsElim('∃ z, (x₀, z) ∈ R ∧ (z, y₀) ∈ R'),
-                        forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ R ∧ (y, z) ∈ R → (x₀, z) ∈ R', 'z₀'),
-                        forallElim('∀ (z : obj), (x₀, z₀) ∈ R ∧ (z₀, z) ∈ R → (x₀, z) ∈ R', 'y₀'), forward('(x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R → (x₀, y₀) ∈ R', '(x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R'), close],
+                    [assume, unfold('transitive R'), subsetIntro, unfold('(x₀, z₀) ∈ R ∘ R'), existsElim('∃ y, (x₀, y) ∈ R ∧ (y, z₀) ∈ R'),
+                        forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ R ∧ (y, z) ∈ R → (x₀, z) ∈ R', 'y₀'),
+                        forallElim('∀ (z : obj), (x₀, y₀) ∈ R ∧ (y₀, z) ∈ R → (x₀, z) ∈ R', 'z₀'), forward('(x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R → (x₀, z₀) ∈ R', '(x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R'), close],
                     [assume, unfold('transitive R'), forallIntro, forallIntro, forallIntro, assume, andElim('(x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R'),
                         claim('(x₀, z₀) ∈ R ∘ R', [unfold('(x₀, z₀) ∈ R ∘ R'), existsIntro('y₀'), andIntro([close], [close])]), subsetElim('R ∘ R ⊆ R', '(x₀, z₀) ∈ R ∘ R'), close])],
             }],
@@ -383,15 +383,15 @@ export const UNITS = [
             [{
                 label: 'פתרון',
                 steps: [unfold('transitive R'), unfold('transitive S'), unfold('transitive (R ∘ S)'), forallIntro, forallIntro, forallIntro, assume, andElim('(x₀, y₀) ∈ R ∘ S ∧ (y₀, z₀) ∈ R ∘ S'),
-                    unfold('(x₀, y₀) ∈ R ∘ S'), existsElim('∃ z, (x₀, z) ∈ S ∧ (z, y₀) ∈ R'), andElim('(x₀, z₁) ∈ S ∧ (z₁, y₀) ∈ R'),
-                    unfold('(y₀, z₀) ∈ R ∘ S'), existsElim('∃ z, (y₀, z) ∈ S ∧ (z, z₀) ∈ R'), andElim('(y₀, z₂) ∈ S ∧ (z₂, z₀) ∈ R'),
-                    claim('(z₁, z₂) ∈ S ∘ R', [unfold('(z₁, z₂) ∈ S ∘ R'), existsIntro('y₀'), andIntro([close], [close])]),
-                    rewrite('R ∘ S = S ∘ R', 'BACKWARD', '(z₁, z₂) ∈ S ∘ R'), unfold('(z₁, z₂) ∈ R ∘ S'), existsElim('∃ z, (z₁, z) ∈ S ∧ (z, z₂) ∈ R'), andElim('(z₁, z₃) ∈ S ∧ (z₃, z₂) ∈ R'),
-                    unfold('(x₀, z₀) ∈ R ∘ S'), existsIntro('z₃'), andIntro(
-                        [forallElim('∀ (x y z : obj), (x, y) ∈ S ∧ (y, z) ∈ S → (x, z) ∈ S', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ S ∧ (y, z) ∈ S → (x₀, z) ∈ S', 'z₁'),
-                            forallElim('∀ (z : obj), (x₀, z₁) ∈ S ∧ (z₁, z) ∈ S → (x₀, z) ∈ S', 'z₃'), backward('(x₀, z₁) ∈ S ∧ (z₁, z₃) ∈ S → (x₀, z₃) ∈ S'), andIntro([close], [close])],
-                        [forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'z₃'), forallElim('∀ (y z : obj), (z₃, y) ∈ R ∧ (y, z) ∈ R → (z₃, z) ∈ R', 'z₂'),
-                            forallElim('∀ (z : obj), (z₃, z₂) ∈ R ∧ (z₂, z) ∈ R → (z₃, z) ∈ R', 'z₀'), backward('(z₃, z₂) ∈ R ∧ (z₂, z₀) ∈ R → (z₃, z₀) ∈ R'), andIntro([close], [close])])],
+                    unfold('(x₀, y₀) ∈ R ∘ S'), existsElim('∃ y, (x₀, y) ∈ S ∧ (y, y₀) ∈ R'), andElim('(x₀, y₁) ∈ S ∧ (y₁, y₀) ∈ R'),
+                    unfold('(y₀, z₀) ∈ R ∘ S'), existsElim('∃ y, (y₀, y) ∈ S ∧ (y, z₀) ∈ R'), andElim('(y₀, y₂) ∈ S ∧ (y₂, z₀) ∈ R'),
+                    claim('(y₁, y₂) ∈ S ∘ R', [unfold('(y₁, y₂) ∈ S ∘ R'), existsIntro('y₀'), andIntro([close], [close])]),
+                    rewrite('R ∘ S = S ∘ R', 'BACKWARD', '(y₁, y₂) ∈ S ∘ R'), unfold('(y₁, y₂) ∈ R ∘ S'), existsElim('∃ y, (y₁, y) ∈ S ∧ (y, y₂) ∈ R'), andElim('(y₁, y₃) ∈ S ∧ (y₃, y₂) ∈ R'),
+                    unfold('(x₀, z₀) ∈ R ∘ S'), existsIntro('y₃'), andIntro(
+                        [forallElim('∀ (x y z : obj), (x, y) ∈ S ∧ (y, z) ∈ S → (x, z) ∈ S', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ S ∧ (y, z) ∈ S → (x₀, z) ∈ S', 'y₁'),
+                            forallElim('∀ (z : obj), (x₀, y₁) ∈ S ∧ (y₁, z) ∈ S → (x₀, z) ∈ S', 'y₃'), backward('(x₀, y₁) ∈ S ∧ (y₁, y₃) ∈ S → (x₀, y₃) ∈ S'), andIntro([close], [close])],
+                        [forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'y₃'), forallElim('∀ (y z : obj), (y₃, y) ∈ R ∧ (y, z) ∈ R → (y₃, z) ∈ R', 'y₂'),
+                            forallElim('∀ (z : obj), (y₃, y₂) ∈ R ∧ (y₂, z) ∈ R → (y₃, z) ∈ R', 'z₀'), backward('(y₃, y₂) ∈ R ∧ (y₂, z₀) ∈ R → (y₃, z₀) ∈ R'), andIntro([close], [close])])],
             }],
         ],
     },

@@ -75,7 +75,7 @@ theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B �
 // (easylean_reflexive, ...), and so is the equivalence class [x]_R.
 export const RELATION_PRELUDE = `def Set.inv {α : Type u} (R : Set (α × α)) : Set (α × α) := fun p => (p.2, p.1) ∈ R
 postfix:max "⁻¹" => Set.inv
-def Set.comp {α : Type u} (R S : Set (α × α)) : Set (α × α) := fun p => ∃ z, (p.1, z) ∈ S ∧ (z, p.2) ∈ R
+def Set.comp {α : Type u} (R S : Set (α × α)) : Set (α × α) := fun p => ∃ y, (p.1, y) ∈ S ∧ (y, p.2) ∈ R
 infixr:90 " ∘ " => Set.comp
 def Set.cls {α : Type u} (R : Set (α × α)) (x : α) : Set α := fun y => (x, y) ∈ R
 notation:max "[" x "]_" R:max => Set.cls R x
@@ -84,7 +84,7 @@ def symmetric {α : Type u} (R : Set (α × α)) : Prop := ∀ x y, (x, y) ∈ R
 def transitive {α : Type u} (R : Set (α × α)) : Prop := ∀ x y z, (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R
 def antisymmetric {α : Type u} (R : Set (α × α)) : Prop := ∀ x y, (x, y) ∈ R ∧ (y, x) ∈ R → x = y
 theorem easylean_mem_inv {α : Type u} {R : Set (α × α)} {x y : α} : (x, y) ∈ R⁻¹ ↔ (y, x) ∈ R := Iff.rfl
-theorem easylean_mem_comp {α : Type u} {R S : Set (α × α)} {x y : α} : (x, y) ∈ R ∘ S ↔ ∃ z, (x, z) ∈ S ∧ (z, y) ∈ R := Iff.rfl
+theorem easylean_mem_comp {α : Type u} {R S : Set (α × α)} {x z : α} : (x, z) ∈ R ∘ S ↔ ∃ y, (x, y) ∈ S ∧ (y, z) ∈ R := Iff.rfl
 theorem easylean_mem_cls {α : Type u} {R : Set (α × α)} {x y : α} : y ∈ [x]_R ↔ (x, y) ∈ R := Iff.rfl
 theorem easylean_reflexive {α : Type u} {R : Set (α × α)} : reflexive R ↔ ∀ x, (x, x) ∈ R := Iff.rfl
 theorem easylean_symmetric {α : Type u} {R : Set (α × α)} : symmetric R ↔ ∀ x y, (x, y) ∈ R → (y, x) ∈ R := Iff.rfl

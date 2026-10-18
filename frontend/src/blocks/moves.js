@@ -489,8 +489,10 @@ const negation = (formula) => `¬(${formula})`;
 // an object.
 const elementName = (block, smaller, larger = '') => {
     if (isRelationSet(block, smaller) || isRelationSet(block, larger)) {
+        // With a composition, (x₀, z₀), so that its middle is y₀, as the
+        // definitions (of composition, of transitivity) name it.
         const x = newObjectName(block, 'x');
-        return `(${x}, ${freshName('y', [...thingsInHand(block), x])})`;
+        return `(${x}, ${freshName(`${smaller} ${larger}`.includes('∘') ? 'z' : 'y', [...thingsInHand(block), x])})`;
     }
     if (smaller.startsWith('Set.image')) return newObjectName(block, 'y');
     return newObjectName(block, smaller.startsWith('𝒫') || larger.startsWith('𝒫') ? 'X' : 'x');

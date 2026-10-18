@@ -370,7 +370,8 @@ const SET_OPERATIONS = {
     '⋂': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
     // Relations (unit 8): a member is a pair (x, y).
     '⁻¹': { lemma: 'easylean_mem_inv', name: 'היחס ההפוך', means: (t, [r]) => { const [x, y] = pairOf(t); return `(${y}, ${x}) ∈ ${r}`; } },
-    '∘': { lemma: 'easylean_mem_comp', name: 'ההרכבה', means: (t, [r, s]) => { const [x, y] = pairOf(t); return `∃ z, (${x}, z) ∈ ${s} ∧ (z, ${y}) ∈ ${r}`; } },
+    // The middle of a composition is y, as in the textbooks: (x, z) ∈ R ∘ S.
+    '∘': { lemma: 'easylean_mem_comp', name: 'ההרכבה', means: (t, [r, s]) => { const [x, z] = pairOf(t); return `∃ y, (${x}, y) ∈ ${s} ∧ (y, ${z}) ∈ ${r}`; } },
     '[]_': { lemma: 'easylean_mem_cls', name: 'מחלקת השקילות', means: (t, [x, r]) => `(${stripOuterParentheses(x)}, ${stripOuterParentheses(t)}) ∈ ${r}` },
     // Functions (unit 9): the image, the preimage, and a set given by a property.
     image: { lemma: 'easylean_mem_image', name: 'התמונה', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
