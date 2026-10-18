@@ -814,9 +814,9 @@ const UNIT9 = [
     },
 ];
 
-// Unit 10 offers every move, in drawers: a walk for some of its levels, by
+// Unit 12 offers every move, in drawers: a walk for some of its levels, by
 // level number, each in other drawers.
-const UNIT10 = {
+const UNIT12 = {
     1: async (page, log) => {
         const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
         const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
@@ -883,7 +883,7 @@ const UNITS = [
     { unit: 7, world: 'יחידה 7 - קבוצות של קבוצות', walks: UNIT7 },
     { unit: 8, world: 'יחידה 8 - שוויון ואינדוקציה', walks: UNIT8 },
     { unit: 9, world: 'יחידה 9 - אינדוקציה מבנית', walks: UNIT9 },
-    { unit: 10, world: 'יחידה 10 - תרגילים מסכמים', walks: UNIT10 },
+    { unit: 12, world: 'יחידה 12 - תרגילים מסכמים', walks: UNIT12 },
 ];
 
 // The walks of a unit: a list, for every level, or by level number, for some.

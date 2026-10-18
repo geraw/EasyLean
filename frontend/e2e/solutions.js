@@ -406,8 +406,8 @@ export const UNITS = [
         ],
     },
     {
-        unit: 10,
-        world: 'יחידה 10 - תרגילים מסכמים',
+        unit: 12,
+        world: 'יחידה 12 - תרגילים מסכמים',
         levels: [
             [{
                 label: 'פתרון',

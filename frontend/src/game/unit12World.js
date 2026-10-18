@@ -6,7 +6,7 @@ import { goalXml } from './levelXml';
 // a few intermediate claims, some of them not needed; there is one hint,
 // which points the way without solving.
 
-export const unit10WorldName = 'יחידה 10 - תרגילים מסכמים';
+export const unit12WorldName = 'יחידה 12 - תרגילים מסכמים';
 
 // All the moves, in drawers by kind, in the order of the units: the moves
 // for any goal, then a drawer for each kind of statement.
@@ -33,7 +33,7 @@ const drawersInfo = {
 };
 
 const level = (number, fields) => ({
-    id: `unit10-${number}`,
+    id: `unit12-${number}`,
     levelNumber: number,
     totalLevels: 17,
     variableLine: PROPOSITIONS,
@@ -50,10 +50,10 @@ const level = (number, fields) => ({
     ...fields,
 });
 
-export const unit10Levels = [
+export const unit12Levels = [
     level(1, {
         title: 'גרירה של "או"',
-        name: 'unit10_l1_implies_or',
+        name: 'unit12_l1_implies_or',
         proposition: '(P → Q ∨ R) ↔ (P → Q) ∨ (P → R)',
         goalLabel: '((P → (Q ∨ R)) ↔ ((P → Q) ∨ (P → R)))',
         newTacticsInfo: [drawersInfo],
@@ -69,7 +69,7 @@ export const unit10Levels = [
     }),
     level(2, {
         title: 'אחת משתי הגרירות',
-        name: 'unit10_l2_one_of_two',
+        name: 'unit12_l2_one_of_two',
         variableLine: 'variable {P Q : Prop}',
         proposition: '(P → Q) ∨ (Q → P)',
         goalLabel: '((P → Q) ∨ (Q → P))',
@@ -83,7 +83,7 @@ export const unit10Levels = [
     }),
     level(3, {
         title: 'יחס שאינו אנטי־סימטרי',
-        name: 'unit10_l3_not_antisymmetric',
+        name: 'unit12_l3_not_antisymmetric',
         variableLine: RELATIONS,
         proposition: '(¬∀ x, ∀ y, R x y ∧ R y x → x = y) → ∃ x, ∃ y, (R x y ∧ R y x) ∧ ¬x = y',
         goalLabel: '((¬∀x (∀y ((R(x,y) ∧ R(y,x)) → x = y))) → (∃x (∃y ((R(x,y) ∧ R(y,x)) ∧ ¬x = y))))',
@@ -97,7 +97,7 @@ export const unit10Levels = [
     }),
     level(4, {
         title: 'חיתוך של יחסים טרנזיטיביים',
-        name: 'unit10_l4_transitive_inter',
+        name: 'unit12_l4_transitive_inter',
         variableLine: RELATIONS,
         params: '(hR : ∀ x y z, R x y ∧ R y z → R x z) (hS : ∀ x y z, S x y ∧ S y z → S x z)',
         proposition: '∀ x y z, (R x y ∧ S x y) ∧ (R y z ∧ S y z) → R x z ∧ S x z',
@@ -113,7 +113,7 @@ export const unit10Levels = [
     }),
     level(5, {
         title: 'חיתוך והפרש',
-        name: 'unit10_l5_inter_diff',
+        name: 'unit12_l5_inter_diff',
         variableLine: SETS,
         usesSets: true,
         proposition: '(A \\ C) ∩ B ⊆ B \\ C',
@@ -127,7 +127,7 @@ export const unit10Levels = [
     }),
     level(6, {
         title: 'הפרש של הפרש',
-        name: 'unit10_l6_diff_of_diff',
+        name: 'unit12_l6_diff_of_diff',
         variableLine: SETS,
         usesSets: true,
         proposition: 'A \\ (B \\ C) = (A \\ B) ∪ (A ∩ C)',
@@ -143,7 +143,7 @@ export const unit10Levels = [
     }),
     level(7, {
         title: 'קבוצות זרות',
-        name: 'unit10_l7_disjoint',
+        name: 'unit12_l7_disjoint',
         variableLine: SETS,
         usesSets: true,
         proposition: 'A ∩ B = ∅ ↔ (A ∪ B) \\ B = A',
@@ -159,7 +159,7 @@ export const unit10Levels = [
     }),
     level(8, {
         title: 'חיתוך עם כל קבוצה',
-        name: 'unit10_l8_inter_every_set',
+        name: 'unit12_l8_inter_every_set',
         variableLine: SETS,
         usesSets: true,
         proposition: '(∀ (X : Set obj), A ∩ X = A) → A = ∅',
@@ -174,7 +174,7 @@ export const unit10Levels = [
     }),
     level(9, {
         title: 'קבוצות נחמדות',
-        name: 'unit10_l9_nice_sets',
+        name: 'unit12_l9_nice_sets',
         variableLine: SETS,
         usesSets: true,
         params: '(hE : ¬E ⊆ A)',
@@ -192,7 +192,7 @@ export const unit10Levels = [
     }),
     level(10, {
         title: 'הפרש סימטרי',
-        name: 'unit10_l10_symmetric_difference',
+        name: 'unit12_l10_symmetric_difference',
         variableLine: SETS,
         usesSets: true,
         proposition: '(A ∪ B) \\ (A ∩ B) ⊆ A ∆ B',
@@ -207,7 +207,7 @@ export const unit10Levels = [
     }),
     level(11, {
         title: 'קבוצת החזקה של חיתוך',
-        name: 'unit10_l11_powerset_inter',
+        name: 'unit12_l11_powerset_inter',
         variableLine: FAMILIES,
         usesSets: true,
         proposition: '𝒫 (A ∩ B) = 𝒫 A ∩ 𝒫 B',
@@ -221,7 +221,7 @@ export const unit10Levels = [
     }),
     level(12, {
         title: 'משפחה של תתי־קבוצות',
-        name: 'unit10_l12_family_of_subsets',
+        name: 'unit12_l12_family_of_subsets',
         variableLine: FAMILIES,
         usesSets: true,
         proposition: 'F ⊆ 𝒫 A ↔ ⋃ F ⊆ A',
@@ -237,7 +237,7 @@ export const unit10Levels = [
     }),
     level(13, {
         title: 'האיחוד של קבוצת החזקה',
-        name: 'unit10_l13_union_of_powerset',
+        name: 'unit12_l13_union_of_powerset',
         variableLine: FAMILIES,
         usesSets: true,
         proposition: '⋃ (𝒫 A) = A',
@@ -251,7 +251,7 @@ export const unit10Levels = [
     }),
     level(14, {
         title: 'איחוד של משפחות',
-        name: 'unit10_l14_union_of_families',
+        name: 'unit12_l14_union_of_families',
         variableLine: FAMILIES,
         usesSets: true,
         proposition: '(∀ (T : Set obj), T ∈ F → ∃ X, X ∈ G ∧ T ⊆ X) → ⋃ F ⊆ ⋃ G',
@@ -265,7 +265,7 @@ export const unit10Levels = [
     }),
     level(15, {
         title: 'סכום החזקות השלישיות',
-        name: 'unit10_l15_sum_of_cubes',
+        name: 'unit12_l15_sum_of_cubes',
         variableLine: '',
         usesNat: true,
         params: '(n : Nat)',
@@ -284,7 +284,7 @@ sumTo מיחידה 8 הוא הסכום 1 + 2 + ... + n, ו־sumCubes הוא סכ
     }),
     level(16, {
         title: 'פונקציה ששומרת על הסדר',
-        name: 'unit10_l16_order_embedding',
+        name: 'unit12_l16_order_embedding',
         variableLine: 'variable {f : Nat → Nat}',
         usesNat: true,
         params: '(n : Nat) (hf : ∀ m k, m ≤ k ↔ f m ≤ f k)',
@@ -301,7 +301,7 @@ sumTo מיחידה 8 הוא הסכום 1 + 2 + ... + n, ו־sumCubes הוא סכ
     }),
     level(17, {
         title: 'שלב בונוס: חיתוך של משפחות',
-        name: 'unit10_l17_inter_of_families',
+        name: 'unit12_l17_inter_of_families',
         variableLine: FAMILIES,
         usesSets: true,
         params: '(hH : ∀ (X : Set obj), X ∈ F → ∀ (Y : Set obj), Y ∈ G → X ∪ Y ∈ H)',
@@ -313,7 +313,7 @@ sumTo מיחידה 8 הוא הסכום 1 + 2 + ... + n, ו־sumCubes הוא סכ
 **תרגיל 17** (עבודה 1, 2026א, שאלה 4): אם X ∪ Y ∈ H לכל X ∈ F ולכל Y ∈ G, אז ⋂H ⊆ (⋂F) ∪ (⋂G).
 זו ההוכחה הקשה ביותר ביחידה: היא דורשת הוכחה בשלילה, ושתי טענות עזר.`,
         hints: ['הוכיחו את ה"או" בשלילה. מ־¬x₀ ∈ ⋂F הוכיחו את טענת העזר ∃X (X ∈ F ∧ ¬x₀ ∈ X), וכך גם ל־G. אחר כך הציבו את שתי הקבוצות בהנחה על H.'],
-        conclusion: 'סיימתם את יחידה 10, ואת הקורס! בתרגיל האחרון השתמשתם כמעט בכל מה שלמדתם: הוכחה בשלילה, שקילויות, כמתים, קבוצות, משפחות של קבוצות וטענות עזר.',
+        conclusion: 'סיימתם את יחידה 12, ואת הקורס! בתרגיל האחרון השתמשתם כמעט בכל מה שלמדתם: הוכחה בשלילה, שקילויות, כמתים, קבוצות, משפחות של קבוצות וטענות עזר.',
         startXml: goalXml('⋂H ⊆ (⋂F) ∪ (⋂G)', '∀X (X ∈ F → (∀Y (Y ∈ G → X ∪ Y ∈ H)))'),
     }),
 ];
