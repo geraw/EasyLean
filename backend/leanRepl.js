@@ -312,8 +312,9 @@ class LeanRepl {
     }
 
     // Starts the processes now, so that the first check does not wait for Lean to load.
+    // Starts every process; resolves once each has loaded Lean's library or failed to.
     start() {
-        this.workers.forEach((worker) => worker.start().catch((error) => console.error(error.message)));
+        return Promise.allSettled(this.workers.map((worker) => worker.start().catch((error) => console.error(error.message))));
     }
 
     stop() {

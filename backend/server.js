@@ -198,10 +198,15 @@ app.post('/verify', (req, res) => {
 });
 
 if (require.main === module) {
-    leanRepl?.start();
-    app.listen(port, () => {
+    // Listen once the REPL has loaded Lean's library (or failed to): Cloud Run
+    // gives a starting instance its full CPU, while an idle one, between
+    // requests, gets almost none, so loading it later made the first check
+    // after a cold start wait for it.
+    const listen = () => app.listen(port, () => {
         console.log(`EasyLean backend running on port ${port}, ${leanRepl ? 'with the Lean REPL' : 'running lean for each check'}`);
     });
+    if (leanRepl) leanRepl.start().catch(() => {}).finally(listen);
+    else listen();
 }
 
 module.exports = { app, parseLeanProofState, isForbidden, leanRepl, runLeanFile };
