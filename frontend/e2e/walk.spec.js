@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-9, as their hints describe each level:
+// A student's walk through units 3-12, as their hints describe each level:
 // blocks dragged from the toolbox with the mouse, and fields chosen only
 // among the options their menu shows. (The solutions in solutions.spec.js
 // are built directly, which does not catch a hint that cannot be followed.) SHOTS=<dir> saves a screenshot of each level; WHERE=1
@@ -139,9 +139,16 @@ const drag = async (page, type, where) => {
 
 // Chooses a value only if the field's menu offers it (by its shown label).
 const choose = async (page, id, field, label) => {
-    const options = await page.evaluate(([id, field]) => window.__easyleanWorkspace.getBlockById(id).getField(field)
-        .getOptions(false).map(([text, value]) => [String(text).replace(/[\u2066\u2067\u2069]/g, ''), value]), [id, field]);
-    const option = options.find(([text]) => text === label);
+    // A menu fills once Lean has given the state before the move: a student
+    // waits for it, and so does the walk, a little.
+    let options = [];
+    let option = null;
+    for (let tries = 0; tries < 6 && !option; tries += 1) {
+        if (tries) await page.waitForTimeout(2000);
+        options = await page.evaluate(([id, field]) => window.__easyleanWorkspace.getBlockById(id).getField(field)
+            .getOptions(false).map(([text, value]) => [String(text).replace(/[\u2066\u2067\u2069]/g, ''), value]), [id, field]);
+        option = options.find(([text]) => text === label);
+    }
     if (!option) throw new Error(`menu of ${field} offers ${options.map(([t]) => t).join(' | ')}, not ${label}`);
     await page.evaluate(([id, field, value]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue(value), [id, field, option[1]]);
     await page.waitForTimeout(3500);
@@ -641,7 +648,136 @@ const fromFacts = async (page, type, where, facts, log) => {
     return c;
 };
 
-// Each level of unit 8, as its hints describe it.
+// Each level of unit 9, as its hints describe it.
+const UNIT9 = [
+    async (page, log) => {
+        const a1 = await drag(page, 'assume', { goal: true });
+        const a2 = await drag(page, 'assume', { after: a1 }); log(await phrase(page, a2));
+        let last = a2;
+        for (const statement of ['injective(f)', 'injective(g)', 'injective(g ∘ f)']) last = await unfold(page, { after: last }, statement, log);
+        const i1 = await drag(page, 'forall_intro', { after: last });
+        const i2 = await drag(page, 'forall_intro', { after: i1 });
+        const a3 = await drag(page, 'assume', { after: i2 }); log(await phrase(page, a3));
+        const e = await instantiate(page, { after: a3 }, '∀x (∀y (g(x) = g(y) → x = y))', ['f(x₀)', 'f(y₀)'], log);
+        const f1 = await drag(page, 'forward', { after: e }); await choose(page, f1, 'RULE', '(g(f(x₀)) = g(f(y₀)) → f(x₀) = f(y₀))'); await choose(page, f1, 'PREMISE', 'g(f(x₀)) = g(f(y₀))');
+        const e2 = await instantiate(page, { after: f1 }, '∀x (∀y (f(x) = f(y) → x = y))', ['x₀', 'y₀'], log);
+        const f2 = await drag(page, 'forward', { after: e2 }); await choose(page, f2, 'RULE', '(f(x₀) = f(y₀) → x₀ = y₀)'); await choose(page, f2, 'PREMISE', 'f(x₀) = f(y₀)');
+        await drag(page, 'exact', { after: f2 });
+    },
+    async (page, log) => {
+        const a1 = await drag(page, 'assume', { goal: true });
+        let last = await drag(page, 'assume', { after: a1 });
+        for (const statement of ['surjective(f)', 'surjective(g)', 'surjective(g ∘ f)']) last = await unfold(page, { after: last }, statement, log);
+        const i = await drag(page, 'forall_intro', { after: last }); log(await phrase(page, i));
+        const e1 = await instantiate(page, { after: i }, '∀y (∃x (g(x) = y))', ['y₀'], log);
+        const x1 = await drag(page, 'exists_elim', { after: e1 }); await choose(page, x1, 'EXISTS', '∃x (g(x) = y₀)'); log(await phrase(page, x1));
+        const e2 = await instantiate(page, { after: x1 }, '∀y (∃x (f(x) = y))', ['x₀'], log);
+        const x2 = await drag(page, 'exists_elim', { after: e2 }); await choose(page, x2, 'EXISTS', '∃x (f(x) = x₀)'); log(await phrase(page, x2));
+        const w = await drag(page, 'exists_intro', { after: x2 }); await choose(page, w, 'TERM', 'x₁'); log(await phrase(page, w));
+        const r = await rewrite(page, { after: w }, 'f(x₁) = x₀', 'את f(x₁) ב־x₀', 'המטרה', log);
+        await drag(page, 'exact', { after: r });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true });
+        const u1 = await unfold(page, { after: a }, 'injective(g ∘ f)', log);
+        const u2 = await unfold(page, { after: u1 }, 'injective(f)', log);
+        const i1 = await drag(page, 'forall_intro', { after: u2 });
+        const i2 = await drag(page, 'forall_intro', { after: i1 });
+        const a2 = await drag(page, 'assume', { after: i2 }); log(await phrase(page, a2));
+        const e = await instantiate(page, { after: a2 }, '∀x (∀y (g(f(x)) = g(f(y)) → x = y))', ['x₀', 'y₀'], log);
+        const b = await drag(page, 'apply_rule', { after: e }); await choose(page, b, 'RULE', '(g(f(x₀)) = g(f(y₀)) → x₀ = y₀)'); log(await phrase(page, b));
+        const r = await rewrite(page, { after: b }, 'f(x₀) = f(y₀)', 'את f(x₀) ב־f(y₀)', 'המטרה', log);
+        await drag(page, 'rfl', { after: r });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true });
+        const u1 = await unfold(page, { after: a }, 'surjective(g ∘ f)', log);
+        const u2 = await unfold(page, { after: u1 }, 'surjective(g)', log);
+        const i = await drag(page, 'forall_intro', { after: u2 });
+        const e = await instantiate(page, { after: i }, '∀y (∃x (g(f(x)) = y))', ['y₀'], log);
+        const x = await drag(page, 'exists_elim', { after: e }); await choose(page, x, 'EXISTS', '∃x (g(f(x)) = y₀)');
+        const w = await drag(page, 'exists_intro', { after: x }); await choose(page, w, 'TERM', 'f(x₀)'); log(await phrase(page, w));
+        await drag(page, 'exact', { after: w });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'subset_intro', { goal: true }); log(await phrase(page, i));
+        const u = await unfold(page, { after: i }, 'y₀ ∈ f[A ∩ B]', log);
+        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃x (x ∈ (A ∩ B) ∧ f(x) = y₀)');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(x₀ ∈ (A ∩ B) ∧ f(x₀) = y₀)');
+        const v = await unfold(page, { after: d }, 'x₀ ∈ (A ∩ B)', log);
+        const d2 = await drag(page, 'and_elim', { after: v }); await choose(page, d2, 'AND', '(x₀ ∈ A ∧ x₀ ∈ B)');
+        const g = await unfold(page, { after: d2 }, 'y₀ ∈ (f[A] ∩ f[B])', log);
+        const s = await drag(page, 'and_intro', { after: g });
+        for (const [part, set] of [['LEFT', 'A'], ['RIGHT', 'B']]) {
+            const h = await unfold(page, { into: s, input: part }, `y₀ ∈ f[${set}]`, log);
+            const w = await drag(page, 'exists_intro', { after: h }); await choose(page, w, 'TERM', 'x₀');
+            const k = await drag(page, 'and_intro', { after: w });
+            await drag(page, 'exact', { into: k, input: 'LEFT' });
+            await drag(page, 'exact', { into: k, input: 'RIGHT' });
+        }
+    },
+    async (page, log) => {
+        const q = await drag(page, 'set_eq', { goal: true }); log(await phrase(page, q));
+        const i1 = await drag(page, 'subset_intro', { into: q, input: 'FIRST' });
+        const u1 = await unfold(page, { after: i1 }, 'x₀ ∈ f⁻¹[A ∩ B]', log);
+        const u2 = await unfold(page, { after: u1 }, 'f(x₀) ∈ (A ∩ B)', log);
+        const d = await drag(page, 'and_elim', { after: u2 }); await choose(page, d, 'AND', '(f(x₀) ∈ A ∧ f(x₀) ∈ B)');
+        const g = await unfold(page, { after: d }, 'x₀ ∈ (f⁻¹[A] ∩ f⁻¹[B])', log);
+        const s = await drag(page, 'and_intro', { after: g });
+        for (const [part, set] of [['LEFT', 'A'], ['RIGHT', 'B']]) {
+            const h = await unfold(page, { into: s, input: part }, `x₀ ∈ f⁻¹[${set}]`, log);
+            await drag(page, 'exact', { after: h });
+        }
+        const i2 = await drag(page, 'subset_intro', { into: q, input: 'SECOND' });
+        const v1 = await unfold(page, { after: i2 }, 'x₀ ∈ (f⁻¹[A] ∩ f⁻¹[B])', log);
+        const d2 = await drag(page, 'and_elim', { after: v1 }); await choose(page, d2, 'AND', '(x₀ ∈ f⁻¹[A] ∧ x₀ ∈ f⁻¹[B])');
+        let last = d2;
+        for (const statement of ['x₀ ∈ f⁻¹[A]', 'x₀ ∈ f⁻¹[B]', 'x₀ ∈ f⁻¹[A ∩ B]', 'f(x₀) ∈ (A ∩ B)']) last = await unfold(page, { after: last }, statement, log);
+        const k = await drag(page, 'and_intro', { after: last });
+        await drag(page, 'exact', { into: k, input: 'LEFT' });
+        await drag(page, 'exact', { into: k, input: 'RIGHT' });
+    },
+    async (page, log) => {
+        const i = await drag(page, 'subset_intro', { goal: true }); log(await phrase(page, i));
+        const u = await unfold(page, { after: i }, 'y₀ ∈ f[f⁻¹[B]]', log);
+        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃x (x ∈ f⁻¹[B] ∧ f(x) = y₀)');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(x₀ ∈ f⁻¹[B] ∧ f(x₀) = y₀)');
+        const v = await unfold(page, { after: d }, 'x₀ ∈ f⁻¹[B]', log);
+        const r = await rewrite(page, { after: v }, 'f(x₀) = y₀', 'את f(x₀) ב־y₀', 'f(x₀) ∈ B', log);
+        await drag(page, 'exact', { after: r });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true });
+        const u = await unfold(page, { after: a }, 'injective(f)', log);
+        const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
+        const v1 = await unfold(page, { after: i }, 'x₀ ∈ f⁻¹[f[A]]', log);
+        const v2 = await unfold(page, { after: v1 }, 'f(x₀) ∈ f[A]', log);
+        const x = await drag(page, 'exists_elim', { after: v2 }); await choose(page, x, 'EXISTS', '∃x (x ∈ A ∧ f(x) = f(x₀))');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(x₁ ∈ A ∧ f(x₁) = f(x₀))');
+        const e = await instantiate(page, { after: d }, '∀x (∀y (f(x) = f(y) → x = y))', ['x₁', 'x₀'], log);
+        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(f(x₁) = f(x₀) → x₁ = x₀)'); await choose(page, f, 'PREMISE', 'f(x₁) = f(x₀)');
+        const r = await rewrite(page, { after: f }, 'x₁ = x₀', 'את x₁ ב־x₀', 'x₁ ∈ A', log);
+        await drag(page, 'exact', { after: r });
+    },
+    async (page, log) => {
+        const n = await drag(page, 'not_intro', { goal: true }); log(await phrase(page, n));
+        const u = await unfold(page, { after: n }, 'surjective(f)', log);
+        const e = await instantiate(page, { after: u }, '∀y (∃x (f(x) = y))', ['{z | ¬z ∈ f(z)}'], log);
+        const x = await drag(page, 'exists_elim', { after: e }); await choose(page, x, 'EXISTS', '∃x (f(x) = {z | ¬z ∈ f(z)})'); log(await phrase(page, x));
+        const c1 = await drag(page, 'claim', { after: x }); await choose(page, c1, 'CLAIM', '¬x₀ ∈ f(x₀)'); log(await phrase(page, c1));
+        const m = await drag(page, 'not_intro', { into: c1, input: 'PROOF' }); log(await phrase(page, m));
+        const r1 = await rewrite(page, { after: m }, 'f(x₀) = {z | ¬z ∈ f(z)}', 'את f(x₀) ב־{z | ¬z ∈ f(z)}', 'x₀ ∈ f(x₀)', log);
+        const v = await unfold(page, { after: r1 }, 'x₀ ∈ {z | ¬z ∈ f(z)}', log);
+        const t1 = await drag(page, 'contradiction', { after: v }); await choose(page, t1, 'FACT', 'x₀ ∈ f(x₀)');
+        const c2 = await drag(page, 'claim', { after: c1 }); await choose(page, c2, 'CLAIM', 'x₀ ∈ {z | ¬z ∈ f(z)}');
+        const w = await unfold(page, { into: c2, input: 'PROOF' }, 'x₀ ∈ {z | ¬z ∈ f(z)}', log);
+        await drag(page, 'exact', { after: w });
+        const r2 = await rewrite(page, { after: c2 }, 'f(x₀) = {z | ¬z ∈ f(z)}', 'את {z | ¬z ∈ f(z)} ב־f(x₀)', 'x₀ ∈ {z | ¬z ∈ f(z)}', log);
+        const t2 = await drag(page, 'contradiction', { after: r2 }); await choose(page, t2, 'FACT', 'x₀ ∈ f(x₀)');
+    },
+];
+
+// The equality levels of unit 8, and the levels of unit 10, as their hints describe them.
 const rewrite = async (page, where, equation, direction, target, log) => {
     const r = await drag(page, 'rewrite', where);
     await choose(page, r, 'EQUATION', equation);
@@ -663,20 +799,23 @@ const induction = async (page, log) => {
     log(await phrase(page, i));
     return i;
 };
-const UNIT8 = [
+const EQUALITY = [
     async (page) => { await drag(page, 'rfl', { goal: true }); },
     async (page, log) => {
-        const r = await rewrite(page, { goal: true }, 'y = x + 7', 'את y ב־x + 7', 'המטרה', log);
-        await drag(page, 'rfl', { after: r });
+        const r = await rewrite(page, { goal: true }, 'a = b', 'את a ב־b', '(a, c) ∈ R', log);
+        await drag(page, 'exact', { after: r });
     },
     async (page, log) => {
-        const r = await rewrite(page, { goal: true }, 'a = b', 'את b ב־a', 'P(b)', log);
-        await drag(page, 'exact', { after: r });
+        const r = await rewrite(page, { goal: true }, 'a = b', 'את a ב־b', 'המטרה', log);
+        await drag(page, 'rfl', { after: r });
     },
     async (page, log) => {
         const r = await rewrite(page, { goal: true }, 'a = b', 'את a ב־b', 'המטרה', log);
         await drag(page, 'exact', { after: r });
     },
+];
+const UNIT10 = [
+    async (page) => { await drag(page, 'rfl', { goal: true }); },
     async (page, log) => {
         const i = await induction(page, log);
         const b = await unfoldFunction(page, { into: i, input: 'BASE' }, 'double');
@@ -734,7 +873,7 @@ const UNIT8 = [
     },
 ];
 
-// Each level of unit 9, as its hints describe it.
+// Each level of unit 11, as its hints describe it.
 const inductionOn = async (page, variable, log) => {
     const i = await drag(page, 'induction', { goal: true });
     await choose(page, i, 'VARIABLE', variable);
@@ -747,7 +886,7 @@ const unfoldAll = async (page, where, names) => {
     for (const name of names) last = await unfoldFunction(page, last ? { after: last } : where, ...[name].flat());
     return last;
 };
-const UNIT9 = [
+const UNIT11 = [
     async (page, log) => {
         const i = await inductionOn(page, 'l', log);
         await drag(page, 'rfl', { into: i, input: 'NIL' });
@@ -810,6 +949,203 @@ const UNIT9 = [
         const hypothesis = (x) => `depth(${x}) ≤ binaries(${x}) + negations(${x})`;
         for (const [input, facts] of [['NEG', [hypothesis('φ')]], ['CONJ', [hypothesis('φ'), hypothesis('ψ')]]]) {
             await fromFacts(page, 'calc_hyps', { after: await unfoldAll(page, { into: i, input }, unfolds) }, facts, log);
+        }
+    },
+];
+
+// Each level of unit 8 after equality (the relations), as its hints describe it.
+const TRANS = (r) => `∀x (∀y (∀z (((x, y) ∈ ${r} ∧ (y, z) ∈ ${r}) → (x, z) ∈ ${r})))`;
+// "לפי ה"לכל" … עבור העצם …", one object after another, each on the result of the last.
+const instantiate = async (page, where, forall, terms, log) => {
+    let last = null;
+    for (const [statement, term] of [[forall, terms[0]], ...terms.slice(1).map((term) => [null, term])]) {
+        const e = await drag(page, 'forall_elim', last ? { after: last } : where);
+        let options = [];
+        for (let tries = 0; tries < 6 && !options.some((text) => text.startsWith('∀')); tries += 1) {
+            if (tries) await page.waitForTimeout(2000);
+            options = await page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getField('FORALL').getOptions(false)
+                .map(([text]) => String(text).replace(/[⁦⁧⁩]/g, '')), e);
+        }
+        // After the first, the newest "for all" in hand (the last one offered before the typing item).
+        await choose(page, e, 'FORALL', statement || options.filter((text) => text.startsWith('∀')).at(-1));
+        await choose(page, e, 'TERM', term); log(await phrase(page, e));
+        last = e;
+    }
+    return last;
+};
+const RELATIONS = [
+    async (page, log) => {
+        const q = await drag(page, 'set_eq', { goal: true }); log(await phrase(page, q));
+        for (const part of ['FIRST', 'SECOND']) {
+            const i = await drag(page, 'subset_intro', { into: q, input: part }); log(await phrase(page, i));
+            const u1 = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R⁻¹)⁻¹', log);
+            const u2 = await unfold(page, { after: u1 }, '(y₀, x₀) ∈ R⁻¹', log);
+            await drag(page, 'exact', { after: u2 });
+        }
+    },
+    async (page, log) => {
+        const i = await drag(page, 'subset_intro', { goal: true }); log(await phrase(page, i));
+        const u1 = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ S)⁻¹', log);
+        const u2 = await unfold(page, { after: u1 }, '(y₀, x₀) ∈ (R ∘ S)', log);
+        const x = await drag(page, 'exists_elim', { after: u2 }); await choose(page, x, 'EXISTS', '∃z ((y₀, z) ∈ S ∧ (z, x₀) ∈ R)'); log(await phrase(page, x));
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((y₀, z₀) ∈ S ∧ (z₀, x₀) ∈ R)');
+        const u3 = await unfold(page, { after: d }, '(x₀, y₀) ∈ (S⁻¹ ∘ R⁻¹)', log);
+        const w = await drag(page, 'exists_intro', { after: u3 }); await choose(page, w, 'TERM', 'z₀');
+        const s = await drag(page, 'and_intro', { after: w }); log(await phrase(page, s));
+        for (const [part, pair] of [['LEFT', '(x₀, z₀) ∈ R⁻¹'], ['RIGHT', '(z₀, y₀) ∈ S⁻¹']]) {
+            const u = await unfold(page, { into: s, input: part }, pair, log);
+            await drag(page, 'exact', { after: u });
+        }
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const u = await unfold(page, { after: a }, 'reflexive(R)', log);
+        const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
+        const g = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ R)', log);
+        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'y₀');
+        const s = await drag(page, 'and_intro', { after: w });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        const e = await instantiate(page, { into: s, input: 'RIGHT' }, '∀x ((x, x) ∈ R)', ['y₀'], log);
+        await drag(page, 'exact', { after: e });
+    },
+    async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
+        const u = await unfold(page, { after: a }, 'symmetric(R)', log);
+        const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
+        const v = await unfold(page, { after: i }, '(x₀, y₀) ∈ R⁻¹', log);
+        const e = await instantiate(page, { after: v }, '∀x (∀y ((x, y) ∈ R → (y, x) ∈ R))', ['y₀', 'x₀'], log);
+        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '((y₀, x₀) ∈ R → (x₀, y₀) ∈ R)'); await choose(page, f, 'PREMISE', '(y₀, x₀) ∈ R');
+        await drag(page, 'exact', { after: f });
+        const b = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
+        const g = await unfold(page, { after: b }, 'symmetric(R)', log);
+        const i1 = await drag(page, 'forall_intro', { after: g });
+        const i2 = await drag(page, 'forall_intro', { after: i1 }); log(await phrase(page, i2));
+        const a2 = await drag(page, 'assume', { after: i2 }); log(await phrase(page, a2));
+        const c = await drag(page, 'claim', { after: a2 }); await choose(page, c, 'CLAIM', '(y₀, x₀) ∈ R⁻¹'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, '(y₀, x₀) ∈ R⁻¹', log);
+        await drag(page, 'exact', { after: w });
+        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', 'R⁻¹ ⊆ R'); await choose(page, m, 'MEMBER', '(y₀, x₀) ∈ R⁻¹'); log(await phrase(page, m));
+        await drag(page, 'exact', { after: m });
+    },
+    async (page, log) => {
+        const k = await drag(page, 'iff_intro', { goal: true }); log(await phrase(page, k));
+        const a = await drag(page, 'assume', { into: k, input: 'FORWARD' });
+        const u = await unfold(page, { after: a }, 'transitive(R)', log);
+        const i = await drag(page, 'subset_intro', { after: u }); log(await phrase(page, i));
+        const v = await unfold(page, { after: i }, '(x₀, y₀) ∈ (R ∘ R)', log);
+        const x = await drag(page, 'exists_elim', { after: v }); await choose(page, x, 'EXISTS', '∃z ((x₀, z) ∈ R ∧ (z, y₀) ∈ R)'); log(await phrase(page, x));
+        const e = await instantiate(page, { after: x }, TRANS('R'), ['x₀', 'z₀', 'y₀'], log);
+        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(((x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R) → (x₀, y₀) ∈ R)'); await choose(page, f, 'PREMISE', '((x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R)');
+        await drag(page, 'exact', { after: f });
+        const b = await drag(page, 'assume', { into: k, input: 'BACKWARD' });
+        const g = await unfold(page, { after: b }, 'transitive(R)', log);
+        let last = g;
+        for (let n = 0; n < 3; n += 1) last = await drag(page, 'forall_intro', { after: last });
+        const a2 = await drag(page, 'assume', { after: last }); log(await phrase(page, a2));
+        const d = await drag(page, 'and_elim', { after: a2 }); await choose(page, d, 'AND', '((x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R)');
+        const c = await drag(page, 'claim', { after: d }); await choose(page, c, 'CLAIM', '(x₀, z₀) ∈ (R ∘ R)'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, '(x₀, z₀) ∈ (R ∘ R)', log);
+        const y = await drag(page, 'exists_intro', { after: w }); await choose(page, y, 'TERM', 'y₀');
+        const s = await drag(page, 'and_intro', { after: y });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        await drag(page, 'exact', { into: s, input: 'RIGHT' });
+        const m = await drag(page, 'subset_elim', { after: c }); await choose(page, m, 'SUBSET', 'R ∘ R ⊆ R'); await choose(page, m, 'MEMBER', '(x₀, z₀) ∈ (R ∘ R)');
+        await drag(page, 'exact', { after: m });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const u1 = await unfold(page, { after: a }, 'antisymmetric(R)', log);
+        const u2 = await unfold(page, { after: u1 }, 'antisymmetric(R ∩ S)', log);
+        const i1 = await drag(page, 'forall_intro', { after: u2 });
+        const i2 = await drag(page, 'forall_intro', { after: i1 });
+        const a2 = await drag(page, 'assume', { after: i2 }); log(await phrase(page, a2));
+        const d = await drag(page, 'and_elim', { after: a2 }); await choose(page, d, 'AND', '((x₀, y₀) ∈ (R ∩ S) ∧ (y₀, x₀) ∈ (R ∩ S))');
+        let last = d;
+        for (const [pair, and] of [['(x₀, y₀)', '((x₀, y₀) ∈ R ∧ (x₀, y₀) ∈ S)'], ['(y₀, x₀)', '((y₀, x₀) ∈ R ∧ (y₀, x₀) ∈ S)']]) {
+            const v = await unfold(page, { after: last }, `${pair} ∈ (R ∩ S)`, log);
+            last = await drag(page, 'and_elim', { after: v }); await choose(page, last, 'AND', and);
+        }
+        const e = await instantiate(page, { after: last }, '∀x (∀y (((x, y) ∈ R ∧ (y, x) ∈ R) → x = y))', ['x₀', 'y₀'], log);
+        const r = await drag(page, 'apply_rule', { after: e }); await choose(page, r, 'RULE', '(((x₀, y₀) ∈ R ∧ (y₀, x₀) ∈ R) → x₀ = y₀)'); log(await phrase(page, r));
+        const s = await drag(page, 'and_intro', { after: r });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        await drag(page, 'exact', { into: s, input: 'RIGHT' });
+    },
+    async (page, log) => {
+        const u = await unfold(page, { goal: true }, 'antisymmetric(R)', log);
+        const e = await instantiate(page, { after: u }, '∀x (∀y (((x, y) ∈ R ∧ (y, x) ∈ R) → x = y))', ['m', 'n'], log);
+        const r = await drag(page, 'apply_rule', { after: e }); await choose(page, r, 'RULE', '(((m, n) ∈ R ∧ (n, m) ∈ R) → m = n)');
+        const s = await drag(page, 'and_intro', { after: r }); log(await phrase(page, s));
+        for (const [part, first, second] of [['LEFT', 'm', 'n'], ['RIGHT', 'n', 'm']]) {
+            const f = await instantiate(page, { into: s, input: part }, `∀x ((${first}, x) ∈ R)`, [second], log);
+            await drag(page, 'exact', { after: f });
+        }
+    },
+    async (page, log) => {
+        const t = await unfold(page, { goal: true }, 'transitive(R)', log);
+        const q = await drag(page, 'set_eq', { after: t }); log(await phrase(page, q));
+        for (const [part, from, to, path] of [['FIRST', 'a', 'b', ['b', 'a', 'x₀']], ['SECOND', 'b', 'a', ['a', 'b', 'x₀']]]) {
+            const i = await drag(page, 'subset_intro', { into: q, input: part }); log(await phrase(page, i));
+            const u1 = await unfold(page, { after: i }, `x₀ ∈ [${from}]_R`, log);
+            const u2 = await unfold(page, { after: u1 }, `x₀ ∈ [${to}]_R`, log);
+            const e = await instantiate(page, { after: u2 }, TRANS('R'), path, log);
+            const r = await drag(page, 'apply_rule', { after: e }); await choose(page, r, 'RULE', `(((${path[0]}, ${path[1]}) ∈ R ∧ (${path[1]}, x₀) ∈ R) → (${path[0]}, x₀) ∈ R)`);
+            const s = await drag(page, 'and_intro', { after: r });
+            await drag(page, 'exact', { into: s, input: 'RIGHT' });
+            if (part === 'SECOND') { await drag(page, 'exact', { into: s, input: 'LEFT' }); continue; }
+            const v = await unfold(page, { into: s, input: 'LEFT' }, 'symmetric(R)', log);
+            const f = await instantiate(page, { after: v }, '∀x (∀y ((x, y) ∈ R → (y, x) ∈ R))', ['a', 'b'], log);
+            const g = await drag(page, 'forward', { after: f }); await choose(page, g, 'RULE', '((a, b) ∈ R → (b, a) ∈ R)'); await choose(page, g, 'PREMISE', '(a, b) ∈ R');
+            await drag(page, 'exact', { after: g });
+        }
+    },
+    async (page, log) => {
+        const u1 = await unfold(page, { goal: true }, 'c ∈ [a]_R', log);
+        const u2 = await unfold(page, { after: u1 }, 'c ∈ [b]_R', log);
+        const t = await unfold(page, { after: u2 }, 'transitive(R)', log);
+        const e = await instantiate(page, { after: t }, TRANS('R'), ['a', 'c', 'b'], log);
+        const r = await drag(page, 'apply_rule', { after: e }); await choose(page, r, 'RULE', '(((a, c) ∈ R ∧ (c, b) ∈ R) → (a, b) ∈ R)');
+        const s = await drag(page, 'and_intro', { after: r });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        const v = await unfold(page, { into: s, input: 'RIGHT' }, 'symmetric(R)', log);
+        const f = await instantiate(page, { after: v }, '∀x (∀y ((x, y) ∈ R → (y, x) ∈ R))', ['b', 'c'], log);
+        const g = await drag(page, 'forward', { after: f }); await choose(page, g, 'RULE', '((b, c) ∈ R → (c, b) ∈ R)'); await choose(page, g, 'PREMISE', '(b, c) ∈ R');
+        await drag(page, 'exact', { after: g });
+    },
+    async (page, log) => {
+        const t1 = await unfold(page, { goal: true }, 'transitive(R)', log);
+        const t2 = await unfold(page, { after: t1 }, 'transitive(S)', log);
+        const t3 = await unfold(page, { after: t2 }, 'transitive(R ∘ S)', log);
+        let last = t3;
+        for (let n = 0; n < 3; n += 1) last = await drag(page, 'forall_intro', { after: last });
+        const a = await drag(page, 'assume', { after: last }); log(await phrase(page, a));
+        last = await drag(page, 'and_elim', { after: a }); await choose(page, last, 'AND', '((x₀, y₀) ∈ (R ∘ S) ∧ (y₀, z₀) ∈ (R ∘ S))');
+        for (const [pair, exists, and] of [['(x₀, y₀)', '∃z ((x₀, z) ∈ S ∧ (z, y₀) ∈ R)', '((x₀, z₁) ∈ S ∧ (z₁, y₀) ∈ R)'], ['(y₀, z₀)', '∃z ((y₀, z) ∈ S ∧ (z, z₀) ∈ R)', '((y₀, z₂) ∈ S ∧ (z₂, z₀) ∈ R)']]) {
+            const u = await unfold(page, { after: last }, `${pair} ∈ (R ∘ S)`, log);
+            const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', exists);
+            last = await drag(page, 'and_elim', { after: x }); await choose(page, last, 'AND', and);
+        }
+        const c = await drag(page, 'claim', { after: last }); await choose(page, c, 'CLAIM', '(z₁, z₂) ∈ (S ∘ R)'); log(await phrase(page, c));
+        const w = await unfold(page, { into: c, input: 'PROOF' }, '(z₁, z₂) ∈ (S ∘ R)', log);
+        const y = await drag(page, 'exists_intro', { after: w }); await choose(page, y, 'TERM', 'y₀');
+        const s = await drag(page, 'and_intro', { after: y });
+        await drag(page, 'exact', { into: s, input: 'LEFT' });
+        await drag(page, 'exact', { into: s, input: 'RIGHT' });
+        const r = await rewrite(page, { after: c }, 'R ∘ S = S ∘ R', 'את S ∘ R ב־R ∘ S', '(z₁, z₂) ∈ (S ∘ R)', log);
+        const u = await unfold(page, { after: r }, '(z₁, z₂) ∈ (R ∘ S)', log);
+        const x = await drag(page, 'exists_elim', { after: u }); await choose(page, x, 'EXISTS', '∃z ((z₁, z) ∈ S ∧ (z, z₂) ∈ R)');
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '((z₁, z₃) ∈ S ∧ (z₃, z₂) ∈ R)');
+        const g = await unfold(page, { after: d }, '(x₀, z₀) ∈ (R ∘ S)', log);
+        const v = await drag(page, 'exists_intro', { after: g }); await choose(page, v, 'TERM', 'z₃');
+        const k = await drag(page, 'and_intro', { after: v }); log(await phrase(page, k));
+        for (const [part, rel, path] of [['LEFT', 'S', ['x₀', 'z₁', 'z₃']], ['RIGHT', 'R', ['z₃', 'z₂', 'z₀']]]) {
+            const e = await instantiate(page, { into: k, input: part }, TRANS(rel), path, log);
+            const p = await drag(page, 'apply_rule', { after: e });
+            await choose(page, p, 'RULE', `(((${path[0]}, ${path[1]}) ∈ ${rel} ∧ (${path[1]}, ${path[2]}) ∈ ${rel}) → (${path[0]}, ${path[2]}) ∈ ${rel})`);
+            const j = await drag(page, 'and_intro', { after: p });
+            await drag(page, 'exact', { into: j, input: 'LEFT' });
+            await drag(page, 'exact', { into: j, input: 'RIGHT' });
         }
     },
 ];
@@ -881,8 +1217,10 @@ const UNITS = [
     { unit: 5, world: 'יחידה 5 - שקילויות לוגיות', walks: UNIT5 },
     { unit: 6, world: 'יחידה 6 - קבוצות', walks: UNIT6 },
     { unit: 7, world: 'יחידה 7 - קבוצות של קבוצות', walks: UNIT7 },
-    { unit: 8, world: 'יחידה 8 - שוויון ואינדוקציה', walks: UNIT8 },
-    { unit: 9, world: 'יחידה 9 - אינדוקציה מבנית', walks: UNIT9 },
+    { unit: 8, world: 'יחידה 8 - שוויון ויחסים', walks: [...EQUALITY, ...RELATIONS] },
+    { unit: 9, world: 'יחידה 9 - פונקציות', walks: UNIT9 },
+    { unit: 10, world: 'יחידה 10 - אינדוקציה', walks: UNIT10 },
+    { unit: 11, world: 'יחידה 11 - אינדוקציה מבנית', walks: UNIT11 },
     { unit: 12, world: 'יחידה 12 - תרגילים מסכמים', walks: UNIT12 },
 ];
 
@@ -891,7 +1229,7 @@ for (const { unit, world, walks } of UNITS) {
     const byIndex = Array.isArray(walks) ? walks.map((walk, index) => [index, walk]) : Object.entries(walks).map(([number, walk]) => [Number(number) - 1, walk]);
     byIndex.forEach(([index, walk]) => {
         test(`student walk, unit ${unit} level ${index + 1}`, async ({ page }) => {
-            test.setTimeout(400000);
+            test.setTimeout(900000);
             await page.setViewportSize({ width: 1500, height: 1000 });
             await page.goto('');
             await page.getByRole('button', { name: world }).click();

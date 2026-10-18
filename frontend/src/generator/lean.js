@@ -61,9 +61,54 @@ theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B 
 theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
 theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
 theorem easylean_subset_intro {α : Type u} {A B : Set α} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h
+theorem easylean_subset_intro_pair {α : Type u} {A B : Set (α × α)} (h : ∀ x y, (x, y) ∈ A → (x, y) ∈ B) : A ⊆ B := fun p => h p.1 p.2
 theorem easylean_subset_elim {α : Type u} {A B : Set α} {x : α} (h : A ⊆ B) (hx : x ∈ A) : x ∈ B := h x hx
 theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B ⊆ A) : A = B :=
   funext (fun x => propext ⟨hab x, hba x⟩)
+`;
+
+// Unit 8: relations, as sets of ordered pairs (a relation on obj is a
+// Set (obj × obj)), placed after the set theory, before the proofs of the
+// levels that use them (level.usesRelations). The inverse R⁻¹, and the
+// composition R ∘ S: first S, then R, as in the course. The properties of a
+// relation are definitions, read with the same move as the operations
+// (easylean_reflexive, ...), and so is the equivalence class [x]_R.
+export const RELATION_PRELUDE = `def Set.inv {α : Type u} (R : Set (α × α)) : Set (α × α) := fun p => (p.2, p.1) ∈ R
+postfix:max "⁻¹" => Set.inv
+def Set.comp {α : Type u} (R S : Set (α × α)) : Set (α × α) := fun p => ∃ z, (p.1, z) ∈ S ∧ (z, p.2) ∈ R
+infixr:90 " ∘ " => Set.comp
+def Set.cls {α : Type u} (R : Set (α × α)) (x : α) : Set α := fun y => (x, y) ∈ R
+notation:max "[" x "]_" R:max => Set.cls R x
+def reflexive {α : Type u} (R : Set (α × α)) : Prop := ∀ x, (x, x) ∈ R
+def symmetric {α : Type u} (R : Set (α × α)) : Prop := ∀ x y, (x, y) ∈ R → (y, x) ∈ R
+def transitive {α : Type u} (R : Set (α × α)) : Prop := ∀ x y z, (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R
+def antisymmetric {α : Type u} (R : Set (α × α)) : Prop := ∀ x y, (x, y) ∈ R ∧ (y, x) ∈ R → x = y
+theorem easylean_mem_inv {α : Type u} {R : Set (α × α)} {x y : α} : (x, y) ∈ R⁻¹ ↔ (y, x) ∈ R := Iff.rfl
+theorem easylean_mem_comp {α : Type u} {R S : Set (α × α)} {x y : α} : (x, y) ∈ R ∘ S ↔ ∃ z, (x, z) ∈ S ∧ (z, y) ∈ R := Iff.rfl
+theorem easylean_mem_cls {α : Type u} {R : Set (α × α)} {x y : α} : y ∈ [x]_R ↔ (x, y) ∈ R := Iff.rfl
+theorem easylean_reflexive {α : Type u} {R : Set (α × α)} : reflexive R ↔ ∀ x, (x, x) ∈ R := Iff.rfl
+theorem easylean_symmetric {α : Type u} {R : Set (α × α)} : symmetric R ↔ ∀ x y, (x, y) ∈ R → (y, x) ∈ R := Iff.rfl
+theorem easylean_transitive {α : Type u} {R : Set (α × α)} : transitive R ↔ ∀ x y z, (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R := Iff.rfl
+theorem easylean_antisymmetric {α : Type u} {R : Set (α × α)} : antisymmetric R ↔ ∀ x y, (x, y) ∈ R ∧ (y, x) ∈ R → x = y := Iff.rfl
+`;
+
+// Unit 9: functions, as Lean's functions (f : obj → obj, written f(x) as in
+// the course), with injective and surjective as definitions read by the move
+// "לפי ההגדרה" (which also writes (g ∘ f)(x) as g(f(x))), the image f[A] and
+// the preimage f⁻¹[B] (shown so, see formatProofGoal.js), and a set given by
+// a property, setOf fun x => P x, shown {x | P(x)}, for Cantor's theorem
+// (level.usesFunctions). The server refuses syntax extensions, so these are
+// written in the display only.
+export const FUNCTION_PRELUDE = `def injective {α : Type u} {β : Type v} (f : α → β) : Prop := ∀ x y, f x = f y → x = y
+def surjective {α : Type u} {β : Type v} (f : α → β) : Prop := ∀ y, ∃ x, f x = y
+def Set.image {α : Type u} {β : Type v} (f : α → β) (A : Set α) : Set β := fun y => ∃ x, x ∈ A ∧ f x = y
+def Set.preimage {α : Type u} {β : Type v} (f : α → β) (B : Set β) : Set α := fun x => f x ∈ B
+def setOf {α : Type u} (p : α → Prop) : Set α := p
+theorem easylean_injective {α : Type u} {β : Type v} {f : α → β} : injective f ↔ ∀ x y, f x = f y → x = y := Iff.rfl
+theorem easylean_surjective {α : Type u} {β : Type v} {f : α → β} : surjective f ↔ ∀ y, ∃ x, f x = y := Iff.rfl
+theorem easylean_mem_image {α : Type u} {β : Type v} {f : α → β} {A : Set α} {y : β} : y ∈ Set.image f A ↔ ∃ x, x ∈ A ∧ f x = y := Iff.rfl
+theorem easylean_mem_preimage {α : Type u} {β : Type v} {f : α → β} {B : Set β} {x : α} : x ∈ Set.preimage f B ↔ f x ∈ B := Iff.rfl
+theorem easylean_mem_setOf {α : Type u} {p : α → Prop} {a : α} : a ∈ setOf p ↔ p a := Iff.rfl
 `;
 
 // Unit 5 and after: the laws of logical equivalence (LAWS in
@@ -80,7 +125,7 @@ theorem easylean_not_exists {α : Type u} {p : α → Prop} : (¬∃ x, p x) ↔
 theorem easylean_not_forall {α : Type u} {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x := ⟨fun h => Classical.byContradiction fun h' => h fun x => Classical.byContradiction fun hx => h' ⟨x, hx⟩, fun ⟨x, hx⟩ h => hx (h x)⟩
 `;
 
-// Unit 8: functions on the natural numbers defined by recursion, placed
+// Unit 10: functions on the natural numbers defined by recursion, placed
 // before the proofs of the levels that use them (level.usesNat), and the
 // definition of addition on its second argument. Unfolding them is a move
 // of its own: the calculation moves (omega, grind) do not look inside them.
@@ -104,7 +149,7 @@ theorem easylean_add_succ (n m : Nat) : n + (m + 1) = (n + m) + 1 := rfl
 // indentation). The moves add their own (see blocks/moves.js).
 export const leanBranches = {};
 
-// Unit 9: structures defined by construction, placed before the proofs of the
+// Unit 11: structures defined by construction, placed before the proofs of the
 // levels that do induction on them (level.structure), with the functions
 // defined on them by recursion. Lean prints `node l r` and `List.length l`,
 // not `l.node r` or `l.length`, so that they read as functions of their

@@ -1,25 +1,30 @@
 import { goalXml } from './levelXml';
 
-// Unit 8 (see blocks/moves.js): equality and induction, as in Logic and
-// Proof (chapter 17) and the Natural Number Game. An equality is used by its statement ("לפי
-// השוויון y = x + 7, נחליף את y ב־x + 7 בתוך המטרה"); induction heads its
-// parts by what is proved in them, and its step keeps the variable's name
-// ("נניח P(n) ונוכיח P(n + 1)"), as in Logic and Proof. Each level offers
-// only the moves of its solutions.
+// Unit 8 (see blocks/moves.js): equality, then relations, as in the course.
+// Equality first, by its two principles (as in Logic and Proof, chapter
+// 17): a statement whose sides are the same by the definitions is proved
+// ("שני הצדדים שווים לפי ההגדרה"), and an equality is used by its statement
+// ("לפי השוויון y = x + 7, נחליף את y ב־x + 7 בתוך המטרה"). Then relations: a relation on
+// the objects is a set of ordered pairs (R : Set (obj × obj)), so the moves of
+// unit 6 work on it: an inclusion of relations takes an arbitrary pair
+// ("יהי (x₀, y₀) ∈ R"), and the inverse, the composition (first S, then R,
+// as in the course) and the equivalence class are read by their definitions,
+// as are the properties of a relation (reflexive, symmetric, transitive,
+// antisymmetric), with the move "לפי ההגדרה" (RELATION_PRELUDE in
+// generator/lean.js). Each level offers only the moves of its solutions.
 
-export const unit8WorldName = 'יחידה 8 - שוויון ואינדוקציה';
+export const unit8WorldName = 'יחידה 8 - שוויון ויחסים';
 
-const OBJECTS = 'variable {obj : Type} {P : obj → Prop}';
+const RELATIONS = 'variable {obj : Type} {R S : Set (obj × obj)}';
 
 // The moves as the toolbox shows them, before they are placed.
 const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
 const REWRITE_BLOCK = '"לפי השוויון ? נחליף ..."';
-const INDUCTION_BLOCK = '"נוכיח באינדוקציה על ?"';
-const UNFOLD_BLOCK = '"נשתמש בהגדרת ? כדי לשכתב ..."';
-const CALC_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט."';
-const CALC_HYPS_BLOCK = '"נכונות המטרה נובעת מחשבון פשוט ומ־ ?"';
-const ALGEBRA_BLOCK = '"נכונות המטרה נובעת מאלגברה."';
-const ALGEBRA_HYPS_BLOCK = '"נכונות המטרה נובעת מאלגברה ומ־ ?"';
+const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
+const SET_EQ_BLOCK = '"כדי להוכיח שוויון קבוצות, נוכיח שתי הכלות"';
+const UNFOLD_BLOCK = '"לפי ההגדרה, ?"';
+const CLAIM_BLOCK = '"נוכיח קודם את טענת העזר ?"';
+const FORALL_ELIM_BLOCK = '"לפי ה"לכל" ? עבור העצם ?"';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
 
 const rflInfo = {
@@ -30,38 +35,29 @@ const rewriteInfo = {
     name: 'החלפה לפי שוויון',
     doc: 'אם a = b, אפשר להחליף את a ב־b, או את b ב־a, במטרה או בטענה שבידינו. בהוכחה כתובה: "לפי a = b, נחליף את a ב־b".',
 };
-const inductionInfo = {
-    name: 'הוכחה באינדוקציה',
-    doc: 'כדי להוכיח טענה P(n) לכל מספר טבעי n: מוכיחים P(0) (בסיס), ומניחים P(n) (הנחת האינדוקציה) ומוכיחים P(n + 1) (צעד). מהלך שמשתמש בהנחת האינדוקציה כותב זאת, כמו בהוכחה כתובה: "לפי הנחת האינדוקציה ...".',
-};
-const unfoldInfo = {
-    name: 'פתיחת הגדרה',
-    doc: 'משכתב לפי ההגדרה של פונקציה שמוגדרת ברקורסיה: בוחרים בבלוק את הפונקציה, את החלק לשכתב (כשיש אחד בלבד, הוא נבחר לבד), ואת המקום, המטרה או טענה שבידינו. הבלוק כותב מה התקבל.',
-};
-const calcInfo = {
-    name: 'חשבון',
-    doc: 'סוגר מטרה של חשבון פשוט (חיבור, כפל במספר, אי־שוויונות), מהמטרה לבדה: הוא לא משתמש במה שבידינו, ולא פותח הגדרות. כדי להשתמש בהנחת האינדוקציה, מחליפים לפיה קודם.',
-};
-const calcHypsInfo = {
-    name: 'חשבון בעזרת הנחות',
-    doc: 'סוגר מטרה של חשבון פשוט בעזרת ההנחות שבוחרים בבלוק: אחת, ואם צריך עוד, כל אחת בשדה "ו־" שמופיע אחריה (השדה הריק האחרון מסיים). משתמשים בו כשאי אפשר להחליף לפי ההנחה, למשל כשהיא אי־שוויון. כך ההוכחה אומרת בדיוק באילו הנחות החשבון משתמש.',
-};
-const algebraInfo = {
-    name: 'אלגברה',
-    doc: 'סוגר מטרה שדורשת אלגברה, כמו פתיחת סוגריים וכינוס איברים, מהמטרה לבדה: הוא לא משתמש במה שבידינו, ולא פותח הגדרות.',
-};
-const algebraHypsInfo = {
-    name: 'אלגברה בעזרת הנחות',
-    doc: 'סוגר מטרה שדורשת אלגברה, כמו פתיחת סוגריים וכינוס איברים, בעזרת ההנחות שבוחרים בבלוק (אחת או יותר). משתמשים בו כשאי אפשר להחליף לפי ההנחה, כי היא לא מופיעה במטרה כמו שהיא. הוא לא פותח הגדרות.',
-};
 const definition = (symbol, doc) => ({ symbol, doc });
+const relation = definition('יחס', 'יחס R על העצמים הוא קבוצה של זוגות סדורים: (x, y) ∈ R פירושו ש־x ביחס R ל־y. כמו כל קבוצה, שני יחסים שווים אם כל אחד מוכל בשני.');
+const inverse = definition('היחס ההפוך', '(x, y) ∈ R⁻¹ פירושו (y, x) ∈ R.');
+const composition = definition('הרכבה', '(x, y) ∈ (R ∘ S) פירושו ∃z ((x, z) ∈ S ∧ (z, y) ∈ R): קודם S, ואחר כך R.');
+const reflexive = definition('רפלקסיביות', 'reflexive(R) פירושו ∀x ((x, x) ∈ R): כל עצם ביחס לעצמו.');
+const symmetric = definition('סימטריות', 'symmetric(R) פירושו ∀x (∀y ((x, y) ∈ R → (y, x) ∈ R)).');
+const transitive = definition('טרנזיטיביות', 'transitive(R) פירושו ∀x (∀y (∀z (((x, y) ∈ R ∧ (y, z) ∈ R) → (x, z) ∈ R))).');
+const antisymmetric = definition('אנטי־סימטריות', 'antisymmetric(R) פירושו ∀x (∀y (((x, y) ∈ R ∧ (y, x) ∈ R) → x = y)).');
+const equivalenceClass = definition('מחלקת שקילות', '[a]_R היא קבוצת העצמים ש־a ביחס R אליהם: x ∈ [a]_R פירושו (a, x) ∈ R.');
+
+const pairsInfo = {
+    name: 'הכלה של יחסים',
+    doc: 'האיברים של יחס הם זוגות, ולכן כדי להוכיח R ⊆ S לוקחים זוג שרירותי: "יהי (x₀, y₀) ∈ R; נוכיח (x₀, y₀) ∈ S". זה אותו בלוק של הוכחת הכלה מיחידה 6.',
+};
 
 const level = (number, fields) => ({
     id: `unit8-${number}`,
     levelNumber: number,
-    totalLevels: 11,
-    usesNat: true,
-    variableLine: '',
+    totalLevels: 14,
+    variableLine: RELATIONS,
+    params: '',
+    usesSets: true,
+    usesRelations: true,
     objects: [],
     assumptions: [],
     newTacticsBlocks: [],
@@ -72,79 +68,77 @@ const level = (number, fields) => ({
 
 export const unit8Levels = [
     level(1, {
-        title: 'שוויון לפי ההגדרה',
-        name: 'unit8_l1_rfl',
-        params: '(n : Nat)',
-        proposition: 'n + 0 = n',
-        goalLabel: 'n + 0 = n',
-        objects: [{ name: 'n', type: 'ℕ' }],
+        title: 'שוויון הוא רפלקסיבי',
+        name: 'unit8_l1_refl',
+        usesSets: false,
+        usesRelations: false,
+        variableLine: 'variable {obj : Type}',
+        params: '(a : obj)',
+        proposition: 'a = a',
+        goalLabel: 'a = a',
+        objects: [{ name: 'a', type: 'obj' }],
         toolboxBlocks: ['rfl'],
-        introduction: `# שוויון לפי ההגדרה
+        introduction: `# שוויון
 
-ביחידה הזאת הטענות מדברות על *מספרים טבעיים*: 0, 1, 2, ... כאן n הוא מספר טבעי כלשהו.
+היחידה הזאת עוסקת ב*יחסים*, ומתחילה ביחס המוכר ביותר: *שוויון*. שני עקרונות קובעים איך מוכיחים שוויון ואיך משתמשים בו, וכל השאר נובע מהם.
 
-החיבור מוגדר כך: \`n + 0 = n\`, ו־\`n + (m + 1) = (n + m) + 1\`. לכן הטענה \`n + 0 = n\` נכונה *לפי ההגדרה*: שני הצדדים הם אותו דבר.
-הבלוק ${RFL_BLOCK} סוגר מטרה כזאת.`,
+העיקרון הראשון: כל דבר שווה לעצמו. שוויון ששני הצדדים שלו זהים מוכח מיד, בבלוק ${RFL_BLOCK}`,
         newTacticsBlocks: ['rfl'],
         newTacticsInfo: [rflInfo],
-        newDefinitions: [definition('החיבור', 'n + 0 = n, ו־n + (m + 1) = (n + m) + 1.')],
         hints: [`גררו את הבלוק ${RFL_BLOCK} אל תוך בלוק המטרה.`],
-        conclusion: `שוויון ששני צדדיו זהים לפי ההגדרות מוכח מיד. זה עיקרון הרפלקסיביות: כל דבר שווה לעצמו.`,
-        startXml: goalXml('n + 0 = n'),
+        conclusion: 'a = a לכל עצם a: השוויון *רפלקסיבי*. בשלבים הבאים תראו שהוא גם סימטרי וטרנזיטיבי.',
+        startXml: goalXml('a = a'),
     }),
     level(2, {
-        title: 'מחליפים לפי שוויון',
-        name: 'unit8_l2_rewrite',
-        params: '(x y : Nat) (h : y = x + 7)',
-        proposition: '2 * y = 2 * (x + 7)',
-        goalLabel: '2 · y = 2 · (x + 7)',
-        objects: [{ name: 'x', type: 'ℕ' }, { name: 'y', type: 'ℕ' }],
-        assumptions: [{ name: 'h', prop: 'y = x + 7' }],
-        toolboxBlocks: ['rewrite', 'rfl'],
-        introduction: `# מחליפים לפי שוויון
+        title: 'מחליפים שווה בשווה',
+        name: 'unit8_l2_substitute',
+        params: '(a b c : obj) (h : a = b) (hR : (a, c) ∈ R)',
+        proposition: '(b, c) ∈ R',
+        goalLabel: '(b, c) ∈ R',
+        objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }, { name: 'c', type: 'obj' }],
+        toolboxBlocks: ['rewrite', 'exact'],
+        introduction: `# מחליפים שווה בשווה
 
-נתון ש־\`y = x + 7\`. אם שני דברים שווים, אפשר להחליף אחד בשני בכל מקום, כמו שביחידה 5 החלפתם טענה בטענה ששקולה לה.
+העיקרון השני: אם a = b, אפשר להחליף את a ב־b, או את b ב־a, בכל טענה. כמו שביחידה 5 החלפתם טענה בטענה ששקולה לה, כאן מחליפים עצם בעצם ששווה לו.
 
-הבלוק ${REWRITE_BLOCK} עושה זאת: בוחרים בו את השוויון, את ההחלפה (את y ב־x + 7, או להפך), ואיפה להחליף: במטרה או בטענה שבידינו.
-בהוכחה כתובה: "לפי y = x + 7, נחליף את y ב־x + 7 במטרה". אחר כך שני הצדדים של המטרה זהים.`,
+R הוא *יחס*: \`(a, c) ∈ R\` פירושו ש־a ביחס R ל־c, למשל "a מכיר את c" (על יחסים בהרחבה, מהשלב החמישי).
+נתון ש־a = b ו־(a, c) ∈ R. הבלוק ${REWRITE_BLOCK} מחליף: בוחרים בו את השוויון, את ההחלפה (את a ב־b, או להפך), ואת המקום: המטרה, או טענה שבידינו.`,
         newTacticsBlocks: ['rewrite'],
         newTacticsInfo: [rewriteInfo],
         hints: [
-            `גררו את הבלוק ${REWRITE_BLOCK} אל תוך בלוק המטרה, ובחרו בו y = x + 7, את ההחלפה "את y ב־x + 7", ו"המטרה".`,
-            `עכשיו המטרה היא 2 · (x + 7) = 2 · (x + 7): הוסיפו את הבלוק ${RFL_BLOCK}.`,
+            `גררו את הבלוק ${REWRITE_BLOCK} אל תוך בלוק המטרה, ובחרו בו a = b, את (a, c) ∈ R, ואת ההחלפה "את a ב־b". עכשיו (b, c) ∈ R בידינו.`,
+            `הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+            'או: החליפו במטרה את b ב־a. המטרה תהיה (a, c) ∈ R, וזה בידינו.',
         ],
-        conclusion: `החלפתם את y לפי השוויון, ואחר כך שני הצדדים היו זהים. זה העיקרון השני של שוויון: מותר להחליף שווה בשווה.`,
-        startXml: goalXml('2 · y = 2 · (x + 7)', 'y = x + 7'),
+        conclusion: 'אם a = b, כל מה שנכון על a נכון גם על b: מותר להחליף שווה בשווה. ההחלפה אפשרית בטענה שבידינו או במטרה, ובכל אחד משני הכיוונים.',
+        startXml: goalXml('(b, c) ∈ R', 'a = b,  (a, c) ∈ R'),
     }),
     level(3, {
-        title: 'כיוון ההחלפה',
-        name: 'unit8_l3_direction',
-        usesNat: false,
-        variableLine: OBJECTS,
-        params: '(a b : obj) (h : a = b) (hb : P b)',
-        proposition: 'P a',
-        goalLabel: 'P(a)',
+        title: 'שוויון הוא סימטרי',
+        name: 'unit8_l3_symm',
+        usesSets: false,
+        usesRelations: false,
+        variableLine: 'variable {obj : Type}',
+        params: '(a b : obj) (h : a = b)',
+        proposition: 'b = a',
+        goalLabel: 'b = a',
         objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }],
-        assumptions: [{ name: 'h', prop: 'a = b' }, { name: 'hb', prop: 'P(b)' }],
-        toolboxBlocks: ['rewrite', 'exact'],
-        introduction: `# כיוון ההחלפה
+        toolboxBlocks: ['rewrite', 'rfl'],
+        introduction: `# שוויון הוא סימטרי
 
-שוויון אפשר להפעיל בשני כיוונים: מ־\`a = b\` אפשר להחליף את a ב־b, וגם את b ב־a.
-
-נתון ש־a = b, וש־b מקיים את P. המטרה היא P(a). יש שתי דרכים:
-להחליף את b ב־a בתוך הטענה P(b) שבידינו, ולקבל P(a); או להחליף את a ב־b במטרה, ולקבל P(b), שכבר בידינו.`,
+אם a = b, אז b = a. גם זה נובע משני העקרונות: מחליפים במטרה את a ב־b, ומקבלים b = b, ששני הצדדים שלו זהים.`,
         hints: [
-            `גררו את הבלוק ${REWRITE_BLOCK}, ובחרו בו a = b, את ההחלפה "את b ב־a", ואת P(b). עכשיו P(a) בידינו.`,
-            `הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
-            'או: בחרו בבלוק את ההחלפה "את a ב־b" ו"המטרה": המטרה תהיה P(b), וזה בידינו.',
+            `גררו את הבלוק ${REWRITE_BLOCK}, ובחרו בו a = b, את ההחלפה "את a ב־b", ו"המטרה". המטרה תהיה b = b.`,
+            `הוסיפו את הבלוק ${RFL_BLOCK}`,
         ],
-        conclusion: `ההחלפה תלויה במה שרוצים להחליף ובמקום: בטענה שבידינו או במטרה.`,
-        startXml: goalXml('P(a)', 'a = b,  P(b)'),
+        conclusion: 'מ־a = b נובע b = a: השוויון *סימטרי*.',
+        startXml: goalXml('b = a', 'a = b'),
     }),
     level(4, {
-        title: 'שרשרת של שוויונות',
+        title: 'שוויון הוא טרנזיטיבי',
         name: 'unit8_l4_trans',
-        usesNat: false,
+        usesSets: false,
+        usesRelations: false,
         variableLine: 'variable {obj : Type}',
         params: '(a b c : obj) (h1 : a = b) (h2 : b = c)',
         proposition: 'a = c',
@@ -152,7 +146,7 @@ export const unit8Levels = [
         objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }, { name: 'c', type: 'obj' }],
         assumptions: [{ name: 'h1', prop: 'a = b' }, { name: 'h2', prop: 'b = c' }],
         toolboxBlocks: ['rewrite', 'exact'],
-        introduction: `# שרשרת של שוויונות
+        introduction: `# שוויון הוא טרנזיטיבי
 
 אם a = b ו־b = c, אז a = c. זו *הטרנזיטיביות* של השוויון, והיא נובעת מהחלפה: מחליפים במטרה את a ב־b, ומקבלים b = c, שכבר בידינו.
 אפשר גם להחליף במטרה את c ב־b, ולקבל a = b.`,
@@ -161,165 +155,199 @@ export const unit8Levels = [
             `b = c בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
             'או: לפי b = c, החליפו במטרה את c ב־b. המטרה תהיה a = b, וזה בידינו.',
         ],
-        conclusion: `גם הטרנזיטיביות וגם הסימטריה של שוויון (מ־a = b נובע b = a) נובעות משני העקרונות: כל דבר שווה לעצמו, ומותר להחליף שווה בשווה.`,
+        conclusion: `השוויון *טרנזיטיבי*. יחד עם השלבים הקודמים: השוויון רפלקסיבי, סימטרי וטרנזיטיבי, ושלוש התכונות נובעות משני העקרונות, כל דבר שווה לעצמו ומותר להחליף שווה בשווה.
+יחס עם שלוש התכונות האלה נקרא *יחס שקילות*. בשלבים הבאים תראו מה זה יחס באופן כללי, ואת התכונות האלה לכל יחס.`,
         startXml: goalXml('a = c', 'a = b,  b = c'),
     }),
     level(5, {
-        title: 'אינדוקציה ראשונה',
-        name: 'unit8_l5_double',
-        params: '(n : Nat)',
-        proposition: 'double n = n + n',
-        goalLabel: 'double(n) = n + n',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'calc'],
-        introduction: `# אינדוקציה
+        title: 'היחס ההפוך',
+        name: 'unit8_l5_inverse_inverse',
+        proposition: 'R⁻¹⁻¹ = R',
+        goalLabel: '(R⁻¹)⁻¹ = R',
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'exact'],
+        newTacticsInfo: [pairsInfo],
+        introduction: `# יחסים
 
-הפונקציה double מוגדרת *ברקורסיה*: \`double(0) = 0\`, ו־\`double(n + 1) = double(n) + 2\`. נוכיח ש־double(n) = n + n *לכל* n.
+*יחס* R על העצמים הוא קבוצה של זוגות סדורים: \`(x, y) ∈ R\` פירושו ש־x ביחס R ל־y, למשל "x מכיר את y". מכיוון שיחס הוא קבוצה, כל מה שלמדתם על קבוצות עובד גם עליו.
 
-אי אפשר לבדוק את כל המספרים אחד אחד. *אינדוקציה* מוכיחה את הטענה בשני חלקים:
-*בסיס*: הטענה נכונה עבור 0. *צעד*: אם הטענה נכונה עבור n (זו *הנחת האינדוקציה*), היא נכונה גם עבור n + 1.
-מ־0 עוברים ל־1, מ־1 ל־2, וכן הלאה: הטענה נכונה לכל n.
-
-הבלוק ${INDUCTION_BLOCK} מפצל את ההוכחה לשני החלקים, ובראש כל חלק כתוב מה מוכיחים בו.
-בכל חלק פתחו את ההגדרה של double. בצעד, החליפו לפי הנחת האינדוקציה, ואת השאר משלים חשבון.`,
-        newTacticsBlocks: ['induction', 'unfold_function', 'calc'],
-        newTacticsInfo: [inductionInfo, unfoldInfo, calcInfo],
-        newDefinitions: [definition('double', 'double(0) = 0, ו־double(n + 1) = double(n) + 2.')],
+\`R⁻¹\` הוא *היחס ההפוך*: לפי ההגדרה, \`(x, y) ∈ R⁻¹\` פירושו \`(y, x) ∈ R\`. נוכיח שאם הופכים פעמיים, חוזרים ל־R.
+מוכיחים שוויון בשתי הכלות, כמו ביחידה 6. האיברים של יחס הם זוגות, ולכן בכל הכלה לוקחים זוג: "יהי (x₀, y₀)".`,
+        newDefinitions: [relation, inverse],
         hints: [
-            `גררו את הבלוק ${INDUCTION_BLOCK} אל תוך בלוק המטרה, ובחרו בו n. בראש החלקים כתוב: בסיס: נוכיח double(0) = 0 + 0; צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1).`,
-            `בבסיס: ${UNFOLD_BLOCK} עם double, ואחריו ${RFL_BLOCK}.`,
-            `בצעד: ${UNFOLD_BLOCK} עם double. אחר כך ${REWRITE_BLOCK} עם הנחת האינדוקציה double(n) = n + n, "את double(n) ב־n + n", במטרה. לבסוף ${CALC_BLOCK}`,
+            `גררו את הבלוק ${SET_EQ_BLOCK} אל תוך בלוק המטרה, ובכל חלק ${SUBSET_INTRO_BLOCK}: יהי (x₀, y₀).`,
+            'בהכלה הראשונה: פתחו את הגדרת היחס ההפוך ב־(x₀, y₀) ∈ (R⁻¹)⁻¹, ושוב במה שמתקבל, (y₀, x₀) ∈ R⁻¹. עכשיו (x₀, y₀) ∈ R בידינו.',
+            'בהכלה השנייה: אותן שתי פתיחות, הפעם במטרה.',
         ],
-        conclusion: `הוכחתם בסיס וצעד, ולכן הטענה נכונה לכל n. שימו לב שהחשבון לבדו לא הספיק: הוא לא פותח את ההגדרה של double, ולא משתמש בהנחת האינדוקציה עד שמחליפים לפיה.`,
-        startXml: goalXml('double(n) = n + n'),
+        conclusion: '(R⁻¹)⁻¹ = R. הפעלתם על יחסים את כל מה שלמדתם על קבוצות: שוויון בשתי הכלות, הכלה בעזרת איבר, ופתיחת הגדרות. ההבדל היחיד הוא שהאיבר הוא זוג.',
+        startXml: goalXml('(R⁻¹)⁻¹ = R'),
     }),
     level(6, {
-        title: '0 + n = n',
-        name: 'unit8_l6_zero_add',
-        params: '(n : Nat)',
-        proposition: '0 + n = n',
-        goalLabel: '0 + n = n',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl'],
-        introduction: `# 0 + n = n
+        title: 'הרכבה',
+        name: 'unit8_l6_inverse_of_composition',
+        proposition: '(R ∘ S)⁻¹ ⊆ S⁻¹ ∘ R⁻¹',
+        goalLabel: '(R ∘ S)⁻¹ ⊆ S⁻¹ ∘ R⁻¹',
+        toolboxBlocks: ['subset_intro', 'unfold', 'exists_elim', 'and_elim', 'exists_intro', 'and_intro', 'exact'],
+        introduction: `# הרכבה
 
-בשלב 1 ראינו ש־\`n + 0 = n\` לפי ההגדרה. האם גם \`0 + n = n\`? לא לפי ההגדרה: החיבור מוגדר לפי המחובר *השני*, ו־n כאן הוא מספר כלשהו.
-לכן צריך אינדוקציה. בצעד, פתחו את הגדרת החיבור: \`0 + (n + 1) = (0 + n) + 1\`, והחליפו לפי הנחת האינדוקציה. הפעם אין חשבון: רק הגדרות והחלפות.`,
+\`R ∘ S\` היא *ההרכבה* של R ו־S: קודם S, ואחר כך R. לפי ההגדרה, \`(x, y) ∈ (R ∘ S)\` פירושו \`∃z ((x, z) ∈ S ∧ (z, y) ∈ R)\`: יש תחנת ביניים z.
+
+נוכיח שההפוך של הרכבה הוא ההרכבה של ההפוכים, בסדר ההפוך: (R ∘ S)⁻¹ ⊆ S⁻¹ ∘ R⁻¹. ההגדרה של ההרכבה היא "קיים", ולכן משתמשים בה כמו ביחידה 4: מקבלים ממנה את תחנת הביניים, ובמטרה בוחרים אותה.`,
+        newDefinitions: [composition],
         hints: [
-            `אינדוקציה על n. בבסיס, 0 + 0 = 0 נכון לפי ההגדרה: ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם החיבור, ואחריו ${REWRITE_BLOCK} עם 0 + n = n, "את 0 + n ב־n", במטרה. שני הצדדים זהים.`,
+            'יהי (x₀, y₀) ∈ (R ∘ S)⁻¹. פתחו את ההגדרות: פירושו (y₀, x₀) ∈ (R ∘ S), ופירוש זה הוא ∃z ((y₀, z) ∈ S ∧ (z, x₀) ∈ R).',
+            'לפי ה"קיים", יהי z₀ כזה, ומה"וגם" נובעים שני הצדדים.',
+            'פתחו את ההגדרה במטרה, (x₀, y₀) ∈ (S⁻¹ ∘ R⁻¹), ובחרו את z₀ כתחנת הביניים. בכל צד של ה"וגם" פתחו את הגדרת היחס ההפוך: מה שנשאר בידינו.',
         ],
-        conclusion: `n + 0 = n נכון לפי ההגדרה, אבל 0 + n = n דרש אינדוקציה. סימטריה שנראית מובנת מאליה צריכה הוכחה.`,
-        startXml: goalXml('0 + n = n'),
+        conclusion: 'גם ההכלה ההפוכה נכונה, ולכן (R ∘ S)⁻¹ = S⁻¹ ∘ R⁻¹: כמו לנעול גרביים ואחר כך נעליים, ההפוך הוא לחלוץ קודם את הנעליים.',
+        startXml: goalXml('(R ∘ S)⁻¹ ⊆ S⁻¹ ∘ R⁻¹'),
     }),
     level(7, {
-        title: 'צעד בלי בסיס',
-        name: 'unit8_l7_no_base',
-        params: '(n : Nat)',
-        proposition: '(n + 1 ≤ n) → (n + 1 + 1 ≤ n + 1)',
-        goalLabel: '((n + 1 ≤ n) → (n + 1 + 1 ≤ n + 1))',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['assume', 'calc_hyps'],
-        newTacticsBlocks: ['calc_hyps'],
-        newTacticsInfo: [calcHypsInfo],
-        introduction: `# צעד בלי בסיס
+        title: 'יחס רפלקסיבי',
+        name: 'unit8_l7_reflexive',
+        proposition: 'reflexive R → R ⊆ R ∘ R',
+        goalLabel: '(reflexive(R) → R ⊆ R ∘ R)',
+        toolboxBlocks: ['assume', 'unfold', 'subset_intro', 'exists_intro', 'and_intro', 'forall_elim', 'exact'],
+        introduction: `# יחס רפלקסיבי
 
-נסתכל על הטענה P(n): \`n + 1 ≤ n\`. היא *לא* נכונה: אף מספר לא גדול מעצמו.
-ובכל זאת, הצעד שלה נכון: אם P(n), אז P(n + 1). הוכיחו את הצעד הזה.`,
+יחס R הוא *רפלקסיבי* אם כל עצם ביחס לעצמו. גם זו הגדרה, ופותחים אותה באותו בלוק, ${UNFOLD_BLOCK}: \`reflexive(R)\` פירושו \`∀x ((x, x) ∈ R)\`.
+
+נוכיח שאם R רפלקסיבי, אז R ⊆ R ∘ R. בכל זוג (x₀, y₀) ∈ R, צריך תחנת ביניים: אפשר לעבור מ־x₀ ל־y₀, ואחר כך להישאר ב־y₀.`,
+        newDefinitions: [reflexive],
         hints: [
-            'נניח את התנאי, n + 1 ≤ n.',
-            `התנאי הוא אי־שוויון, ולכן אי אפשר להחליף לפיו; נכונות המטרה נובעת מחשבון פשוט בעזרתו: ${CALC_HYPS_BLOCK}, ובחרו בו n + 1 ≤ n.`,
+            'נניח reflexive(R), ופתחו את ההגדרה שלה. אחר כך יהי (x₀, y₀) ∈ R, ופתחו את הגדרת ההרכבה במטרה.',
+            `בחרו את y₀ כתחנת הביניים. הצד הראשון בידינו, ואת הצד השני, (y₀, y₀) ∈ R, נותן ${FORALL_ELIM_BLOCK} עם y₀.`,
         ],
-        conclusion: `הצעד נכון, אבל הטענה P(n) לא נכונה לאף n, כי הבסיס, 0 + 1 ≤ 0, לא נכון.
-צעד לבד לא מספיק: בלי בסיס אין מאיפה להתחיל, והשרשרת "מ־0 ל־1, מ־1 ל־2" לא מתחילה בכלל.`,
-        startXml: goalXml('((n + 1 ≤ n) → (n + 1 + 1 ≤ n + 1))'),
+        conclusion: 'R ⊆ R ∘ R לכל יחס רפלקסיבי. בשלב 9 תראו שההכלה ההפוכה, R ∘ R ⊆ R, היא בדיוק טרנזיטיביות.',
+        startXml: goalXml('(reflexive(R) → R ⊆ R ∘ R)'),
     }),
     level(8, {
-        title: 'אינדוקציה ואי־שוויון',
-        name: 'unit8_l8_pow',
-        params: '(n : Nat)',
-        proposition: 'n + 1 ≤ 2 ^ n',
-        goalLabel: 'n + 1 ≤ 2 ^ n',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'calc', 'calc_hyps'],
-        introduction: `# אינדוקציה ואי־שוויון
+        title: 'יחס סימטרי',
+        name: 'unit8_l8_symmetric',
+        proposition: 'symmetric R ↔ R⁻¹ ⊆ R',
+        goalLabel: '(symmetric(R) ↔ R⁻¹ ⊆ R)',
+        claims: ['(y₀, x₀) ∈ R⁻¹', '(x₀, y₀) ∈ R⁻¹', '(y₀, x₀) ∈ R'],
+        toolboxBlocks: ['iff_intro', 'assume', 'unfold', 'subset_intro', 'forall_elim', 'forward', 'forall_intro', 'claim', 'subset_elim', 'exact'],
+        introduction: `# יחס סימטרי
 
-אינדוקציה מוכיחה גם אי־שוויונות. נוכיח ש־\`n + 1 ≤ 2^n\` לכל n.
-בצעד, פתחו את הגדרת החזקה, \`2^(n + 1) = 2^n · 2\`. הנחת האינדוקציה היא אי־שוויון, ואי אפשר להחליף לפיה, ולכן החשבון משתמש בה: ${CALC_HYPS_BLOCK}`,
-        newDefinitions: [definition('החזקה', '2^0 = 1, ו־2^(n + 1) = 2^n · 2.')],
+יחס R הוא *סימטרי* אם כל זוג ביחס נמצא בו גם הפוך: \`symmetric(R)\` פירושו \`∀x (∀y ((x, y) ∈ R → (y, x) ∈ R))\`.
+
+נוכיח ש־R סימטרי אם ורק אם R⁻¹ ⊆ R: אפשר לנסח את התכונה בלי כמתים, כהכלה של יחסים.
+בכיוון ←, כדי להשתמש בהכלה R⁻¹ ⊆ R צריך זוג ב־R⁻¹: זה המקום לטענת עזר.`,
+        newDefinitions: [symmetric],
         hints: [
-            `אינדוקציה על n. בבסיס, 0 + 1 ≤ 2^0 נובע מחשבון פשוט: ${CALC_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם החזקה, ואחריו ${CALC_HYPS_BLOCK}, ובחרו בו את הנחת האינדוקציה n + 1 ≤ 2^n.`,
+            'בכיוון →: פתחו את ההגדרה של symmetric(R). יהי (x₀, y₀) ∈ R⁻¹: פירושו (y₀, x₀) ∈ R. הציבו בהגדרה את y₀ ואת x₀, והשתמשו בגרירה שמתקבלת.',
+            `בכיוון ←: פתחו את ההגדרה במטרה, ויהיו x₀ ו־y₀ עם (x₀, y₀) ∈ R. בעזרת ${CLAIM_BLOCK} הוכיחו קודם (y₀, x₀) ∈ R⁻¹, ואז לפי ההכלה R⁻¹ ⊆ R.`,
         ],
-        conclusion: `הנחת האינדוקציה אומרת ש־n + 1 ≤ 2^n, והכפלה ב־2 נותנת את הצעד.`,
-        startXml: goalXml('n + 1 ≤ 2 ^ n'),
+        conclusion: 'symmetric(R) אם ורק אם R⁻¹ ⊆ R. בעצם אז גם R⁻¹ = R. כך מנסחים תכונות של יחסים בשפה של קבוצות, וזה נוח בהוכחות.',
+        startXml: goalXml('(symmetric(R) ↔ R⁻¹ ⊆ R)'),
     }),
     level(9, {
-        title: 'סכום המספרים',
-        name: 'unit8_l9_sum',
-        params: '(n : Nat)',
-        proposition: '2 * sumTo n = n * (n + 1)',
-        goalLabel: '2 · sumTo(n) = n · (n + 1)',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rfl', 'algebra_hyps'],
-        introduction: `# סכום המספרים
+        title: 'יחס טרנזיטיבי',
+        name: 'unit8_l9_transitive',
+        proposition: 'transitive R ↔ R ∘ R ⊆ R',
+        goalLabel: '(transitive(R) ↔ R ∘ R ⊆ R)',
+        claims: ['(x₀, z₀) ∈ R ∘ R', '(x₀, y₀) ∈ R ∘ R', '(y₀, z₀) ∈ R ∘ R'],
+        toolboxBlocks: ['iff_intro', 'assume', 'unfold', 'subset_intro', 'exists_elim', 'forall_elim', 'forward', 'forall_intro', 'and_elim', 'claim', 'exists_intro', 'and_intro', 'subset_elim', 'exact'],
+        introduction: `# יחס טרנזיטיבי
 
-\`sumTo(n)\` הוא הסכום \`0 + 1 + ... + n\`. הוא מוגדר ברקורסיה: \`sumTo(0) = 0\`, ו־\`sumTo(n + 1) = sumTo(n) + (n + 1)\`.
-נוכיח את הנוסחה הקלאסית: פעמיים הסכום הוא n · (n + 1). בצעד צריך אלגברה (פתיחת סוגריים). הנחת האינדוקציה מדברת על 2 · sumTo(n), אבל אחרי פתיחת ההגדרה המטרה מדברת על 2 · (sumTo(n) + (n + 1)), ולכן אי אפשר להחליף לפיה: האלגברה משתמשת בה, ${ALGEBRA_HYPS_BLOCK}`,
-        newTacticsBlocks: ['algebra_hyps'],
-        newTacticsInfo: [algebraHypsInfo],
-        newDefinitions: [definition('sumTo', 'sumTo(0) = 0, ו־sumTo(n + 1) = sumTo(n) + (n + 1).')],
+יחס R הוא *טרנזיטיבי* אם אפשר לדלג על תחנת ביניים: \`transitive(R)\` פירושו \`∀x (∀y (∀z (((x, y) ∈ R ∧ (y, z) ∈ R) → (x, z) ∈ R)))\`.
+
+נוכיח ש־R טרנזיטיבי אם ורק אם R ∘ R ⊆ R. כמו בשלב הקודם, התכונה היא הכלה של יחסים.`,
+        newDefinitions: [transitive],
         hints: [
-            `אינדוקציה על n. בבסיס: ${UNFOLD_BLOCK} עם sumTo, ואחריו ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם sumTo, ואחריו ${ALGEBRA_HYPS_BLOCK}, ובחרו בו את הנחת האינדוקציה 2 · sumTo(n) = n · (n + 1).`,
+            'בכיוון →: פתחו את ההגדרה של transitive(R). יהי (x₀, y₀) ∈ (R ∘ R); לפי ההגדרה ולפי ה"קיים" יש z₀ עם (x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R. הציבו בהגדרה את x₀, z₀ ו־y₀, בסדר הזה.',
+            'בכיוון ←: פתחו את ההגדרה במטרה, ויהיו x₀, y₀, z₀ עם (x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R. הוכיחו קודם את טענת העזר (x₀, z₀) ∈ (R ∘ R) (תחנת הביניים: y₀), ואז לפי ההכלה.',
         ],
-        conclusion: `זו הנוסחה ש־Gauss מצא, לפי הסיפור, בגיל צעיר: \`0 + 1 + ... + n = n(n + 1)/2\`. האינדוקציה מוכיחה אותה לכל n.`,
-        startXml: goalXml('2 · sumTo(n) = n · (n + 1)'),
+        conclusion: 'transitive(R) אם ורק אם R ∘ R ⊆ R. יחד עם שלב 7: ביחס רפלקסיבי וטרנזיטיבי, R ∘ R = R.',
+        startXml: goalXml('(transitive(R) ↔ R ∘ R ⊆ R)'),
     }),
     level(10, {
-        title: 'תרגיל מסכם: זוגי או אי־זוגי',
-        name: 'unit8_l10_even_odd',
-        params: '(n : Nat)',
-        proposition: '(∃ j, n = 2 * j) ∨ (∃ j, n = 2 * j + 1)',
-        goalLabel: '(∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1))',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'or_elim', 'or_intro', 'exists_elim', 'exists_intro', 'rfl', 'calc_hyps'],
-        introduction: `# תרגיל מסכם: זוגי או אי־זוגי
+        title: 'אנטי־סימטריות של חיתוך',
+        name: 'unit8_l10_antisymmetric_inter',
+        proposition: 'antisymmetric R → antisymmetric (R ∩ S)',
+        goalLabel: '(antisymmetric(R) → antisymmetric(R ∩ S))',
+        toolboxBlocks: ['assume', 'unfold', 'forall_intro', 'and_elim', 'forall_elim', 'apply_rule', 'and_intro', 'exact'],
+        introduction: `# אנטי־סימטריות של חיתוך
 
-כל מספר טבעי הוא זוגי (\`n = 2 · j\`) או אי־זוגי (\`n = 2 · j + 1\`). נוכיח זאת באינדוקציה, יחד עם הכלים של יחידות 2 ו־4.
+יחס R הוא *אנטי־סימטרי* אם שני עצמים שכל אחד מהם ביחס לשני שווים: \`antisymmetric(R)\` פירושו \`∀x (∀y (((x, y) ∈ R ∧ (y, x) ∈ R) → x = y))\`. למשל ≤ על המספרים.
 
-בצעד, הנחת האינדוקציה היא "או": חלקו למקרים. אם n זוגי, n + 1 אי־זוגי; ואם n אי־זוגי, n + 1 זוגי.
-בכל מקרה, קבלו את העצם j₀ מטענת ה"קיים", ובחרו עד מתאים. עד שאינו ברשימה, כמו 0 או j₀ + 1, כותבים ב"כתיבה ידנית".`,
+נוכיח שאם R אנטי־סימטרי, גם R ∩ S אנטי־סימטרי, יהיה S אשר יהיה. כך מוכיחים שחיתוך של סדרים חלקיים הוא סדר חלקי.`,
+        newDefinitions: [antisymmetric],
         hints: [
-            `אינדוקציה על n. בבסיס: די להוכיח את הצד הראשון, ∃j (0 = 2 · j); בחרו את העד 0 (בכתיבה ידנית), ואחריו ${RFL_BLOCK}`,
-            'בצעד: חלקו למקרים לפי הנחת האינדוקציה. במקרה הזוגי: לפי ה"קיים" ∃j (n = 2 · j), יהי j₀ כזה; די להוכיח את הצד השני, והעד הוא j₀.',
-            `במקרה האי־זוגי: יהי j₀ עם n = 2 · j₀ + 1; די להוכיח את הצד הראשון, והעד הוא j₀ + 1 (בכתיבה ידנית). בכל מקרה החשבון משתמש במה שידוע על j₀: ${CALC_HYPS_BLOCK}, ובחרו בו n = 2 · j₀ (או n = 2 · j₀ + 1).`,
+            'נניח antisymmetric(R) ופתחו את ההגדרה שלה, ואת ההגדרה במטרה. יהיו x₀, y₀, ונניח את ה"וגם".',
+            'מה"וגם", ומפתיחת הגדרת החיתוך בשני הזוגות, נובעים (x₀, y₀) ∈ R ו־(y₀, x₀) ∈ R. הציבו בהגדרה של antisymmetric(R) את x₀ ואת y₀, והשתמשו בגרירה אחורה.',
         ],
-        conclusion: `אינדוקציה עובדת יחד עם כל הכלים הקודמים: כאן הנחת האינדוקציה הייתה "או", ובכל מקרה בחרתם עד ל"קיים".
-בשלב הבונוס תוכיחו נוסחה נוספת לסכום.`,
-        startXml: goalXml('(∃j (n = 2 · j)) ∨ (∃j (n = 2 · j + 1))'),
+        conclusion: 'אנטי־סימטריות עוברת ליחס קטן יותר, כמו רפלקסיביות שעוברת ליחס גדול יותר. בחיתוך של שני סדרים חלקיים, גם רפלקסיביות וגם טרנזיטיביות נשמרות, ולכן הוא סדר חלקי.',
+        startXml: goalXml('(antisymmetric(R) → antisymmetric(R ∩ S))'),
     }),
     level(11, {
-        title: 'שלב בונוס: סכום האי־זוגיים',
-        name: 'unit8_l11_odd_sum',
-        params: '(n : Nat)',
-        proposition: 'oddSum n = n * n',
-        goalLabel: 'oddSum(n) = n · n',
-        objects: [{ name: 'n', type: 'ℕ' }],
-        toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl', 'algebra'],
-        introduction: `# בונוס: סכום האי־זוגיים
+        title: 'המינימום יחיד',
+        name: 'unit8_l11_minimum_unique',
+        params: '(m n : obj) (hR : antisymmetric R) (hm : ∀ x, (m, x) ∈ R) (hn : ∀ x, (n, x) ∈ R)',
+        proposition: 'm = n',
+        goalLabel: 'm = n',
+        objects: [{ name: 'm', type: 'obj' }, { name: 'n', type: 'obj' }],
+        toolboxBlocks: ['unfold', 'forall_elim', 'apply_rule', 'and_intro', 'exact'],
+        introduction: `# המינימום יחיד
 
-\`oddSum(n)\` הוא סכום n המספרים האי־זוגיים הראשונים: \`1 + 3 + 5 + ...\`. הוא מוגדר ברקורסיה: \`oddSum(0) = 0\`, ו־\`oddSum(n + 1) = oddSum(n) + (2n + 1)\`.
-הסכום הוא תמיד ריבוע: \`1 = 1\`, \`1 + 3 = 4\`, \`1 + 3 + 5 = 9\`. הוכיחו שזה נכון לכל n.
-כאן אפשר להחליף לפי הנחת האינדוקציה, ואחר כך מספיקה אלגברה מהמטרה לבדה: ${ALGEBRA_BLOCK}`,
-        newTacticsBlocks: ['algebra'],
-        newTacticsInfo: [algebraInfo],
-        newDefinitions: [definition('oddSum', 'oddSum(0) = 0, ו־oddSum(n + 1) = oddSum(n) + (2n + 1).')],
+ביחס סדר R, עצם m הוא *מינימום* אם הוא ביחס לכל עצם: ∀x ((m, x) ∈ R).
+נוכיח שביחס אנטי־סימטרי יש לכל היותר מינימום אחד: אם גם m וגם n מינימום, אז m = n.`,
+        hints: [`פתחו את ההגדרה של antisymmetric(R), והציבו בה את m ואת n. לפי הגרירה, די להוכיח את ה"וגם", ואת כל צד שלו נותן ${FORALL_ELIM_BLOCK} באחת ההנחות.`],
+        conclusion: 'בסדר חלקי יש לכל היותר מינימום אחד. לכן מדברים על "המינימום", בה"א הידיעה.',
+        startXml: goalXml('m = n', 'antisymmetric(R),  ∀x ((m, x) ∈ R),  ∀x ((n, x) ∈ R)'),
+    }),
+    level(12, {
+        title: 'מחלקות שקילות',
+        name: 'unit8_l12_equivalence_classes',
+        params: '(a b : obj) (hS : symmetric R) (hT : transitive R) (hab : (a, b) ∈ R)',
+        proposition: '[a]_R = [b]_R',
+        goalLabel: '[a]_R = [b]_R',
+        objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }],
+        toolboxBlocks: ['unfold', 'set_eq', 'subset_intro', 'forall_elim', 'apply_rule', 'and_intro', 'forward', 'exact'],
+        introduction: `# מחלקות שקילות
+
+יחס רפלקסיבי, סימטרי וטרנזיטיבי הוא *יחס שקילות*. \`[a]_R\` היא *מחלקת השקילות* של a: העצמים ש־a ביחס אליהם. לפי ההגדרה, \`x ∈ [a]_R\` פירושו \`(a, x) ∈ R\`.
+
+נוכיח שאם a ביחס ל־b, אז יש להם אותה מחלקה. כאן מספיקות הסימטריות והטרנזיטיביות.`,
+        newDefinitions: [equivalenceClass],
         hints: [
-            `אינדוקציה על n. בבסיס: ${UNFOLD_BLOCK} עם oddSum, ואחריו ${RFL_BLOCK}`,
-            `בצעד: ${UNFOLD_BLOCK} עם oddSum, ${REWRITE_BLOCK} עם הנחת האינדוקציה, "את oddSum(n) ב־n · n", במטרה, ואז ${ALGEBRA_BLOCK}`,
+            'פתחו את ההגדרה של transitive(R), ואחר כך שתי הכלות. בכל אחת, יהי x₀ ופתחו את הגדרת המחלקה בהנחה ובמטרה.',
+            'בהכלה הראשונה, (a, x₀) ∈ R בידינו וצריך (b, x₀) ∈ R: הציבו בטרנזיטיביות את b, a ו־x₀. את (b, a) ∈ R נותנת הסימטריות, אחרי הצבה של a ושל b.',
+            'בהכלה השנייה, (b, x₀) ∈ R בידינו וצריך (a, x₀) ∈ R: הציבו בטרנזיטיביות את a, b ו־x₀.',
         ],
-        conclusion: `סיימתם את יחידה 8, כולל שלב הבונוס! סכום n האי־זוגיים הראשונים הוא n²: כל אי־זוגי מוסיף "מסגרת" לריבוע הקודם.`,
-        startXml: goalXml('oddSum(n) = n · n'),
+        conclusion: 'אם a ביחס ל־b, אז [a]_R = [b]_R. כל עצם במחלקה "מייצג" אותה.',
+        startXml: goalXml('[a]_R = [b]_R', 'symmetric(R),  transitive(R),  (a, b) ∈ R'),
+    }),
+    level(13, {
+        title: 'מחלקות נחתכות',
+        name: 'unit8_l13_classes_meet',
+        params: '(a b c : obj) (hS : symmetric R) (hT : transitive R) (ha : c ∈ [a]_R) (hb : c ∈ [b]_R)',
+        proposition: '(a, b) ∈ R',
+        goalLabel: '(a, b) ∈ R',
+        objects: [{ name: 'a', type: 'obj' }, { name: 'b', type: 'obj' }, { name: 'c', type: 'obj' }],
+        toolboxBlocks: ['unfold', 'forall_elim', 'apply_rule', 'and_intro', 'forward', 'exact'],
+        introduction: `# מחלקות נחתכות
+
+נוכיח שאם יש עצם c בשתי המחלקות, [a]_R ו־[b]_R, אז a ביחס ל־b. יחד עם השלב הקודם: שתי מחלקות שנחתכות שוות. לכן מחלקות השקילות שוות או זרות: הן *חלוקה* של העצמים.`,
+        hints: ['פתחו את ההגדרות של שתי ההנחות על c, ואת ההגדרה של transitive(R). הציבו בה את a, c ו־b. את (c, b) ∈ R נותנת הסימטריות.'],
+        conclusion: 'שתי מחלקות שקילות שנחתכות שוות (בעזרת שלב 12). לכן כל יחס שקילות מחלק את העצמים למחלקות זרות, וכל חלוקה כזאת באה מיחס שקילות.',
+        startXml: goalXml('(a, b) ∈ R', 'symmetric(R),  transitive(R),  c ∈ [a]_R,  c ∈ [b]_R'),
+    }),
+    level(14, {
+        title: 'שלב בונוס: הרכבה של יחסים טרנזיטיביים',
+        name: 'unit8_l14_transitive_composition',
+        params: '(hR : transitive R) (hS : transitive S) (hc : R ∘ S = S ∘ R)',
+        proposition: 'transitive (R ∘ S)',
+        goalLabel: 'transitive(R ∘ S)',
+        claims: ['(z₁, z₂) ∈ S ∘ R', '(z₁, z₂) ∈ R ∘ S', '(x₀, z₀) ∈ S'],
+        toolboxBlocks: ['unfold', 'forall_intro', 'assume', 'and_elim', 'exists_elim', 'claim', 'exists_intro', 'and_intro', 'rewrite', 'forall_elim', 'apply_rule', 'exact'],
+        introduction: `# בונוס: הרכבה של יחסים טרנזיטיביים
+
+שאלה ממבחן (2023ב, מועד ב): אם R ו־S טרנזיטיביים, ו־R ∘ S = S ∘ R, אז גם R ∘ S טרנזיטיבי.
+
+מ־(x₀, y₀) ∈ (R ∘ S) ומ־(y₀, z₀) ∈ (R ∘ S) מקבלים ארבעה צעדים: S, R, S, R. בשני הצעדים האמצעיים, R ואחריו S, יש זוג ב־S ∘ R, ולפי השוויון שבידינו אפשר להחליף את הסדר שלהם. אז שני צעדי S באים יחד, ושני צעדי R באים יחד, וכל זוג מתאחד בעזרת הטרנזיטיביות.`,
+        hints: ['אחרי פתיחת ההגדרות ושני ה"קיים", יש z₁ ו־z₂ באמצע. הוכיחו את טענת העזר (z₁, z₂) ∈ (S ∘ R), החליפו בה לפי R ∘ S = S ∘ R, ופתחו שוב את ההגדרה.'],
+        conclusion: 'סיימתם את יחידה 8, כולל שלב הבונוס! השוויון R ∘ S = S ∘ R שימש כהחלפה של יחסים בתוך טענת שייכות, כמו בשלבים 2–4.',
+        startXml: goalXml('transitive(R ∘ S)', 'transitive(R),  transitive(S),  R ∘ S = S ∘ R'),
     }),
 ];

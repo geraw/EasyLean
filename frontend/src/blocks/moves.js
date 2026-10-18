@@ -26,6 +26,9 @@ const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/
 // first; only the statements that pass the filter are offered. A field for
 // where something happens (goalOption) offers "the goal" itself, first.
 const GOAL = '__goal__';
+// Terms a level offers where an object is chosen (level.terms).
+let levelTerms = [];
+export const setLevelTerms = (terms = []) => { levelTerms = terms; };
 const GOAL_LABEL = 'המטרה';
 const optionLabel = (value) => (value === PLACEHOLDER ? PLACEHOLDER : value === GOAL ? GOAL_LABEL : shown(value));
 
@@ -33,9 +36,12 @@ class FieldAssumption extends Blockly.FieldDropdown {
     constructor({ objects = false, withGoal = false, goalOption = false, filter = () => true } = {}) {
         super(function () {
             const state = this.getSourceBlock()?.stateBefore;
-            // With sets, the empty set is a set too, for a "for all sets".
+            // With sets, the empty set is a set too, for a "for all sets"; with
+            // functions, their values at the objects in hand, f(x₀); and the
+            // terms the level offers (level.terms, e.g. a set for Cantor's theorem).
+            const values = (state?.functions || []).flatMap((f) => (state?.objects || []).map((x) => `${f} ${x}`));
             const inHand = objects
-                ? [...(state?.objects || []), ...(state?.sets || []), ...(state?.sets?.length ? ['∅'] : [])]
+                ? [...new Set([...(state?.objects || []), ...(state?.sets || []), ...(state?.sets?.length ? ['∅'] : []), ...values, ...levelTerms])]
                 : [...new Set([...(goalOption ? [GOAL] : []), ...(withGoal && state?.goal ? [state.goal] : []), ...(state?.assumptions || [])])].filter((value) => value === GOAL || filter(value));
             const options = inHand.map((value) => [optionLabel(value), value]);
             // A new field starts as the first option: the placeholder (or the goal).
@@ -71,6 +77,7 @@ class FieldAssumption extends Blockly.FieldDropdown {
 // not needed, and a last item for typing one in.
 let levelClaims = [];
 export const setLevelClaims = (claims = []) => { levelClaims = claims; };
+
 
 class FieldClaim extends FieldAssumption {
     constructor() {
@@ -292,8 +299,8 @@ class FieldLawDirection extends Blockly.FieldDropdown {
     }
 }
 
-// The structures that induction is on, each by the ways it is built (units 8
-// and 9): a part of the proof for each, headed by what is proved in it. A
+// The structures that induction is on, each by the ways it is built (units 10
+// and 11): a part of the proof for each, headed by what is proved in it. A
 // part's case in Lean names the parts of the structure (args) and the
 // induction hypotheses (one _ each, found by their statement); the structure's
 // own parts that are like it get the variable's name, as Logic and Proof
@@ -330,7 +337,7 @@ let levelStructure = 'Nat';
 export const setLevelStructure = (structure = 'Nat') => { levelStructure = STRUCTURES[structure] ? structure : 'Nat'; };
 
 // The functions defined by recursion, and the definitions of addition and
-// power (units 8 and 9): their names, the structure they are defined on, and
+// power (units 10 and 11): their names, the structure they are defined on, and
 // the equations that unfold them (the first that applies).
 const FUNCTIONS = [
     ['double', 'double', ['double'], 'Nat'],
@@ -478,12 +485,25 @@ const filled = (value) => value && value !== PLACEHOLDER;
 const negation = (formula) => `¬(${formula})`;
 
 // The element taken to prove an inclusion: a set when the sets are of sets
-// (a power set), otherwise an object.
-const elementName = (block, smaller, larger = '') => newObjectName(block, smaller.startsWith('𝒫') || larger.startsWith('𝒫') ? 'X' : 'x');
+// (a power set), a pair (x₀, y₀) when they are relations (unit 8), otherwise
+// an object.
+const elementName = (block, smaller, larger = '') => {
+    if (isRelationSet(block, smaller) || isRelationSet(block, larger)) {
+        const x = newObjectName(block, 'x');
+        return `(${x}, ${freshName('y', [...thingsInHand(block), x])})`;
+    }
+    if (smaller.startsWith('Set.image')) return newObjectName(block, 'y');
+    return newObjectName(block, smaller.startsWith('𝒫') || larger.startsWith('𝒫') ? 'X' : 'x');
+};
+// Whether a set expression is built from relations in hand (an equivalence
+// class [x]_R is a set of objects).
+const isRelationSet = (block, text) => (text.replace(/\[[^\]]*\]_\S+/g, '').match(/\p{L}[\p{L}\p{N}₀-₉_']*/gu) || [])
+    .some((name) => block.stateBefore?.relations?.includes(name));
 
 // The name of a new object (∀ introduction, ∃ elimination): the quantified
 // variable's with a subscript, x₀ (see freshName).
-const newObjectName = (block, variable) => freshName(variable, [...(block.stateBefore?.objects || []), ...(block.stateBefore?.sets || [])]);
+const thingsInHand = (block) => [...(block.stateBefore?.objects || []), ...(block.stateBefore?.sets || []), ...(block.stateBefore?.relations || []), ...(block.stateBefore?.functions || [])];
+const newObjectName = (block, variable) => freshName(variable, thingsInHand(block));
 
 const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
 
@@ -1183,7 +1203,7 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Induction (units 8 and 9): a part for each way the level's structure is
+    // Induction (units 10 and 11): a part for each way the level's structure is
     // built, a basis for each one without parts like it, and a step, with an
     // induction hypothesis for each part like it, for each of the others.
     Blockly.Blocks['induction'] = {
@@ -1385,7 +1405,14 @@ leanGenerator.forBlock['exists_elim'] = (block) => {
 // Units 6 and 7. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
-    return `  refine easylean_subset_intro (fun ${sets ? elementName(block, sets[0], sets[1]) : 'x₀'} _ => ?_)\n`;
+    const element = sets ? elementName(block, sets[0], sets[1]) : 'x₀';
+    // An element of a relation is a pair, taken apart: (x₀, y₀). Lean tries
+    // that first, so that the move is right also before its state is known
+    // (when the sets are not relations, it does not apply).
+    const x = element.startsWith('(') ? element.slice(1, -1).split(', ')[0] : newObjectName(block, 'x');
+    const y = element.startsWith('(') ? element.slice(1, -1).split(', ')[1] : freshName('y', [...thingsInHand(block), x]);
+    const single = element.startsWith('(') ? x : element;
+    return `  first\n  | refine easylean_subset_intro_pair (fun ${x} ${y} _ => ?_)\n  | refine easylean_subset_intro (fun ${single} _ => ?_)\n`;
 };
 
 leanGenerator.forBlock['subset_elim'] = (block) =>
@@ -1403,7 +1430,10 @@ leanGenerator.forBlock['unfold'] = (block) => {
     const statement = block.getFieldValue('STATEMENT');
     const definition = unfoldMembership(statement);
     if (!definition) return `  have := ‹${statement}›\n`;
-    return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr)\n  | have := ${definition.lemma}.mp ‹${statement}›\n`;
+    // A composition of functions (not of relations, unit 8) is written
+    // applied, g (f x), as the block writes it (and as `Function.comp` means).
+    const applied = statement.includes('∘') && block.stateBefore?.functions?.length ? '; try simp only [Function.comp_apply]' : '';
+    return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr${applied})\n  | (have := ${definition.lemma}.mp ‹${statement}›${applied ? `${applied} at this` : ''})\n`;
 };
 
 // Unit 5. `rewrite` replaces the first part of the form of the law's side;

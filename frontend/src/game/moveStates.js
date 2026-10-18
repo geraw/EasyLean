@@ -50,11 +50,24 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
 // assumptions: they are things we have, not claims.
 const objectsOf = (assumptions) => {
     const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
-    // Natural numbers (n : ℕ), and lists, trees and formulas (unit 9), are objects too.
-    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim());
+    // Natural numbers (n : ℕ), and lists, trees and formulas (unit 11), are objects too.
+    // A pair of objects (obj × obj) is one too.
+    const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim())
+        || prop.trim().split(' × ').every((part) => domains.has(part));
     const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
+    // A relation is a set of pairs (R : Set (obj × obj), unit 8).
+    const isRelation = ({ prop }) => /^Set\s*\(.*×.*\)$/.test(prop.trim());
+    // A function between domains or sets of them (f : obj → obj, unit 9).
+    const isType = (text) => domains.has(text) || ['Nat', 'ℕ'].includes(text) || /^Set\s/.test(text);
+    const isFunction = ({ prop }) => { const sides = prop.trim().split(' → '); return sides.length === 2 && sides.every(isType); };
     const names = (test) => assumptions.filter(test).flatMap(({ name }) => name.split(/\s+/));
-    return { objects: names(isObject), sets: names(isSet), isThing: (a) => isObject(a) || isSet(a) };
+    return {
+        objects: names(isObject),
+        sets: names((a) => isSet(a) && !isRelation(a)),
+        relations: names(isRelation),
+        functions: names(isFunction),
+        isThing: (a) => isObject(a) || isSet(a) || isFunction(a),
+    };
 };
 
 // blockId → { assumptions, objects, sets, goal } before that move, for the moves
@@ -68,11 +81,13 @@ export const readMoveStates = (output, { segments }) => {
         if (findLeanProblem(own)) return;
         const goal = openGoals(own, segment.stateLine).at(-1);
         if (!goal) return;
-        const { objects, sets, isThing } = objectsOf(goal.assumptions);
+        const { objects, sets, relations, functions, isThing } = objectsOf(goal.assumptions);
         states.set(segment.after ? `${segment.blockId}:after` : segment.blockId, {
             assumptions: [...new Set(goal.assumptions.filter((a) => !isDeclaration(a.prop) && !isThing(a)).map(({ prop }) => prop))],
             objects,
             sets,
+            relations,
+            functions,
             goal: goal.goal,
         });
     });

@@ -3,7 +3,7 @@ import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly';
 import axios from 'axios';
 import { defineGameBlocks } from '../blocks/gameBlocks';
-import { defineMoveBlocks, setLevelClaims, setLevelLaws, setLevelStructure } from '../blocks/moves';
+import { defineMoveBlocks, setLevelClaims, setLevelLaws, setLevelStructure, setLevelTerms } from '../blocks/moves';
 import { applyMoveStates, buildMoveStatesSource, readMoveStates } from './moveStates';
 import { formatProofGoal } from './formatProofGoal';
 import { findIncompleteMove, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
@@ -47,6 +47,20 @@ const renderMarkdownLite = (text) => {
         }
         return <p key={idx} style={{ margin: '0 0 10px 0', lineHeight: 1.6 }}>{renderInline(trimmed, `p${idx}`)}</p>;
     });
+};
+
+// The opening assumptions on a level's card: as the level lists them, or,
+// when it does not, read from its Lean parameters, the hypotheses (h…) among
+// them, as the proof state shows them.
+const cardAssumptions = (level) => {
+    if (level.assumptions?.length) return level.assumptions.map((a) => a.prop);
+    const groups = [];
+    for (let index = 0, depth = 0, start = -1; index < (level.params || '').length; index += 1) {
+        const char = level.params[index];
+        if (char === '(') { if (depth === 0) start = index; depth += 1; }
+        if (char === ')') { depth -= 1; if (depth === 0) groups.push(level.params.slice(start + 1, index)); }
+    }
+    return groups.map((group) => group.match(/^\s*(h\w*)\s*:\s*([\s\S]+)$/)).filter(Boolean).map(([, , prop]) => formatProofGoal(prop.trim()));
 };
 
 const GameWorkspace = ({
@@ -152,6 +166,7 @@ const GameWorkspace = ({
     // (idempotent, so they may run on render).
     setLevelLaws(level.laws);
     setLevelClaims(level.claims);
+    setLevelTerms(level.terms);
     setLevelStructure(level.structure);
 
     // One drawer of moves, or, in a level with drawers (level.toolboxDrawers:
@@ -223,6 +238,9 @@ const GameWorkspace = ({
         proofStateRequestRef.current = requestId;
         const loadingState = { loading: true, goals: [{ assumptions: [], goal: level.proposition }], complete: false };
         setProofStates({ before: loadingState, after: evaluatedBlockId ? loadingState : null });
+        // A newer edit supersedes this request: aborting it lets the server
+        // drop it instead of checking it for nothing.
+        const controller = new AbortController();
 
         const timeout = setTimeout(async () => {
             try {
@@ -235,7 +253,7 @@ const GameWorkspace = ({
                 if (evaluatedBlockId && !incomplete) sources.push(generateLeanSource(evaluatedBlockId, true));
                 const responses = [];
                 for (const source of sources) {
-                    responses.push(await axios.post(proofStateEndpoint, { leanCode: source.code }));
+                    responses.push(await axios.post(proofStateEndpoint, { leanCode: source.code }, { signal: controller.signal }));
                 }
                 if (proofStateRequestRef.current === requestId) {
                     // Replace the backend's generic error with an explanation of the problem,
@@ -261,7 +279,7 @@ const GameWorkspace = ({
                     setProofStates({ before: states[0], after: states[1] || null });
                 }
             } catch {
-                if (proofStateRequestRef.current === requestId) {
+                if (proofStateRequestRef.current === requestId && !controller.signal.aborted) {
                     markBlockError(workspace, evaluatedBlockId || getLastProofBlockId(workspace), 'לא ניתן לקבל את מצב ההוכחה כרגע.');
                     setProofStates({
                         before: { loading: false, goals: [], complete: false, error: 'לא ניתן לקבל את מצב ההוכחה כרגע.' },
@@ -271,22 +289,26 @@ const GameWorkspace = ({
             }
         }, 180);
 
-        return () => clearTimeout(timeout);
+        return () => {
+            clearTimeout(timeout);
+            controller.abort();
+        };
     }, [workspace, workspaceRevision, levelIdx, proofStateEndpoint, evaluatedBlockId, clearBlockError, markBlockError]);
 
     // The proof state before each move, which the moves follow (their text,
     // and their menus). A move's Lean may follow the state before it (e.g. the
     // name of a new object), so when the states change the code, it is
-    // checked again. Gives up quietly if a newer request starts: without the
-    // states the moves keep their general wording.
+    // checked again. Gives up quietly if a newer request starts (which aborts
+    // this one, through `signal`): without the states the moves keep their
+    // general wording.
     const moveStatesRequestRef = useRef(0);
-    const settleMoveStates = async (requestId) => {
+    const settleMoveStates = async (requestId, signal) => {
         for (let round = 0, checked = null; round < 5; round += 1) {
             const source = buildMoveStatesSource(workspace, level, preamble);
-            if (!source || source.code === checked) return;
+            if (!source || source.code === checked || signal?.aborted) return;
             checked = source.code;
             try {
-                const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code });
+                const { data } = await axios.post(proofStateEndpoint, { leanCode: source.code }, { signal });
                 // A newer edit's request supersedes this one; the check's own (null) is never superseded.
                 if (requestId !== null && moveStatesRequestRef.current !== requestId) return;
                 applyMoveStates(workspace, readMoveStates(data.output || '', source));
@@ -299,8 +321,12 @@ const GameWorkspace = ({
         if (!proofStateEndpoint || !workspace) return undefined;
         const requestId = moveStatesRequestRef.current + 1;
         moveStatesRequestRef.current = requestId;
-        const timeout = setTimeout(() => settleMoveStates(requestId), 180);
-        return () => clearTimeout(timeout);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => settleMoveStates(requestId, controller.signal), 180);
+        return () => {
+            clearTimeout(timeout);
+            controller.abort();
+        };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [workspace, workspaceRevision, level, preamble, proofStateEndpoint]);
 
@@ -354,15 +380,23 @@ const GameWorkspace = ({
     const renderGoal = ({ assumptions: all, goal }, spacing) => {
         const domains = new Set(all.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
         // Lists, trees and formulas (unit 9) are objects too.
-        const isObject = ({ prop }) => domains.has(prop.trim()) || ['Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim());
+        const isObject = ({ prop }) => domains.has(prop.trim()) || ['Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim())
+            || prop.trim().split(' × ').every((part) => domains.has(part));
         const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
         // Sets of objects (A : Set obj), and families of sets, are listed by name too.
         const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
+        // Relations (R : Set (obj × obj), unit 10) are listed apart from the sets.
+        const isRelation = ({ prop }) => /^Set\s*\(.*×.*\)$/.test(prop.trim());
         // Natural numbers (n : Nat) are listed by name too.
         const isNumber = ({ prop }) => ['Nat', 'ℕ'].includes(prop.trim());
         const numbers = all.filter(isNumber).flatMap(({ name }) => name.split(/\s+/));
-        const sets = all.filter(isSet).flatMap(({ name }) => name.split(/\s+/));
-        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption) && !isSet(assumption) && !isNumber(assumption));
+        const sets = all.filter((a) => isSet(a) && !isRelation(a)).flatMap(({ name }) => name.split(/\s+/));
+        const relations = all.filter(isRelation).flatMap(({ name }) => name.split(/\s+/));
+        // Functions (f : obj → obj, unit 9) are listed by name too.
+        const isType = (text) => domains.has(text) || ['Nat', 'ℕ'].includes(text) || /^Set\s/.test(text);
+        const isFunction = ({ prop }) => { const sides = prop.trim().split(' → '); return sides.length === 2 && sides.every(isType); };
+        const functions = all.filter(isFunction).flatMap(({ name }) => name.split(/\s+/));
+        const assumptions = all.filter((assumption) => !isDeclaration(assumption) && !isObject(assumption) && !isSet(assumption) && !isNumber(assumption) && !isFunction(assumption));
         return (
         <>
             <h4 style={{ margin: '0 0 6px 0' }}>מה יש לנו ביד</h4>
@@ -373,6 +407,28 @@ const GameWorkspace = ({
                         <React.Fragment key={set}>
                             {index > 0 && ', '}
                             <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{set}</span>
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
+            {functions.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                    פונקציות:{' '}
+                    {functions.map((f, index) => (
+                        <React.Fragment key={f}>
+                            {index > 0 && ', '}
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{f}</span>
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
+            {relations.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                    יחסים:{' '}
+                    {relations.map((relation, index) => (
+                        <React.Fragment key={relation}>
+                            {index > 0 && ', '}
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{relation}</span>
                         </React.Fragment>
                     ))}
                 </div>
@@ -407,7 +463,7 @@ const GameWorkspace = ({
                     {formatProofGoal(assumption.prop)}
                 </div>
             ))}
-            {objects.length === 0 && numbers.length === 0 && sets.length === 0 && assumptions.length === 0 && (
+            {objects.length === 0 && numbers.length === 0 && sets.length === 0 && relations.length === 0 && functions.length === 0 && assumptions.length === 0 && (
                 <div style={{ color: '#555', marginBottom: spacing }}>עדיין לא הוספנו הנחות.</div>
             )}
             <h4 style={{ margin: `${spacing} 0 6px 0` }}>מה נשאר להוכיח</h4>
@@ -561,8 +617,8 @@ const GameWorkspace = ({
                             <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{o.name}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
-                        {level.assumptions.map(a => (
-                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{a.prop}</div>
+                        {cardAssumptions(level).map((prop) => (
+                            <div key={prop} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{prop}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
                         <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace", fontWeight: 'bold' }}>{level.goalLabel}</div>

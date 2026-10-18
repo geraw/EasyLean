@@ -94,11 +94,11 @@ const writePowerSets = (text) => {
     return result + text.slice(index);
 };
 
-// The functions of units 8 and 9, and the ways structures are built, applied
+// The functions of units 10 and 11, and the ways structures are built, applied
 // to their arguments as functions are written: `double (k + 1)` is
 // `double(k + 1)`, `mirror (node l r)` is `mirror(node(l,r))`, and Lean's
 // `List.length l` is `length(l)`.
-const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'sumCubes', 'f', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
+const FUNCTION_NAMES = new Set(['double', 'sumTo', 'oddSum', 'sumCubes', 'f', 'g', 'injective', 'surjective', 'reflexive', 'symmetric', 'transitive', 'antisymmetric', 'max', 'length', 'leaves', 'nodes', 'height', 'mirror', 'node',
     'opening', 'closing', 'atoms', 'binaries', 'negations', 'depth', 'atom', 'neg', 'conj']);
 const NAME = /^[\p{L}\p{N}_'₀-₉]+/u;
 const closingOf = (text, start) => {
@@ -159,7 +159,7 @@ const writeApplications = (text) => {
     return result;
 };
 
-// Lists (unit 9) and sets (units 6-7): Lean prints `(l ++ m) ++ k` as
+// Lists (unit 11) and sets (units 6-7): Lean prints `(l ++ m) ++ k` as
 // `l ++ m ++ k`, `(a :: l) ++ m` as `a :: l ++ m`, and `(A \ B) ∩ C` as
 // `A \ B ∩ C`, by the precedence of the operators. The display writes the
 // parentheses of every operation inside another one (but a :: inside a ::,
@@ -168,7 +168,7 @@ const writeApplications = (text) => {
 // a membership is about is in parentheses when it is an operation:
 // `¬x ∈ A \ B` is `¬x ∈ (A \ B)`, which cannot be read as `(¬x ∈ A) \ B`.
 const RELATIONS = new Set(['=', '≠', '≤', '<', '≥', '>']);
-const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∆': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'] };
+const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∆': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'], '∘': [90, 'right'] };
 const isInfix = (word) => Object.prototype.hasOwnProperty.call(INFIX, word);
 // The words of a text at its top level: groups in parentheses or brackets are
 // one word each, with their insides written the same way.
@@ -217,7 +217,7 @@ const writeListRun = (words) => {
 };
 const enclosedGroup = (word) => word.startsWith('(') && closingOf(word, 0) === word.length - 1;
 const writeLists = (text) => {
-    if (!/\+\+|::|∪|∆|∩|\\/.test(text)) return text;
+    if (!/\+\+|::|∪|∆|∩|∘|\\/.test(text)) return text;
     const separate = topLevelWords(text);
     if (!separate) return text;
     // The union or intersection of a family is one operand: `⋃ F ∪ A` is (⋃ F) ∪ A.
@@ -238,6 +238,20 @@ const writeLists = (text) => {
         }
     }
     return result.join(' ');
+};
+
+// The image and the preimage (unit 9), as the course writes them: Lean's
+// `Set.image f A` is f[A], and `Set.preimage f B` is f⁻¹[B]; and a set given
+// by a property, `setOf fun x => P x`, is {x | P(x)} (to the end of the
+// statement, or of the parentheses around it).
+const writeImages = (text) => {
+    let result = text.replace(/setOf fun (\S+) => ([^()]*(?:\([^()]*\)[^()]*)*)/gu, (match, x, body) => `{${x} | ${body.trim()}}`);
+    for (let previous = null; previous !== result;) {
+        previous = result;
+        result = result.replace(/Set\.(image|preimage) (\S+) (\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)|[^\s()]+)/u,
+            (match, kind, f, set) => `${f}${kind === 'preimage' ? '⁻¹' : ''}[${stripOuterParentheses(set)}]`);
+    }
+    return result;
 };
 
 export const formatProofGoal = (text) => {
@@ -267,7 +281,9 @@ export const formatProofGoal = (text) => {
     // Multiplication is written with a dot.
     // The union and intersection of a family are written next to it, ⋃F, as
     // in the textbooks: apart, ⋂ F reads like the binary ∩ with a side missing.
-    return writeLists(writeApplications(writePowerSets(normalized))).replace(/ \* /g, ' · ').replace(/([⋃⋂]) /g, '$1');
+    return writeLists(writeApplications(writePowerSets(writeImages(normalized)))).replace(/ \* /g, ' · ').replace(/([⋃⋂]) /g, '$1')
+        // The inverse of an inverse: Lean writes R⁻¹⁻¹.
+        .replace(/(\S+⁻¹)⁻¹/g, '($1)⁻¹');
 };
 
 // The two sides of a formula whose main connective is `symbol` (one of
@@ -319,10 +335,11 @@ export const splitRelation = (text, relation) => {
     return [normalized.slice(0, found.index).trim(), normalized.slice(found.index + found.length).trim()];
 };
 
-const isAtom = (text) => /^[\p{L}\p{N}_₀-₉']+$/u.test(text);
+const isAtom = (text) => /^[\p{L}\p{N}_₀-₉']+(⁻¹)?$/u.test(text);
 const wrap = (text) => {
     const set = stripOuterParentheses(text);
-    return isAtom(set) ? set : `(${set})`;
+    // An image or a preimage is written f[A], f⁻¹[B]: one piece.
+    return isAtom(set) || /^Set\.(image|preimage) /.test(set) ? set : `(${set})`;
 };
 
 // The last top-level occurrence of one of the operations (they group to the left).
@@ -351,6 +368,42 @@ const SET_OPERATIONS = {
     '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
     '⋃': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
     '⋂': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
+    // Relations (unit 8): a member is a pair (x, y).
+    '⁻¹': { lemma: 'easylean_mem_inv', name: 'היחס ההפוך', means: (t, [r]) => { const [x, y] = pairOf(t); return `(${y}, ${x}) ∈ ${r}`; } },
+    '∘': { lemma: 'easylean_mem_comp', name: 'ההרכבה', means: (t, [r, s]) => { const [x, y] = pairOf(t); return `∃ z, (${x}, z) ∈ ${s} ∧ (z, ${y}) ∈ ${r}`; } },
+    '[]_': { lemma: 'easylean_mem_cls', name: 'מחלקת השקילות', means: (t, [x, r]) => `(${stripOuterParentheses(x)}, ${stripOuterParentheses(t)}) ∈ ${r}` },
+    // Functions (unit 9): the image, the preimage, and a set given by a property.
+    image: { lemma: 'easylean_mem_image', name: 'התמונה', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
+    preimage: { lemma: 'easylean_mem_preimage', name: 'התמונה ההפוכה', means: (t, [f, b]) => `${f} ${t} ∈ ${b}` },
+    setOf: { lemma: 'easylean_mem_setOf', name: 'קבוצה לפי תכונה', means: (t, [x, p]) => substituteName(stripOuterParentheses(p), stripOuterParentheses(x), t) },
+};
+
+// A statement with a name replaced by a term (a whole word only).
+const substituteName = (text, name, term) => text.replace(new RegExp(`(?<![\\p{L}\\p{N}_₀-₉'])${name}(?![\\p{L}\\p{N}_₀-₉'])`, 'gu'), term);
+
+// The two parts of a pair `(x, y)`, or of any other member, as Lean would
+// name them.
+const pairOf = (text) => {
+    const inner = stripOuterParentheses(text);
+    const comma = findTopLevel(inner, [',']);
+    return comma ? [inner.slice(0, comma.index).trim(), inner.slice(comma.index + 1).trim()] : [`${text}.1`, `${text}.2`];
+};
+
+// The properties of a relation (unit 8), defined as statements about its
+// pairs: what each says, the lemma stating it (see RELATION_PRELUDE), and its
+// name in Hebrew.
+const PROPERTIES = {
+    reflexive: { name: 'הרפלקסיביות', means: (r) => `∀ x, (x, x) ∈ ${r}` },
+    symmetric: { name: 'הסימטריות', means: (r) => `∀ x y, (x, y) ∈ ${r} → (y, x) ∈ ${r}` },
+    transitive: { name: 'הטרנזיטיביות', means: (r) => `∀ x y z, (x, y) ∈ ${r} ∧ (y, z) ∈ ${r} → (x, z) ∈ ${r}` },
+    antisymmetric: { name: 'האנטי־סימטריות', means: (r) => `∀ x y, (x, y) ∈ ${r} ∧ (y, x) ∈ ${r} → x = y` },
+    // Of a function (unit 9): (g ∘ f)(x) is written g(f(x)), as the move does.
+    injective: { name: 'פונקציה חד־חד־ערכית', means: (f) => `∀ x y, ${applied(f, 'x')} = ${applied(f, 'y')} → x = y` },
+    surjective: { name: 'פונקציה על', means: (f) => `∀ y, ∃ x, ${applied(f, 'x')} = y` },
+};
+const applied = (f, x) => {
+    const composition = stripOuterParentheses(f).match(/^(\S+) ∘ (\S+)$/);
+    return composition ? `${composition[1]} (${composition[2]} ${x})` : `${f} ${x}`;
 };
 
 // The main operation of a set expression and its operands, or null for a set's name.
@@ -360,15 +413,32 @@ const mainSetOperation = (text) => {
         const found = findLastTopLevel(set, operations);
         if (found) return { operation: found.operation, operands: [set.slice(0, found.index).trim(), set.slice(found.index + found.length).trim()] };
     }
+    // Composition binds tighter, and to the right: R ∘ S ∘ T is R ∘ (S ∘ T).
+    const composition = findTopLevel(set, [' ∘ ']);
+    if (composition) return { operation: '∘', operands: [set.slice(0, composition.index).trim(), set.slice(composition.index + 3).trim()] };
     if (set.endsWith('ᶜ')) return { operation: 'ᶜ', operands: [set.slice(0, -1).trim()] };
+    if (set.endsWith('⁻¹')) return { operation: '⁻¹', operands: [set.slice(0, -2).trim()] };
+    const equivalenceClass = set.match(/^\[(.+)\]_(.+)$/);
+    if (equivalenceClass) return { operation: '[]_', operands: [equivalenceClass[1], equivalenceClass[2]] };
+    const image = set.match(/^Set\.(image|preimage) (\S+) (.+)$/);
+    if (image) return { operation: image[1], operands: [image[2], image[3]] };
+    const byProperty = set.match(/^setOf fun (\S+) => (.+)$/);
+    if (byProperty) return { operation: 'setOf', operands: [byProperty[1], byProperty[2]] };
     if (set === '∅') return { operation: '∅', operands: [] };
     const prefix = ['𝒫', '⋃', '⋂'].find((operation) => set.startsWith(`${operation} `) || set.startsWith(`${operation}(`));
     return prefix ? { operation: prefix, operands: [set.slice(prefix.length).trim()] } : null;
 };
 
 // What a membership statement `t ∈ S` means by the definition of S's main
-// operation: { name, lemma, means }, or null when it is not one.
+// operation, or a property of a relation (`reflexive R`) by its definition:
+// { name, lemma, means }, or null when it is not one.
 export const unfoldMembership = (text) => {
+    // A property of one relation or function: its argument is a name or a group.
+    const property = stripOuterParentheses(text || '').match(/^(reflexive|symmetric|transitive|antisymmetric|injective|surjective) ([^\s()]+|\((?:[^()]|\([^()]*\))*\))$/);
+    if (property) {
+        const { name, means } = PROPERTIES[property[1]];
+        return { name, lemma: `easylean_${property[1]}`, means: means(wrap(property[2])) };
+    }
     const sides = splitRelation(text, '∈');
     const main = sides && mainSetOperation(sides[1]);
     if (!main) return null;

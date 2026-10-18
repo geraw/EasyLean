@@ -14,7 +14,7 @@
 | לפי הגדרת קבוצת החזקה, [X₀ ∈ 𝒫(A)] פירושו X₀ ⊆ A | `have := easylean_mem_powerset.mp ‹X₀ ∈ 𝒫(A)›` | `X₀ ∈ 𝒫(A) ⊢ …` ⟶ גם `X₀ ⊆ A` |
 | לפי הגדרת איחוד המשפחה, כדי להוכיח [x₀ ∈ ⋃F] די להוכיח ∃S (S ∈ F ∧ x₀ ∈ S) | `apply easylean_mem_sUnion.mpr` | `⊢ x₀ ∈ ⋃ F` ⟶ `⊢ ∃S (S ∈ F ∧ x₀ ∈ S)` |
 | לפי הגדרת חיתוך המשפחה, [x₀ ∈ ⋂F] פירושו ∀S (S ∈ F → x₀ ∈ S) | `have := easylean_mem_sInter.mp ‹x₀ ∈ ⋂ F›` | `x₀ ∈ ⋂ F ⊢ …` ⟶ גם `∀S (S ∈ F → x₀ ∈ S)` |
-| כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X₀ ∈ 𝒫(A) ונוכיח X₀ ∈ 𝒫(B) | `refine easylean_subset_intro (fun X₀ _ => ?_)` | `⊢ 𝒫(A) ⊆ 𝒫(B)` ⟶ `X₀ ∈ 𝒫(A) ⊢ X₀ ∈ 𝒫(B)`, ובידינו הקבוצה X₀ |
+| כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X₀ ∈ 𝒫(A) ונוכיח X₀ ∈ 𝒫(B) | `refine easylean_subset_intro (fun X₀ _ => ?_)` (אחרי ניסיון של זוג, ראו יחידה 6) | `⊢ 𝒫(A) ⊆ 𝒫(B)` ⟶ `X₀ ∈ 𝒫(A) ⊢ X₀ ∈ 𝒫(B)`, ובידינו הקבוצה X₀ |
 | לפי ההכלה [X₀ ⊆ A] ומ־[x₀ ∈ X₀] נובע x₀ ∈ A | `have := easylean_subset_elim ‹X₀ ⊆ A› ‹x₀ ∈ X₀›` | `X₀ ⊆ A, x₀ ∈ X₀ ⊢ …` ⟶ גם `x₀ ∈ A` |
 | כדי להוכיח ∃S (S ∈ F ∧ x₀ ∈ S) נבחר את העצם [A] ונוכיח (A ∈ F ∧ x₀ ∈ A) | `apply Exists.intro (A)` | `⊢ ∃S (S ∈ F ∧ x₀ ∈ S)` ⟶ `⊢ A ∈ F ∧ x₀ ∈ A` |
 | לפי ה"קיים" [∃S (S ∈ F ∧ x₀ ∈ S)] יהי S₀ עצם כך ש־(S₀ ∈ F ∧ x₀ ∈ S₀) | `refine Exists.elim ‹∃ S, S ∈ F ∧ x₀ ∈ S› (fun S₀ _ => ?_)` | `∃S (S ∈ F ∧ x₀ ∈ S) ⊢ …` ⟶ גם `S₀ ∈ F ∧ x₀ ∈ S₀`, ובידינו הקבוצה S₀ |

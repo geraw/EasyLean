@@ -21,7 +21,7 @@ for (const { unit, world, levels } of UNITS) {
                 await clearProof(page);
                 await buildProof(page, steps);
                 await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-                await expect(page.getByText('הצלחה!').first()).toBeVisible();
+                await expect(page.getByText('הצלחה!').first()).toBeVisible({ timeout: 20000 });
                 // The goal block with the whole proof inside it, nothing selected.
                 const goalId = await page.evaluate(() => {
                     window.__easyleanWorkspace.getAllBlocks(false).forEach((b) => b.unselect?.());

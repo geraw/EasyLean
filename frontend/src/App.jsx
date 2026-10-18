@@ -10,6 +10,8 @@ import { unit6Levels, unit6WorldName } from './game/unit6World';
 import { unit7Levels, unit7WorldName } from './game/unit7World';
 import { unit8Levels, unit8WorldName } from './game/unit8World';
 import { unit9Levels, unit9WorldName } from './game/unit9World';
+import { unit10Levels, unit10WorldName } from './game/unit10World';
+import { unit11Levels, unit11WorldName } from './game/unit11World';
 import { unit12Levels, unit12WorldName } from './game/unit12World';
 import { BACKEND_URL } from './backendUrl';
 import './App.css';
@@ -38,7 +40,9 @@ const UNITS = {
   unit6: { levels: unit6Levels, worldName: unit6WorldName, next: { mode: 'unit7', label: 'ליחידה 7' } },
   unit7: { levels: unit7Levels, worldName: unit7WorldName, next: { mode: 'unit8', label: 'ליחידה 8' } },
   unit8: { levels: unit8Levels, worldName: unit8WorldName, next: { mode: 'unit9', label: 'ליחידה 9' } },
-  unit9: { levels: unit9Levels, worldName: unit9WorldName, next: { mode: 'unit12', label: 'ליחידה 12' } },
+  unit9: { levels: unit9Levels, worldName: unit9WorldName, next: { mode: 'unit10', label: 'ליחידה 10' } },
+  unit10: { levels: unit10Levels, worldName: unit10WorldName, next: { mode: 'unit11', label: 'ליחידה 11' } },
+  unit11: { levels: unit11Levels, worldName: unit11WorldName, next: { mode: 'unit12', label: 'ליחידה 12' } },
   unit12: { levels: unit12Levels, worldName: unit12WorldName },
 };
 

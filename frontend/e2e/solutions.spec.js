@@ -29,7 +29,8 @@ for (const { unit, world, levels } of UNITS) {
                 await clearProof(page);
                 await buildProof(page, steps);
                 await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
-                await expect(page.getByText('הצלחה!').first()).toBeVisible();
+                // A long proof first brings the states of its moves up to date, in a few rounds.
+                await expect(page.getByText('הצלחה!').first()).toBeVisible({ timeout: 20000 });
             });
         });
     });
@@ -59,10 +60,10 @@ test('a negation is not used as an implication, since it has its own moves', asy
 
 test('after a long introduction, the button to the next level can be reached', async ({ page }) => {
     await page.setViewportSize({ width: 1900, height: 900 });
-    const unit9 = UNITS.find(({ unit }) => unit === 9);
-    await openLevel(page, unit9.world, 0);
+    const unit11 = UNITS.find(({ unit }) => unit === 11);
+    await openLevel(page, unit11.world, 0);
     await clearProof(page);
-    await buildProof(page, unit9.levels[0][0].steps);
+    await buildProof(page, unit11.levels[0][0].steps);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     const next = page.getByRole('button', { name: 'לשלב הבא' });
     await next.scrollIntoViewIfNeeded();
@@ -78,22 +79,22 @@ const resultText = (page, blockId) => page.evaluate((id) => {
 }, blockId);
 
 test('a move that changes a statement writes what it gives, in the goal or in hand', async ({ page }) => {
-    const unit9 = UNITS.find(({ unit }) => unit === 9);
-    await openLevel(page, unit9.world, 0);
+    const unit11 = UNITS.find(({ unit }) => unit === 11);
+    await openLevel(page, unit11.world, 0);
     await clearProof(page);
-    const [, , unfold, rewrite] = await buildProof(page, unit9.levels[0][0].steps);
+    const [, , unfold, rewrite] = await buildProof(page, unit11.levels[0][0].steps);
     await expect.poll(() => resultText(page, unfold)).toBe('ונקבל שצריך להוכיח a :: (l ++ []) = a :: l');
     await expect.poll(() => resultText(page, rewrite)).toBe('ונקבל שצריך להוכיח a :: l = a :: l');
     const unit8 = UNITS.find(({ unit }) => unit === 8);
-    await openLevel(page, unit8.world, 2);
+    await openLevel(page, unit8.world, 1);
     await clearProof(page);
-    const [inHand] = await buildProof(page, unit8.levels[2][0].steps);
-    await expect.poll(() => resultText(page, inHand)).toBe('ונקבל P(a)');
+    const [inHand] = await buildProof(page, unit8.levels[1][0].steps);
+    await expect.poll(() => resultText(page, inHand)).toBe('ונקבל (b, c) ∈ R');
 });
 
 test('arithmetic from the goal alone does not use the induction hypothesis', async ({ page }) => {
-    const unit9 = UNITS.find(({ unit }) => unit === 9);
-    await openLevel(page, unit9.world, 1);
+    const unit11 = UNITS.find(({ unit }) => unit === 11);
+    await openLevel(page, unit11.world, 1);
     await clearProof(page);
     const unfold = (name) => ['unfold_function', { FUNCTION: name }];
     await buildProof(page, [['induction', { VARIABLE: 'l' }, {
@@ -112,26 +113,26 @@ const blockText = (page, blockId) => page.evaluate((id) => window.__easyleanWork
 
 test('a move that uses an induction hypothesis says so', async ({ page }) => {
     const unit = (number) => UNITS.find(({ unit: candidate }) => candidate === number);
-    await openLevel(page, unit(9).world, 0);
+    await openLevel(page, unit(11).world, 0);
     await clearProof(page);
-    const [, , , rewrite] = await buildProof(page, unit(9).levels[0][0].steps);
+    const [, , , rewrite] = await buildProof(page, unit(11).levels[0][0].steps);
     await expect.poll(() => blockText(page, rewrite)).toMatch(/^לפי הנחת האינדוקציה l \+\+ \[\] = l נחליף/);
-    await openLevel(page, unit(9).world, 6);
+    await openLevel(page, unit(11).world, 6);
     await clearProof(page);
-    const [, , , , close] = await buildProof(page, unit(9).levels[6][0].steps);
+    const [, , , , close] = await buildProof(page, unit(11).levels[6][0].steps);
     await expect.poll(() => blockText(page, close)).toBe('זו בדיוק הנחת האינדוקציה.');
-    await openLevel(page, unit(9).world, 4);
+    await openLevel(page, unit(11).world, 4);
     await clearProof(page);
-    const steps = await buildProof(page, unit(9).levels[4][0].steps);
+    const steps = await buildProof(page, unit(11).levels[4][0].steps);
     await expect.poll(() => blockText(page, steps.at(-1))).toBe('נכונות המטרה נובעת מחשבון פשוט / ומהנחות האינדוקציה height(l) ≤ nodes(l) / ו־height(r) ≤ nodes(r) / \u00a0');
     // Outside an induction, the moves read as before (the assumptions they use, by their statements).
-    await openLevel(page, unit(8).world, 6);
+    await openLevel(page, unit(10).world, 3);
     await clearProof(page);
-    const [, calc] = await buildProof(page, unit(8).levels[6][0].steps);
+    const [, calc] = await buildProof(page, unit(10).levels[3][0].steps);
     await expect.poll(() => blockText(page, calc)).toBe('נכונות המטרה נובעת מחשבון פשוט / ומ־ n + 1 ≤ n / \u00a0');
-    await openLevel(page, unit(8).world, 2);
+    await openLevel(page, unit(8).world, 1);
     await clearProof(page);
-    const [byEquality] = await buildProof(page, unit(8).levels[2][0].steps);
+    const [byEquality] = await buildProof(page, unit(8).levels[1][0].steps);
     await expect.poll(() => blockText(page, byEquality)).toMatch(/^לפי השוויון a = b נחליף/);
 });
 

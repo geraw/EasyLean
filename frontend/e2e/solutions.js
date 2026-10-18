@@ -41,9 +41,9 @@ const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BA
 // An intermediate claim, proved in its part, and then in hand.
 const claim = (statement, proof) => ['claim', { CLAIM: statement }, { PROOF: proof }];
 const induction = (variable, base, step) => ['induction', { VARIABLE: variable }, { BASE: base, STEP: step }];
-// Structural induction (unit 9): a part for each way the structure is built.
+// Structural induction (unit 11): a part for each way the structure is built.
 const inductionOn = (variable, parts) => ['induction', { VARIABLE: variable }, parts];
-// The step of ∧ in 9.8: by both induction hypotheses, then arithmetic.
+// The step of ∧ in 11.8: by both induction hypotheses, then arithmetic.
 const ihs = [rewrite('atoms φ = binaries φ + 1', 'FORWARD'), rewrite('atoms ψ = binaries ψ + 1', 'FORWARD'), calc];
 
 // Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
@@ -309,18 +309,159 @@ export const UNITS = [
     },
     {
         unit: 8,
-        world: 'יחידה 8 - שוויון ואינדוקציה',
+        world: 'יחידה 8 - שוויון ויחסים',
         levels: [
             [{ label: 'פתרון', steps: [rfl] }],
-            [{ label: 'פתרון', steps: [rewrite('y = x + 7', 'FORWARD'), rfl] }],
             [
-                { label: 'בטענה שבידינו', steps: [rewrite('a = b', 'BACKWARD', 'P b'), close] },
-                { label: 'במטרה', steps: [rewrite('a = b', 'FORWARD'), close] },
+                { label: 'בטענה שבידינו', steps: [rewrite('a = b', 'FORWARD', '(a, c) ∈ R'), close] },
+                { label: 'במטרה', steps: [rewrite('a = b', 'BACKWARD'), close] },
             ],
+            [{ label: 'פתרון', steps: [rewrite('a = b', 'FORWARD'), rfl] }],
             [
                 { label: 'a ב־b', steps: [rewrite('a = b', 'FORWARD'), close] },
                 { label: 'c ב־b', steps: [rewrite('b = c', 'BACKWARD'), close] },
             ],
+            [{
+                label: 'פתרון',
+                steps: [setEq([subsetIntro, unfold('(x₀, y₀) ∈ R⁻¹⁻¹'), unfold('(y₀, x₀) ∈ R⁻¹'), close], [subsetIntro, unfold('(x₀, y₀) ∈ R⁻¹⁻¹'), unfold('(y₀, x₀) ∈ R⁻¹'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('(x₀, y₀) ∈ (R ∘ S)⁻¹'), unfold('(y₀, x₀) ∈ R ∘ S'), existsElim('∃ z, (y₀, z) ∈ S ∧ (z, x₀) ∈ R'), andElim('(y₀, z₀) ∈ S ∧ (z₀, x₀) ∈ R'),
+                    unfold('(x₀, y₀) ∈ S⁻¹ ∘ R⁻¹'), existsIntro('z₀'), andIntro([unfold('(x₀, z₀) ∈ R⁻¹'), close], [unfold('(z₀, y₀) ∈ S⁻¹'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, unfold('reflexive R'), subsetIntro, unfold('(x₀, y₀) ∈ R ∘ R'), existsIntro('y₀'), andIntro([close], [forallElim('∀ (x : obj), (x, x) ∈ R', 'y₀'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, unfold('symmetric R'), subsetIntro, unfold('(x₀, y₀) ∈ R⁻¹'), forallElim('∀ (x y : obj), (x, y) ∈ R → (y, x) ∈ R', 'y₀'),
+                        forallElim('∀ (y : obj), (y₀, y) ∈ R → (y, y₀) ∈ R', 'x₀'), forward('(y₀, x₀) ∈ R → (x₀, y₀) ∈ R', '(y₀, x₀) ∈ R'), close],
+                    [assume, unfold('symmetric R'), forallIntro, forallIntro, assume, claim('(y₀, x₀) ∈ R⁻¹', [unfold('(y₀, x₀) ∈ R⁻¹'), close]),
+                        subsetElim('R⁻¹ ⊆ R', '(y₀, x₀) ∈ R⁻¹'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, unfold('transitive R'), subsetIntro, unfold('(x₀, y₀) ∈ R ∘ R'), existsElim('∃ z, (x₀, z) ∈ R ∧ (z, y₀) ∈ R'),
+                        forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ R ∧ (y, z) ∈ R → (x₀, z) ∈ R', 'z₀'),
+                        forallElim('∀ (z : obj), (x₀, z₀) ∈ R ∧ (z₀, z) ∈ R → (x₀, z) ∈ R', 'y₀'), forward('(x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R → (x₀, y₀) ∈ R', '(x₀, z₀) ∈ R ∧ (z₀, y₀) ∈ R'), close],
+                    [assume, unfold('transitive R'), forallIntro, forallIntro, forallIntro, assume, andElim('(x₀, y₀) ∈ R ∧ (y₀, z₀) ∈ R'),
+                        claim('(x₀, z₀) ∈ R ∘ R', [unfold('(x₀, z₀) ∈ R ∘ R'), existsIntro('y₀'), andIntro([close], [close])]), subsetElim('R ∘ R ⊆ R', '(x₀, z₀) ∈ R ∘ R'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, unfold('antisymmetric R'), unfold('antisymmetric (R ∩ S)'), forallIntro, forallIntro, assume, andElim('(x₀, y₀) ∈ R ∩ S ∧ (y₀, x₀) ∈ R ∩ S'),
+                    unfold('(x₀, y₀) ∈ R ∩ S'), andElim('(x₀, y₀) ∈ R ∧ (x₀, y₀) ∈ S'), unfold('(y₀, x₀) ∈ R ∩ S'), andElim('(y₀, x₀) ∈ R ∧ (y₀, x₀) ∈ S'),
+                    forallElim('∀ (x y : obj), (x, y) ∈ R ∧ (y, x) ∈ R → x = y', 'x₀'), forallElim('∀ (y : obj), (x₀, y) ∈ R ∧ (y, x₀) ∈ R → x₀ = y', 'y₀'),
+                    backward('(x₀, y₀) ∈ R ∧ (y₀, x₀) ∈ R → x₀ = y₀'), andIntro([close], [close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [unfold('antisymmetric R'), forallElim('∀ (x y : obj), (x, y) ∈ R ∧ (y, x) ∈ R → x = y', 'm'), forallElim('∀ (y : obj), (m, y) ∈ R ∧ (y, m) ∈ R → m = y', 'n'),
+                    backward('(m, n) ∈ R ∧ (n, m) ∈ R → m = n'), andIntro([forallElim('∀ (x : obj), (m, x) ∈ R', 'n'), close], [forallElim('∀ (x : obj), (n, x) ∈ R', 'm'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [unfold('transitive R'), setEq(
+                    [subsetIntro, unfold('x₀ ∈ [a]_R'), unfold('x₀ ∈ [b]_R'), forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'b'), forallElim('∀ (y z : obj), (b, y) ∈ R ∧ (y, z) ∈ R → (b, z) ∈ R', 'a'),
+                        forallElim('∀ (z : obj), (b, a) ∈ R ∧ (a, z) ∈ R → (b, z) ∈ R', 'x₀'), backward('(b, a) ∈ R ∧ (a, x₀) ∈ R → (b, x₀) ∈ R'),
+                        andIntro([unfold('symmetric R'), forallElim('∀ (x y : obj), (x, y) ∈ R → (y, x) ∈ R', 'a'), forallElim('∀ (y : obj), (a, y) ∈ R → (y, a) ∈ R', 'b'),
+                            forward('(a, b) ∈ R → (b, a) ∈ R', '(a, b) ∈ R'), close], [close])],
+                    [subsetIntro, unfold('x₀ ∈ [b]_R'), unfold('x₀ ∈ [a]_R'), forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'a'), forallElim('∀ (y z : obj), (a, y) ∈ R ∧ (y, z) ∈ R → (a, z) ∈ R', 'b'),
+                        forallElim('∀ (z : obj), (a, b) ∈ R ∧ (b, z) ∈ R → (a, z) ∈ R', 'x₀'), backward('(a, b) ∈ R ∧ (b, x₀) ∈ R → (a, x₀) ∈ R'), andIntro([close], [close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [unfold('c ∈ [a]_R'), unfold('c ∈ [b]_R'), unfold('transitive R'), forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'a'), forallElim('∀ (y z : obj), (a, y) ∈ R ∧ (y, z) ∈ R → (a, z) ∈ R', 'c'),
+                    forallElim('∀ (z : obj), (a, c) ∈ R ∧ (c, z) ∈ R → (a, z) ∈ R', 'b'), backward('(a, c) ∈ R ∧ (c, b) ∈ R → (a, b) ∈ R'),
+                    andIntro([close], [unfold('symmetric R'), forallElim('∀ (x y : obj), (x, y) ∈ R → (y, x) ∈ R', 'b'), forallElim('∀ (y : obj), (b, y) ∈ R → (y, b) ∈ R', 'c'),
+                        forward('(b, c) ∈ R → (c, b) ∈ R', '(b, c) ∈ R'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [unfold('transitive R'), unfold('transitive S'), unfold('transitive (R ∘ S)'), forallIntro, forallIntro, forallIntro, assume, andElim('(x₀, y₀) ∈ R ∘ S ∧ (y₀, z₀) ∈ R ∘ S'),
+                    unfold('(x₀, y₀) ∈ R ∘ S'), existsElim('∃ z, (x₀, z) ∈ S ∧ (z, y₀) ∈ R'), andElim('(x₀, z₁) ∈ S ∧ (z₁, y₀) ∈ R'),
+                    unfold('(y₀, z₀) ∈ R ∘ S'), existsElim('∃ z, (y₀, z) ∈ S ∧ (z, z₀) ∈ R'), andElim('(y₀, z₂) ∈ S ∧ (z₂, z₀) ∈ R'),
+                    claim('(z₁, z₂) ∈ S ∘ R', [unfold('(z₁, z₂) ∈ S ∘ R'), existsIntro('y₀'), andIntro([close], [close])]),
+                    rewrite('R ∘ S = S ∘ R', 'BACKWARD', '(z₁, z₂) ∈ S ∘ R'), unfold('(z₁, z₂) ∈ R ∘ S'), existsElim('∃ z, (z₁, z) ∈ S ∧ (z, z₂) ∈ R'), andElim('(z₁, z₃) ∈ S ∧ (z₃, z₂) ∈ R'),
+                    unfold('(x₀, z₀) ∈ R ∘ S'), existsIntro('z₃'), andIntro(
+                        [forallElim('∀ (x y z : obj), (x, y) ∈ S ∧ (y, z) ∈ S → (x, z) ∈ S', 'x₀'), forallElim('∀ (y z : obj), (x₀, y) ∈ S ∧ (y, z) ∈ S → (x₀, z) ∈ S', 'z₁'),
+                            forallElim('∀ (z : obj), (x₀, z₁) ∈ S ∧ (z₁, z) ∈ S → (x₀, z) ∈ S', 'z₃'), backward('(x₀, z₁) ∈ S ∧ (z₁, z₃) ∈ S → (x₀, z₃) ∈ S'), andIntro([close], [close])],
+                        [forallElim('∀ (x y z : obj), (x, y) ∈ R ∧ (y, z) ∈ R → (x, z) ∈ R', 'z₃'), forallElim('∀ (y z : obj), (z₃, y) ∈ R ∧ (y, z) ∈ R → (z₃, z) ∈ R', 'z₂'),
+                            forallElim('∀ (z : obj), (z₃, z₂) ∈ R ∧ (z₂, z) ∈ R → (z₃, z) ∈ R', 'z₀'), backward('(z₃, z₂) ∈ R ∧ (z₂, z₀) ∈ R → (z₃, z₀) ∈ R'), andIntro([close], [close])])],
+            }],
+        ],
+    },
+    {
+        unit: 9,
+        world: 'יחידה 9 - פונקציות',
+        levels: [
+            [{
+                label: 'פתרון',
+                steps: [assume, assume, unfold('injective f'), unfold('injective g'), unfold('injective (g ∘ f)'), forallIntro, forallIntro, assume,
+                    forallElim('∀ (x y : obj), g x = g y → x = y', 'f x₀'), forallElim('∀ (y : obj), g (f x₀) = g y → f x₀ = y', 'f y₀'),
+                    forward('g (f x₀) = g (f y₀) → f x₀ = f y₀', 'g (f x₀) = g (f y₀)'),
+                    forallElim('∀ (x y : obj), f x = f y → x = y', 'x₀'), forallElim('∀ (y : obj), f x₀ = f y → x₀ = y', 'y₀'), forward('f x₀ = f y₀ → x₀ = y₀', 'f x₀ = f y₀'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, assume, unfold('surjective f'), unfold('surjective g'), unfold('surjective (g ∘ f)'), forallIntro,
+                    forallElim('∀ (y : obj), ∃ x, g x = y', 'y₀'), existsElim('∃ x, g x = y₀'), forallElim('∀ (y : obj), ∃ x, f x = y', 'x₀'), existsElim('∃ x, f x = x₀'),
+                    existsIntro('x₁'), rewrite('f x₁ = x₀', 'FORWARD'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, unfold('injective (g ∘ f)'), unfold('injective f'), forallIntro, forallIntro, assume,
+                    forallElim('∀ (x y : obj), g (f x) = g (f y) → x = y', 'x₀'), forallElim('∀ (y : obj), g (f x₀) = g (f y) → x₀ = y', 'y₀'),
+                    backward('g (f x₀) = g (f y₀) → x₀ = y₀'), rewrite('f x₀ = f y₀', 'FORWARD'), rfl],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, unfold('surjective (g ∘ f)'), unfold('surjective g'), forallIntro, forallElim('∀ (y : obj), ∃ x, g (f x) = y', 'y₀'),
+                    existsElim('∃ x, g (f x) = y₀'), existsIntro('f x₀'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('y₀ ∈ Set.image f (A ∩ B)'), existsElim('∃ x, x ∈ A ∩ B ∧ f x = y₀'), andElim('x₀ ∈ A ∩ B ∧ f x₀ = y₀'),
+                    unfold('x₀ ∈ A ∩ B'), andElim('x₀ ∈ A ∧ x₀ ∈ B'), unfold('y₀ ∈ Set.image f A ∩ Set.image f B'),
+                    andIntro(...['A', 'B'].map((set) => [unfold(`y₀ ∈ Set.image f ${set}`), existsIntro('x₀'), andIntro([close], [close])]))],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x₀ ∈ Set.preimage f (A ∩ B)'), unfold('f x₀ ∈ A ∩ B'), andElim('f x₀ ∈ A ∧ f x₀ ∈ B'),
+                        unfold('x₀ ∈ Set.preimage f A ∩ Set.preimage f B'), andIntro([unfold('x₀ ∈ Set.preimage f A'), close], [unfold('x₀ ∈ Set.preimage f B'), close])],
+                    [subsetIntro, unfold('x₀ ∈ Set.preimage f A ∩ Set.preimage f B'), andElim('x₀ ∈ Set.preimage f A ∧ x₀ ∈ Set.preimage f B'),
+                        unfold('x₀ ∈ Set.preimage f A'), unfold('x₀ ∈ Set.preimage f B'), unfold('x₀ ∈ Set.preimage f (A ∩ B)'), unfold('f x₀ ∈ A ∩ B'), andIntro([close], [close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('y₀ ∈ Set.image f (Set.preimage f B)'), existsElim('∃ x, x ∈ Set.preimage f B ∧ f x = y₀'),
+                    andElim('x₀ ∈ Set.preimage f B ∧ f x₀ = y₀'), unfold('x₀ ∈ Set.preimage f B'), rewrite('f x₀ = y₀', 'FORWARD', 'f x₀ ∈ B'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, unfold('injective f'), subsetIntro, unfold('x₀ ∈ Set.preimage f (Set.image f A)'), unfold('f x₀ ∈ Set.image f A'),
+                    existsElim('∃ x, x ∈ A ∧ f x = f x₀'), andElim('x₁ ∈ A ∧ f x₁ = f x₀'), forallElim('∀ (x y : obj), f x = f y → x = y', 'x₁'),
+                    forallElim('∀ (y : obj), f x₁ = f y → x₁ = y', 'x₀'), forward('f x₁ = f x₀ → x₁ = x₀', 'f x₁ = f x₀'), rewrite('x₁ = x₀', 'FORWARD', 'x₁ ∈ A'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [notIntro, unfold('surjective f'), forallElim('∀ (y : Set obj), ∃ x, f x = y', 'setOf fun z => ¬z ∈ f z'), existsElim('∃ x, f x = setOf fun z => ¬z ∈ f z'),
+                    claim('¬x₀ ∈ f x₀', [notIntro, rewrite('f x₀ = setOf fun z => ¬z ∈ f z', 'FORWARD', 'x₀ ∈ f x₀'), unfold('x₀ ∈ setOf fun z => ¬z ∈ f z'), contradiction('x₀ ∈ f x₀')]),
+                    claim('x₀ ∈ setOf fun z => ¬z ∈ f z', [unfold('x₀ ∈ setOf fun z => ¬z ∈ f z'), close]),
+                    rewrite('f x₀ = setOf fun z => ¬z ∈ f z', 'BACKWARD', 'x₀ ∈ setOf fun z => ¬z ∈ f z'), contradiction('x₀ ∈ f x₀')],
+            }],
+        ],
+    },
+    {
+        unit: 10,
+        world: 'יחידה 10 - אינדוקציה',
+        levels: [
+            [{ label: 'פתרון', steps: [rfl] }],
             [{ label: 'פתרון', steps: [induction('n', [unfoldFunction('double'), rfl], [unfoldFunction('double'), rewrite('double n = n + n', 'FORWARD'), calc])] }],
             [{ label: 'פתרון', steps: [induction('n', [rfl], [unfoldFunction('add'), rewrite('0 + n = n', 'FORWARD'), rfl])] }],
             [{ label: 'פתרון', steps: [assume, calcHyps('n + 1 ≤ n')] }],
@@ -336,8 +477,8 @@ export const UNITS = [
         ],
     },
     {
-        unit: 9,
-        world: 'יחידה 9 - אינדוקציה מבנית',
+        unit: 11,
+        world: 'יחידה 11 - אינדוקציה מבנית',
         levels: [
             [{ label: 'פתרון', steps: [inductionOn('l', { NIL: [rfl], CONS: [unfoldFunction('append'), rewrite('l ++ [] = l', 'FORWARD'), rfl] })] }],
             [{

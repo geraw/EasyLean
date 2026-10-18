@@ -1,8 +1,8 @@
 import { goalXml } from './levelXml';
 
-// Unit 9 (see blocks/moves.js): structural induction, as in Rosen (recursive
+// Unit 11 (see blocks/moves.js): structural induction, as in Rosen (recursive
 // definitions and structural induction), Enderton (the induction principle
-// for formulas) and Logic and Proof (lists and trees). The move of unit 8,
+// for formulas) and Logic and Proof (lists and trees). The move of unit 10,
 // "נוכיח באינדוקציה על", opens a part for each way the level's structure is
 // built (level.structure, see STRUCTURES): a basis for each way without parts
 // of the same kind, and a step, with an induction hypothesis for each such
@@ -10,7 +10,7 @@ import { goalXml } from './levelXml';
 // whose ways of being built are written as functions (neg(φ), conj(φ,ψ)) so
 // that they are not confused with the statements of the proof itself.
 
-export const unit9WorldName = 'יחידה 9 - אינדוקציה מבנית';
+export const unit11WorldName = 'יחידה 11 - אינדוקציה מבנית';
 
 // The moves as the toolbox shows them, before they are placed.
 const INDUCTION_BLOCK = '"נוכיח באינדוקציה על ?"';
@@ -23,7 +23,7 @@ const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רו�
 
 const structuralInductionInfo = {
     name: 'אינדוקציה מבנית',
-    doc: 'כדי להוכיח טענה על כל המבנים מסוג מסוים: לכל דרך לבנות מבנה מוכיחים את הטענה, בהנחה שהיא נכונה לחלקים שהוא בנוי מהם (הנחות האינדוקציה). דרך בלי חלקים מאותו סוג היא בסיס, וכל דרך אחרת היא צעד. אותו בלוק כמו ביחידה 8: שם המבנה הוא המספרים הטבעיים, שבנויים מ־0 ומ־n + 1. מהלך שמשתמש בהנחת אינדוקציה כותב זאת: "לפי הנחת האינדוקציה ...".',
+    doc: 'כדי להוכיח טענה על כל המבנים מסוג מסוים: לכל דרך לבנות מבנה מוכיחים את הטענה, בהנחה שהיא נכונה לחלקים שהוא בנוי מהם (הנחות האינדוקציה). דרך בלי חלקים מאותו סוג היא בסיס, וכל דרך אחרת היא צעד. אותו בלוק כמו ביחידה 10: שם המבנה הוא המספרים הטבעיים, שבנויים מ־0 ומ־n + 1. מהלך שמשתמש בהנחת אינדוקציה כותב זאת: "לפי הנחת האינדוקציה ...".',
 };
 const definition = (symbol, doc) => ({ symbol, doc });
 const lists = definition('רשימות', 'רשימה היא [] (הרשימה הריקה), או a :: l: האיבר a לפני הרשימה l. כך [1, 2] היא 1 :: 2 :: [].');
@@ -41,7 +41,7 @@ const depthAndNegations = definition('depth ו־negations', 'העומק של נ�
 const LISTS = 'variable {α : Type}';
 
 const level = (number, fields) => ({
-    id: `unit9-${number}`,
+    id: `unit11-${number}`,
     levelNumber: number,
     totalLevels: 9,
     variableLine: '',
@@ -52,10 +52,10 @@ const level = (number, fields) => ({
     ...fields,
 });
 
-export const unit9Levels = [
+export const unit11Levels = [
     level(1, {
         title: 'אינדוקציה על רשימות',
-        name: 'unit9_l1_append_nil',
+        name: 'unit11_l1_append_nil',
         structure: 'List',
         variableLine: LISTS,
         params: '(l : List α)',
@@ -65,14 +65,14 @@ export const unit9Levels = [
         toolboxBlocks: ['induction', 'unfold_function', 'rewrite', 'rfl'],
         introduction: `# אינדוקציה על רשימות
 
-ביחידה 8 הוכחתם טענות על כל המספרים הטבעיים. המספרים *בנויים* מ־0 ומ־n + 1, ולכן באינדוקציה יש שני חלקים: בסיס (0) וצעד (מ־n ל־n + 1).
+ביחידה 10 הוכחתם טענות על כל המספרים הטבעיים. המספרים *בנויים* מ־0 ומ־n + 1, ולכן באינדוקציה יש שני חלקים: בסיס (0) וצעד (מ־n ל־n + 1).
 באותה דרך מוכיחים טענות על כל מבנה שבנוי בכמה דרכים מוגדרות. זו *אינדוקציה מבנית*.
 
 *רשימה* בנויה בשתי דרכים: \`[]\`, הרשימה הריקה, או \`a :: l\`, האיבר a לפני הרשימה l. ולכן גם כאן יש שני חלקים:
 *בסיס*: הטענה נכונה עבור []. *צעד*: אם היא נכונה עבור l (הנחת האינדוקציה), היא נכונה גם עבור a :: l.
 
 השרשור \`l ++ m\` מוגדר לפי הרשימה הראשונה: \`[] ++ m = m\`, ו־\`(a :: l) ++ m = a :: (l ++ m)\`. נוכיח ש־l ++ [] = l לכל רשימה l.
-זה כמו n + 0 = n ו־0 + n = n ביחידה 8: השרשור עם [] *משמאל* נכון לפי ההגדרה, אבל *מימין* דורש אינדוקציה.`,
+זה כמו n + 0 = n ו־0 + n = n ביחידות 8 ו־10: השרשור עם [] *משמאל* נכון לפי ההגדרה, אבל *מימין* דורש אינדוקציה.`,
         newTacticsInfo: [structuralInductionInfo],
         newDefinitions: [lists, append],
         hints: [
@@ -85,7 +85,7 @@ export const unit9Levels = [
     }),
     level(2, {
         title: 'האורך של שרשור',
-        name: 'unit9_l2_length_append',
+        name: 'unit11_l2_length_append',
         structure: 'List',
         variableLine: LISTS,
         params: '(l m : List α)',
@@ -109,7 +109,7 @@ export const unit9Levels = [
     }),
     level(3, {
         title: 'השרשור אסוציאטיבי',
-        name: 'unit9_l3_append_assoc',
+        name: 'unit11_l3_append_assoc',
         structure: 'List',
         variableLine: LISTS,
         params: '(l m k : List α)',
@@ -131,7 +131,7 @@ export const unit9Levels = [
     }),
     level(4, {
         title: 'עצים: עלים וצמתים',
-        name: 'unit9_l4_leaves_nodes',
+        name: 'unit11_l4_leaves_nodes',
         structure: 'Tree',
         params: '(t : Tree)',
         proposition: 'leaves t = nodes t + 1',
@@ -156,7 +156,7 @@ export const unit9Levels = [
     }),
     level(5, {
         title: 'הגובה',
-        name: 'unit9_l5_height_nodes',
+        name: 'unit11_l5_height_nodes',
         structure: 'Tree',
         params: '(t : Tree)',
         proposition: 'height t ≤ nodes t',
@@ -174,12 +174,12 @@ export const unit9Levels = [
             `בבסיס: ${UNFOLD_BLOCK} עם height, ואחריו עם nodes, ולבסוף ${CALC_BLOCK}`,
             `בצעד: פתחו את height ואת nodes, ואחר כך ${CALC_HYPS_BLOCK}, ובחרו בו את שתי הנחות האינדוקציה: height(l) ≤ nodes(l), ובשדה הבא height(r) ≤ nodes(r).`,
         ],
-        conclusion: 'height(t) ≤ nodes(t) לכל עץ. אינדוקציה מוכיחה גם אי־שוויונות, כמו ביחידה 8.',
+        conclusion: 'height(t) ≤ nodes(t) לכל עץ. אינדוקציה מוכיחה גם אי־שוויונות, כמו ביחידה 10.',
         startXml: goalXml('height(t) ≤ nodes(t)'),
     }),
     level(6, {
         title: 'מראה של מראה',
-        name: 'unit9_l6_mirror_mirror',
+        name: 'unit11_l6_mirror_mirror',
         structure: 'Tree',
         params: '(t : Tree)',
         proposition: 'mirror (mirror t) = t',
@@ -201,7 +201,7 @@ export const unit9Levels = [
     }),
     level(7, {
         title: 'נוסחאות: סוגריים מאוזנים',
-        name: 'unit9_l7_balanced',
+        name: 'unit11_l7_balanced',
         structure: 'Formula',
         params: '(φ : Formula)',
         proposition: 'opening φ = closing φ',
@@ -226,7 +226,7 @@ export const unit9Levels = [
     }),
     level(8, {
         title: 'פסוקים וקשרים',
-        name: 'unit9_l8_atoms_binaries',
+        name: 'unit11_l8_atoms_binaries',
         structure: 'Formula',
         params: '(φ : Formula)',
         proposition: 'atoms φ = binaries φ + 1',
@@ -248,7 +248,7 @@ export const unit9Levels = [
     }),
     level(9, {
         title: 'שלב בונוס: עומק של נוסחה',
-        name: 'unit9_l9_depth',
+        name: 'unit11_l9_depth',
         structure: 'Formula',
         params: '(φ : Formula)',
         proposition: 'depth φ ≤ binaries φ + negations φ',
@@ -268,7 +268,7 @@ export const unit9Levels = [
             `בצעד של ¬: אותם שלושה שכתובים, ואחר כך ${CALC_HYPS_BLOCK} עם הנחת האינדוקציה depth(φ) ≤ binaries(φ) + negations(φ): השלילה מוסיפה 1 לשני הצדדים.`,
             `בצעד של ∧: אותם שלושה שכתובים, ואחר כך ${CALC_HYPS_BLOCK} עם שתי הנחות האינדוקציה, של φ ושל ψ (השנייה בשדה "ו־" שאחרי הראשונה): יחד עם max הן נותנות את הצעד.`,
         ],
-        conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! אותה שיטה, אינדוקציה מבנית, הוכיחה טענות על רשימות, על עצים ועל נוסחאות. בכל פעם היה חלק לכל דרך לבנות את המבנה, וכל דרך דרשה טיפול משלה: כאן ¬ ו־∧ הוסיפו לעומק כל אחת בדרכה.`,
+        conclusion: `סיימתם את יחידה 11, כולל שלב הבונוס! אותה שיטה, אינדוקציה מבנית, הוכיחה טענות על רשימות, על עצים ועל נוסחאות. בכל פעם היה חלק לכל דרך לבנות את המבנה, וכל דרך דרשה טיפול משלה: כאן ¬ ו־∧ הוסיפו לעומק כל אחת בדרכה.`,
         startXml: goalXml('depth(φ) ≤ binaries(φ) + negations(φ)'),
     }),
 ];
