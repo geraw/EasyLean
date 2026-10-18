@@ -200,10 +200,14 @@ class Worker {
         this.envs = new Map();
         this.requests = 0;
         // An empty command loads Lean's library (Init); the headers build on it,
-        // so it is loaded once per process, not once per header.
-        const ready = this.repl.send({ cmd: '' }, Date.now() + this.options.timeoutMs)
+        // so it is loaded once per process, not once per header. On a cold
+        // server this takes much longer than a check (over 20 s on Cloud Run),
+        // so it has its own time limit.
+        const started = Date.now();
+        const ready = this.repl.send({ cmd: '' }, started + (this.options.startTimeoutMs ?? 120000))
             .then((response) => {
                 if (response.env === undefined) throw new Error(response.message);
+                console.log(`Lean REPL ready in ${Date.now() - started} ms`);
                 return response.env;
             })
             .catch((error) => {
