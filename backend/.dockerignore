@@ -1,5 +1,6 @@
 node_modules
 test
 lean_project/.lake
+lean_repl
 Dockerfile
 .dockerignore

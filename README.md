@@ -83,7 +83,12 @@ It starts the backend on port 3001 and the frontend at http://localhost:5173/Eas
    ```bash
    npm install
    ```
-3. Start the Express server:
+3. Build the Lean REPL, which keeps Lean loaded between checks (`./dev.sh` does this too; it needs `git`, and takes a few seconds the first time):
+   ```bash
+   ./build-repl.sh
+   ```
+   Without it the backend still works, running `lean` for each check, several times slower. `LEAN_REPL=off` makes it do that even when the REPL is built.
+4. Start the Express server:
    ```bash
    npm start
    ```
@@ -116,7 +121,7 @@ There are three layers of tests. CI (`.github/workflows/test.yml`) runs all of t
 | Layer | Where | Run with | Needs |
 |---|---|---|---|
 | Frontend unit tests (Vitest): Lean code generation, goal formatting, level data | `frontend/src/**/*.test.js` | `cd frontend && npm test` | Node |
-| Backend tests (`node:test`): proof-state parser, `/verify` and `/proof-state` | `backend/test/` | `cd backend && npm test` | Node, Lean (the Lean-backed tests are skipped when `lean` is missing) |
+| Backend tests (`node:test`): proof-state parser, the Lean REPL pool, `/verify` and `/proof-state` (with the REPL, and with `lean` for each check) | `backend/test/` | `cd backend && npm test` | Node, Lean (the Lean-backed tests are skipped when `lean` is missing), the REPL (`backend/build-repl.sh`) |
 | End-to-end tests (Playwright): the real app in Chromium | `frontend/e2e/` | `cd frontend && npm run test:e2e` | Node, Lean, `npx playwright install chromium` once |
 
 The end-to-end tests start the backend and the Vite dev server themselves, or reuse them if they are already running. `solutions.spec.js` checks every solution of every level (defined in `e2e/solutions.js`) against Lean, building the proofs through `window.__easyleanWorkspace`, which is only set in dev mode; `walk.spec.js` solves levels the way a student would, dragging moves from the toolbox with the mouse and choosing only what their menus offer. Use `npm run test:watch` in `frontend/` to re-run unit tests on save.
@@ -130,12 +135,12 @@ The end-to-end tests start the backend and the Vite dev server themselves, or re
 - **Cost:** at most one instance, scaling to zero when idle, keeps the pilot within the free tier (expected: cents a month, for storing the image). The project has a hard cap: an 18 ILS (about $5) budget, with email alerts at 50%, 90% and 100%, whose notifications trigger the function in `ops/billing-cap/`; when the budget is reached it unlinks the project from billing, which stops everything in it. Budget reports lag by a few hours. To restart after that: `gcloud billing projects link easylean-pilot-1003 --billing-account=<account>`.
 
 > [!CAUTION]
-> **Security risk:** the backend runs the Lean code it receives. For the pilot it only rejects `#eval`, which could run commands on the server; a public, long-term deployment needs a stricter check (accept only the lines the blocks generate).
+> **Security risk:** the backend runs the Lean code it receives. For the pilot it rejects what could run programs or read files on the server (`#eval` and the other `#` commands, `run_cmd`, `native_decide`, `implemented_by`, `import`, macros other than the preludes' tactic macros, and the like; see `FORBIDDEN` in `backend/server.js`); a public, long-term deployment needs a stricter check (accept only the lines the blocks generate).
 
 ## How It Works
 
 1. **Visual Editing**: The user constructs a proof visually by dragging, connecting, and nesting puzzle blocks (representing assumptions, theorems, and logical rules) in the workspace.
 2. **Lean Code Generation**: The Blockly workspace converts the block configuration into a Lean 4 source string.
 3. **Verification**: Clicking the **"Prove" / "Verify"** (Hebrew: "בדוק") button sends the Lean code to the backend.
-4. **Lean Execution**: The backend writes the code into a temporary file inside its `lean_project/` folder, executes the local `lean` binary, parses stdout/stderr, cleans up the temporary file, and returns the verification result.
+4. **Lean Execution**: The backend checks the code with a long-running Lean REPL process (`backend/leanRepl.js`), which elaborates the code's header (the preludes and the level's variables) once and keeps it, and answers with the messages `lean` would print for the file; without the REPL, it writes the code into a temporary file inside its `lean_project/` folder and runs the local `lean` binary on it.
 5. **Feedback**: The client displays the compile/verify feedback to the user, confirming if the proof is logically sound.

@@ -27,6 +27,9 @@ jobs:
           curl -sSfL https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-toolchain "$(cat backend/lean_project/lean-toolchain)"
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
+      - name: Build the Lean REPL (the backend checks proofs with it)
+        run: backend/build-repl.sh
+
       - name: Install dependencies
         run: |
           npm ci --prefix backend

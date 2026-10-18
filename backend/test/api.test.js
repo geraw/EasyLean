@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { execSync } = require('node:child_process');
 const path = require('node:path');
-const { app } = require('../server');
+const { app, isForbidden } = require('../server');
 
 // Checked from the Lean project so elan resolves its pinned toolchain.
 const hasLean = (() => {
@@ -55,6 +55,51 @@ test('both endpoints reject code with #eval, which could run commands on the ser
         assert.equal(status, 400, path);
         assert.equal(body.error, 'Forbidden command in Lean code', path);
     }
+});
+
+// Other ways to run programs on the server, or to read its files.
+const FORBIDDEN_CODE = [
+    '#eval! IO.println "hi"',
+    '#guard true',
+    'run_cmd pure ()',
+    'example : 1 = 1 := by native_decide',
+    'example : 1 = 1 := by decide +native',
+    'theorem x : Lean.reduceBool true = true := Lean.ofReduceBool _ _ rfl',
+    'unsafe def f : Nat := 1',
+    '@[implemented_by f] def g : Nat := 1',
+    '@[extern "system"] opaque sys : Nat',
+    'initialize pure ()',
+    'def s := include_str "/etc/passwd"',
+    'import Lean',
+    'syntax "x" : command',
+    'macro_rules | `(x) => `(y)',
+    'macro "e" : command => `(#eval 1)',
+    'macro "e" : tactic => `(tactic| $(Lean.mkIdent `x))',
+    '@[macro Lean.Parser.Term.app] def m : Lean.Macro := fun _ => Lean.Macro.throwUnsupported',
+    'elab "x" : term => pure (Lean.mkConst `True)',
+];
+
+test('both endpoints reject code that could run programs or read files on the server', async () => {
+    for (const code of FORBIDDEN_CODE) {
+        const { status, body } = await post('/verify', { leanCode: theorem('  intro h\n  exact h1 h\n') + code });
+        assert.equal(status, 400, code);
+        assert.equal(body.error, 'Forbidden command in Lean code', code);
+    }
+});
+
+test('the preludes\' tactic macros are allowed', () => {
+    const macros = 'macro "easylean_goal_only" : tactic => `(tactic| repeat (rename_i easylean_h; clear easylean_h))\n'
+        + 'macro "easylean_assume" : tactic => `(tactic| ((first | fail_if_success show ¬ _ | fail "easylean: the goal is a negation"); refine easylean_imp_intro (fun _ => ?_)))\n';
+    assert.equal(isForbidden(macros + theorem('  intro h\n  exact h1 h\n')), false);
+});
+
+test('/verify reports errors as lean does, with their lines and names', { skip: !hasLean && 'lean not installed' }, async () => {
+    const { body } = await post('/verify', { leanCode: theorem('  intro h\n  exact nonsense\n') });
+    assert.equal(body.exitCode, 1);
+    assert.match(body.output, /^\/.*\.lean:5:8: error\(lean\.unknownIdentifier\): Unknown identifier `nonsense`\n$/);
+    const sorry = await post('/verify', { leanCode: theorem('  sorry\n') });
+    assert.equal(sorry.body.exitCode, 0);
+    assert.match(sorry.body.output, /^\/.*\.lean:3:8: warning: declaration uses 'sorry'\n$/);
 });
 
 test('/verify accepts a correct proof', { skip: !hasLean && 'lean not installed' }, async () => {

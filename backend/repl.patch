@@ -1,0 +1,79 @@
+diff --git a/REPL/JSON.lean b/REPL/JSON.lean
+index ebec4c5..c910c8d 100644
+--- a/REPL/JSON.lean
++++ b/REPL/JSON.lean
+@@ -27,6 +27,16 @@ If `env = some n`, builds on the existing environment `n`.
+ structure Command extends CommandOptions where
+   env : Option Nat
+   cmd : String
++  /--
++  Record the new environment as this existing one, which it replaces (and frees), instead of as a
++  new one: a long-running REPL that checks many commands then keeps a bounded number of them.
++  -/
++  replaceEnv : Option Nat := none
++  /--
++  Do not collect the sorries (and their proof states, which are kept until the REPL exits), and do
++  not keep the info trees with the new environment.
++  -/
++  skipSorries : Option Bool := none
+ deriving ToJson, FromJson
+ 
+ /-- Process a Lean file in a fresh environment if `env` is not provided. -/
+@@ -60,6 +70,11 @@ structure Message where
+   endPos : Option Pos
+   severity : Severity
+   data : String
++  /--
++  The message as `lean <file>` prints it (with its error name, e.g. `error(lean.unknownIdentifier)`),
++  or nothing for the messages it does not print.
++  -/
++  text : String := ""
+ deriving ToJson, FromJson
+ 
+ /-- Construct the JSON representation of a Lean message. -/
+@@ -70,7 +85,8 @@ def Message.of (m : Lean.Message) : IO Message := do pure <|
+     | .information => .info
+     | .warning => .warning
+     | .error => .error,
+-    data := (← m.data.toString).trim }
++    data := (← m.data.toString).trim,
++    text := ← if m.isSilent then pure "" else m.toString }
+ 
+ /-- A Lean `sorry`. -/
+ structure Sorry where
+diff --git a/REPL/Main.lean b/REPL/Main.lean
+index b05583f..28d0d09 100644
+--- a/REPL/Main.lean
++++ b/REPL/Main.lean
+@@ -309,13 +309,15 @@ def runCommand (s : Command) : M IO (CommandResponse ⊕ Error) := do
+   let messages ← messages.mapM fun m => Message.of m
+   -- For debugging purposes, sometimes we print out the trees here:
+   -- trees.forM fun t => do IO.println (← t.format)
+-  let sorries ← sorries trees initialCmdState.env none
++  let sorries ← if s.skipSorries == some true then pure [] else sorries trees initialCmdState.env none
+   let sorries ← match s.rootGoals with
+   | some true => pure (sorries ++ (← collectRootGoalsAsSorries trees initialCmdState.env))
+   | _ => pure sorries
+   let tactics ← match s.allTactics with
+   | some true => tactics trees initialCmdState.env
+   | _ => pure []
++  -- Without the sorries, nothing reads the info trees again: the environment kept need not hold them.
++  let cmdState := if s.skipSorries == some true then { cmdState with infoState := {} } else cmdState
+   let cmdSnapshot :=
+   { cmdState
+     cmdContext := (cmdSnapshot?.map fun c => c.cmdContext).getD
+@@ -323,7 +325,13 @@ def runCommand (s : Command) : M IO (CommandResponse ⊕ Error) := do
+         fileMap := default,
+         snap? := none,
+         cancelTk? := none } }
+-  let env ← recordCommandSnapshot cmdSnapshot
++  let env ← match s.replaceEnv with
++  | some i =>
++    if i < (← get).cmdStates.size then do
++      modify fun st => { st with cmdStates := st.cmdStates.set! i cmdSnapshot }
++      pure i
++    else recordCommandSnapshot cmdSnapshot
++  | none => recordCommandSnapshot cmdSnapshot
+   let jsonTrees := match s.infotree with
+   | some "full" => trees
+   | some "tactics" => trees.flatMap InfoTree.retainTacticInfo

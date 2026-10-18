@@ -7,6 +7,11 @@
 # proof to a temporary file in lean_project/, which must not restart it.
 cd "$(dirname "$0")"
 
+# The backend checks proofs with the Lean REPL, which this builds the first
+# time (or brings up to date, in a moment); without it, the backend runs
+# lean for each check, several times slower.
+backend/build-repl.sh || echo "Could not build the Lean REPL: the backend will run lean for each check."
+
 # Stop both servers when the script ends, however it ends.
 trap 'trap - INT TERM EXIT; kill 0' INT TERM EXIT
 
