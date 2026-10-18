@@ -1,5 +1,17 @@
+/* The union and intersection of a family, ⋃F and ⋂F, larger than the
+   binary ∪ and ∩, as in the textbooks: a face for these two characters only
+   (unicode-range), from a font that has them, scaled up (size-adjust). It
+   comes first in every font list of the app and of the blocks. */
+@font-face {
+  font-family: 'EasyLean Big Operators';
+  src: local('STIX Two Math'), local('STIXTwoMath-Regular'), local('STIXGeneral-Regular'), local('Cambria Math'),
+    local('Segoe UI Symbol'), local('DejaVu Sans'), local('Noto Sans Math'), local('Arial Unicode MS');
+  unicode-range: U+22C2-22C3;
+  size-adjust: 100%;
+}
+
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'EasyLean Big Operators', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light;
@@ -29,4 +41,9 @@ body {
    reads differently from (and does not fight with) Blockly's yellow selection. */
 .easyleanEvaluated > .blocklyPath {
   filter: drop-shadow(0 0 3px #1a73e8) drop-shadow(0 0 2px #1a73e8);
+}
+
+/* The blocks' text, their menus and the typing field, with the larger ⋃ and ⋂. */
+.blocklyText, .blocklyFlyoutLabelText, .blocklyHtmlInput, .blocklyMenuItemContent {
+  font-family: 'EasyLean Big Operators', sans-serif !important;
 }

@@ -372,7 +372,7 @@ const GameWorkspace = ({
                     {sets.map((set, index) => (
                         <React.Fragment key={set}>
                             {index > 0 && ', '}
-                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{set}</span>
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{set}</span>
                         </React.Fragment>
                     ))}
                 </div>
@@ -383,7 +383,7 @@ const GameWorkspace = ({
                     {numbers.map((number, index) => (
                         <React.Fragment key={number}>
                             {index > 0 && ', '}
-                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{number}</span>
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{number}</span>
                         </React.Fragment>
                     ))}
                 </div>
@@ -396,13 +396,13 @@ const GameWorkspace = ({
                     {objects.map((object, index) => (
                         <React.Fragment key={object}>
                             {index > 0 && ', '}
-                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: 'monospace' }}>{object}</span>
+                            <span style={{ direction: 'ltr', unicodeBidi: 'isolate', fontFamily: "'EasyLean Big Operators', monospace" }}>{object}</span>
                         </React.Fragment>
                     ))}
                 </div>
             )}
             {assumptions.map((assumption, index) => (
-                <div key={index} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>
+                <div key={index} style={{ marginBottom: '4px', direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>
                     {/* Fully parenthesized, like the goal: (P ∧ ¬P) → ⊥ is not ambiguous. */}
                     {formatProofGoal(assumption.prop)}
                 </div>
@@ -415,7 +415,7 @@ const GameWorkspace = ({
                 // The contradiction goal is named in Hebrew, so it reads right to left.
                 <div style={{ fontWeight: 'bold' }}>סתירה (⊥)</div>
             ) : (
-                <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace", fontWeight: 'bold' }}>
                     {formatProofGoal(goal || level.proposition)}
                 </div>
             )}
@@ -503,7 +503,7 @@ const GameWorkspace = ({
     );
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', padding: '20px', fontFamily: "'EasyLean Big Operators', sans-serif", direction: 'rtl' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0 }}>{worldName} — שלב {level.levelNumber}/{level.totalLevels}: {isolateFormulas(level.title)}</h1>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
@@ -558,14 +558,14 @@ const GameWorkspace = ({
                     <div style={{ padding: '10px', background: '#eef4ff', borderRadius: '5px' }}>
                         <h4 style={{ margin: '0 0 6px 0' }}>עצמים</h4>
                         {level.objects.map(o => (
-                            <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{o.name}</div>
+                            <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{o.name}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
                         {level.assumptions.map(a => (
-                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace' }}>{a.prop}</div>
+                            <div key={a.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{a.prop}</div>
                         ))}
                         <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
-                        <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold' }}>{level.goalLabel}</div>
+                        <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace", fontWeight: 'bold' }}>{level.goalLabel}</div>
                     </div>
 
                     {(level.newTacticsInfo?.length > 0 || level.newDefinitions?.length > 0) && (

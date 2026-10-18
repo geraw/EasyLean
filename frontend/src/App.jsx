@@ -47,7 +47,7 @@ function App() {
 
   return (
     <div className="App">
-      <div style={{ display: 'flex', gap: '6px', padding: '10px 20px 0 20px', direction: 'rtl', fontFamily: 'sans-serif', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '6px', padding: '10px 20px 0 20px', direction: 'rtl', fontFamily: "'EasyLean Big Operators', sans-serif", flexShrink: 0 }}>
         {Object.entries(UNITS).map(([unitMode, unit]) => (
           <button key={unitMode} style={modeButtonStyle(mode === unitMode)} onClick={() => setMode(unitMode)}>{unit.worldName}</button>
         ))}
