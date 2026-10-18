@@ -3,7 +3,9 @@
 # Needs gcloud, signed in to the account that owns the project.
 #
 # Limits keep the pilot within the free tier: at most one instance, which
-# scales to zero when idle. The project also has a hard spending cap: an
+# scales to zero when idle. The second-generation environment (same price)
+# reads files much faster than the first, and Lean reads its whole library
+# when it starts: on gen1 that took about 15 s of a cold start. The project also has a hard spending cap: an
 # 18 ILS (~$5) budget whose alerts trigger ops/billing-cap, which unlinks
 # billing when the budget is reached.
 #
@@ -45,4 +47,5 @@ gcloud run deploy easylean-backend \
     --min-instances 0 --max-instances 1 \
     --concurrency 4 --cpu 1 --memory 1Gi --timeout 60 \
     --cpu-throttling \
+    --execution-environment gen2 \
     --quiet
