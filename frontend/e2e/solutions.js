@@ -164,6 +164,10 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
+                steps: [replace('easylean_or_as_imp', 'BACKWARD'), assume, forward('¬P → R', '¬P'), forward('R → Q', 'R'), close],
+            }],
+            [{
+                label: 'פתרון',
                 steps: [replace('easylean_or_as_imp', 'BACKWARD'), assume, replace('easylean_not_not', 'FORWARD', '¬¬P'), forward('P → Q', 'P'), close],
             }],
             [

@@ -42,7 +42,7 @@ const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P
 const level = (number, fields) => ({
     id: `unit6-${number}`,
     levelNumber: number,
-    totalLevels: 10,
+    totalLevels: 11,
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
@@ -235,19 +235,44 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
     }),
     level(9, {
         title: 'הוכחת "או": נניח את השלילה של צד אחד',
-        name: 'unit6_l9_or_by_implication',
+        name: 'unit6_l9_or_by_assuming',
+        variableLine: 'variable {P Q R : Prop}',
+        params: '(h1 : ¬P → R) (h2 : R → Q)',
+        proposition: 'P ∨ Q',
+        goalLabel: '(P ∨ Q)',
+        laws: ['easylean_or_as_imp'],
+        toolboxBlocks: ['replace', 'assume', 'forward', 'exact'],
+        introduction: `# הוכחת "או"
+
+להוכיח "או" כשלא ידוע איזה צד נכון זה קשה. בהרצאה ראיתם טכניקה: כדי להוכיח α ∨ β, *נניח ¬α ונוכיח β*. למשל, כדי להוכיח ש־a = 0 או b = 0, מניחים a ≠ 0 ומוכיחים b = 0.
+הטכניקה נובעת מהשקילות ¬α → β ≡ α ∨ β, שבדקתם בטבלה ביחידה 1, שלב 3 (המטריה).
+
+כאן צריך להוכיח P ∨ Q. לפי השקילות, זה כמו להוכיח ¬P → Q: נניח ¬P ונוכיח Q, בעזרת שתי הגרירות שבידינו.`,
+        newDefinitions: [orAsImplication],
+        hints: [
+            `גררו את הבלוק ${REPLACE_BLOCK} אל תוך בלוק המטרה. בחרו בו את השקילות (¬A → B) ↔ (A ∨ B), את המטרה, ואת הכיוון "את (P ∨ Q) ב־(¬P → Q)". עכשיו המטרה היא ¬P → Q.`,
+            'נניח ¬P. המטרה עכשיו: Q.',
+            'מהגרירה ¬P → R ומ־¬P נובע R, ומהגרירה R → Q ומ־R נובע Q.',
+            `Q בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `ההוכחה, כמו בהרצאה: "נוכיח P ∨ Q. נניח ¬P ונוכיח Q: מ־¬P נובע R, ומ־R נובע Q."
+כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
+        startXml: goalXml('(P ∨ Q)', '(¬P → R),  (R → Q)'),
+    }),
+    level(10, {
+        title: 'הוכחת "או", כשהצד הוא שלילה',
+        name: 'unit6_l10_or_by_double_negation',
         params: '(h : P → Q)',
         proposition: '¬P ∨ Q',
         goalLabel: '(¬P ∨ Q)',
         laws: ['easylean_or_as_imp', 'easylean_not_not'],
         toolboxBlocks: ['replace', 'assume', 'forward', 'exact'],
-        introduction: `# הוכחת "או"
+        introduction: `# הוכחת "או", כשהצד הוא שלילה
 
-להוכיח "או" כשלא ידוע איזה צד נכון זה קשה. בהרצאה ראיתם טכניקה: כדי להוכיח α ∨ β, *נניח ¬α ונוכיח β*. היא נובעת מהשקילות ¬α → β ≡ α ∨ β, שבדקתם בטבלה ביחידה 1, שלב 3 (המטריה).
+כמו בשלב הקודם, כדי להוכיח "או" נניח את השלילה של צד אחד ונוכיח את הצד השני.
 
-כאן נתון P → Q, וצריך להוכיח ¬P ∨ Q. לפי השקילות, להוכיח ¬P ∨ Q זה כמו להוכיח ¬¬P → Q: נניח ¬¬P ונוכיח Q.
+כאן נתון P → Q, וצריך להוכיח ¬P ∨ Q. הצד השמאלי הוא שלילה, ¬P, ולכן מה שמניחים הוא השלילה שלו, ¬¬P: לפי השקילות, להוכיח ¬P ∨ Q זה כמו להוכיח ¬¬P → Q.
 מ־¬¬P נובע P לפי השלילה הכפולה, ומ־P ומהגרירה P → Q נובע Q.`,
-        newDefinitions: [orAsImplication],
         hints: [
             `גררו את הבלוק ${REPLACE_BLOCK} אל תוך בלוק המטרה. בחרו בו את השקילות (¬A → B) ↔ (A ∨ B), את המטרה, ואת הכיוון "את (¬P ∨ Q) ב־(¬¬P → Q)". עכשיו המטרה היא ¬¬P → Q.`,
             'נניח ¬¬P. המטרה עכשיו: Q.',
@@ -258,9 +283,9 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
         startXml: goalXml('(¬P ∨ Q)', 'P → Q'),
     }),
-    level(10, {
+    level(11, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
-        name: 'unit6_l10_de_morgan_and',
+        name: 'unit6_l11_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         laws: ['easylean_or_as_imp', 'easylean_not_not', 'easylean_imp_or'],

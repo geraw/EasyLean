@@ -351,6 +351,13 @@ const UNIT6 = [
         await drag(page, 'exact', { after: r2 });
     },
     async (page, log) => {
+        const r = await replace(page, { goal: true }, OR_AS_IMP, 'את (P ∨ Q) ב־(¬P → Q)', 'המטרה', log);
+        const a = await drag(page, 'assume', { after: r }); log(await phrase(page, a));
+        const f1 = await drag(page, 'forward', { after: a }); await choose(page, f1, 'RULE', '(¬P → R)'); await choose(page, f1, 'PREMISE', '¬P'); log(await phrase(page, f1));
+        const f2 = await drag(page, 'forward', { after: f1 }); await choose(page, f2, 'RULE', '(R → Q)'); await choose(page, f2, 'PREMISE', 'R'); log(await phrase(page, f2));
+        await drag(page, 'exact', { after: f2 });
+    },
+    async (page, log) => {
         const r = await replace(page, { goal: true }, OR_AS_IMP, 'את (¬P ∨ Q) ב־(¬¬P → Q)', 'המטרה', log);
         const a = await drag(page, 'assume', { after: r }); log(await phrase(page, a));
         const d = await replace(page, { after: a }, NOT_NOT, 'את ¬¬P ב־P', '¬¬P', log);
