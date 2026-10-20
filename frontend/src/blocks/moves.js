@@ -134,12 +134,13 @@ class FieldDirection extends Blockly.FieldDropdown {
     }
 }
 
-// Unit 6. The laws of logical equivalence, each proved in both directions in
-// earlier levels, as students read them (with schematic letters A, B, as the
-// moves of unit 4 do) and as Lean's lemmas (EQUIV_PRELUDE). A law about a
-// quantifier is restated with the bound variable of the formula it is used in
-// (see variable), so that a substitution keeps the formula's names. Double
-// negation is used only to remove one: backward, its side A fits any statement.
+// Unit 6. The laws of logical equivalence, each proved earlier (in a truth
+// table of unit 1, or in both directions by moves), as students read them
+// (with schematic letters A, B, as the moves of unit 4 do) and as Lean's
+// lemmas (EQUIV_PRELUDE). A law about a quantifier is restated with the bound
+// variable of the formula it is used in (see variable), so that a substitution
+// keeps the formula's names. Double negation is used only to remove one:
+// backward, its side A fits any statement.
 // Each side of a law: when a formula has its form (match, giving the parts),
 // and the formula it is for given parts (text, in Lean's spelling).
 const both = (symbol, negatedLeft, negatedRight) => ({
@@ -185,10 +186,11 @@ const contraposed = {
     text: ({ a, b }) => `(¬(${b})) → (¬(${a}))`,
 };
 
-// Unit 6. The laws of logical equivalence, each proved in both directions in
-// earlier levels, as students read them (with schematic letters A, B, as the
-// moves of unit 4 do), as Lean's lemmas (EQUIV_PRELUDE), and as the forms of
-// their two sides, to show what a replacement replaces. A law about a
+// Unit 6. The laws of logical equivalence, each proved earlier (in a truth
+// table of unit 1, or in both directions by moves), as students read them
+// (with schematic letters A, B, as the moves of unit 4 do), as Lean's lemmas
+// (EQUIV_PRELUDE), and as the forms of their two sides, to show what a
+// replacement replaces. A law about a
 // quantifier is restated with the bound variable of the formula it is used in
 // (see variable), so that a substitution keeps the formula's names. Double
 // negation is used only to remove one: backward, its side A fits any statement.
@@ -197,6 +199,7 @@ export const LAWS = [
     { value: 'easylean_not_or', left: '¬(A ∨ B)', right: '(¬A ∧ ¬B)', sides: [negated('∨'), both('∧', true, true)] },
     { value: 'easylean_not_and', left: '¬(A ∧ B)', right: '(¬A ∨ ¬B)', sides: [negated('∧'), both('∨', true, true)] },
     { value: 'easylean_imp_or', left: '(A → B)', right: '(¬A ∨ B)', sides: [both('→', false, false), both('∨', true, false)] },
+    { value: 'easylean_or_as_imp', left: '(¬A → B)', right: '(A ∨ B)', sides: [both('→', true, false), both('∨', false, false)] },
     { value: 'easylean_contrapositive', left: '(A → B)', right: '(¬B → ¬A)', sides: [both('→', false, false), contraposed] },
     { value: 'easylean_not_imp', left: '¬(A → B)', right: '(A ∧ ¬B)', sides: [negated('→'), both('∧', false, true)] },
     {

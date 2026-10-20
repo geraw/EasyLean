@@ -164,8 +164,18 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
-                steps: [assume, replace('easylean_imp_or', 'BACKWARD'), assume, notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
+                steps: [replace('easylean_or_as_imp', 'BACKWARD'), assume, replace('easylean_not_not', 'FORWARD', '¬¬P'), forward('P → Q', 'P'), close],
             }],
+            [
+                {
+                    label: 'כמו בהרצאה',
+                    steps: [assume, replace('easylean_or_as_imp', 'BACKWARD'), assume, replace('easylean_not_not', 'FORWARD', '¬¬P'), notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
+                },
+                {
+                    label: 'גרירה כ"או"',
+                    steps: [assume, replace('easylean_imp_or', 'BACKWARD'), assume, notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
+                },
+            ],
         ],
     },
 ];

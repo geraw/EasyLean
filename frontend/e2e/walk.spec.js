@@ -307,6 +307,8 @@ const replace = async (page, where, law, direction, target, log) => {
 };
 const IMP_OR = '(A → B) ↔ (¬A ∨ B)';
 const NOT_OR = '¬(A ∨ B) ↔ (¬A ∧ ¬B)';
+const OR_AS_IMP = '(¬A → B) ↔ (A ∨ B)';
+const NOT_NOT = '¬¬A ↔ A';
 const UNIT6 = [
     ...[['∃x (P(x))', '∀x (¬P(x))'], ['∃x (¬P(x))', '∀x (P(x))']].map(([exists, forall]) => async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
@@ -349,10 +351,19 @@ const UNIT6 = [
         await drag(page, 'exact', { after: r2 });
     },
     async (page, log) => {
+        const r = await replace(page, { goal: true }, OR_AS_IMP, 'את (¬P ∨ Q) ב־(¬¬P → Q)', 'המטרה', log);
+        const a = await drag(page, 'assume', { after: r }); log(await phrase(page, a));
+        const d = await replace(page, { after: a }, NOT_NOT, 'את ¬¬P ב־P', '¬¬P', log);
+        const f = await drag(page, 'forward', { after: d }); await choose(page, f, 'RULE', '(P → Q)'); await choose(page, f, 'PREMISE', 'P'); log(await phrase(page, f));
+        await drag(page, 'exact', { after: f });
+    },
+    // The bonus, as the lecture proves "or" (its hints offer implication as "or" too).
+    async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
-        const r = await replace(page, { after: a }, IMP_OR, 'את (¬P ∨ ¬Q) ב־(P → ¬Q)', 'המטרה', log);
+        const r = await replace(page, { after: a }, OR_AS_IMP, 'את (¬P ∨ ¬Q) ב־(¬¬P → ¬Q)', 'המטרה', log);
         const a2 = await drag(page, 'assume', { after: r }); log(await phrase(page, a2));
-        const n = await drag(page, 'not_intro', { after: a2 }); log(await phrase(page, n));
+        const d = await replace(page, { after: a2 }, NOT_NOT, 'את ¬¬P ב־P', '¬¬P', log);
+        const n = await drag(page, 'not_intro', { after: d }); log(await phrase(page, n));
         const e = await drag(page, 'not_elim', { after: n }); await choose(page, e, 'NEGATION', '¬(P ∧ Q)'); log(await phrase(page, e));
         const s = await drag(page, 'and_intro', { after: e }); log(await phrase(page, s));
         await drag(page, 'exact', { into: s, input: 'LEFT' });

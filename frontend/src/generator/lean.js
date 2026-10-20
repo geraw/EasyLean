@@ -119,6 +119,7 @@ export const EQUIV_PRELUDE = `theorem easylean_not_not {a : Prop} : ¬¬a ↔ a 
 theorem easylean_not_or {a b : Prop} : ¬(a ∨ b) ↔ (¬a ∧ ¬b) := ⟨fun h => ⟨fun x => h (Or.inl x), fun x => h (Or.inr x)⟩, fun h x => x.elim h.1 h.2⟩
 theorem easylean_not_and {a b : Prop} : ¬(a ∧ b) ↔ (¬a ∨ ¬b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr fun y => h ⟨x, y⟩) Or.inl, fun h ⟨x, y⟩ => h.elim (· x) (· y)⟩
 theorem easylean_imp_or {a b : Prop} : (a → b) ↔ (¬a ∨ b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr (h x)) Or.inl, fun h x => h.elim (fun n => (n x).elim) id⟩
+theorem easylean_or_as_imp {a b : Prop} : (¬a → b) ↔ (a ∨ b) := ⟨fun h => (Classical.em a).elim Or.inl (fun n => Or.inr (h n)), fun h n => h.elim (fun x => (n x).elim) id⟩
 theorem easylean_contrapositive {a b : Prop} : (a → b) ↔ (¬b → ¬a) := ⟨fun h nb x => nb (h x), fun h x => Classical.byContradiction fun nb => h nb x⟩
 theorem easylean_not_imp {a b : Prop} : ¬(a → b) ↔ (a ∧ ¬b) := ⟨fun h => ⟨Classical.byContradiction fun na => h fun x => (na x).elim, fun hb => h fun _ => hb⟩, fun ⟨x, nb⟩ h => nb (h x)⟩
 theorem easylean_not_exists {α : Type u} {p : α → Prop} : (¬∃ x, p x) ↔ ∀ x, ¬p x := ⟨fun h x hx => h ⟨x, hx⟩, fun h ⟨x, hx⟩ => h x hx⟩
