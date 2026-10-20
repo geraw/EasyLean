@@ -13,11 +13,11 @@ import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
-import { UNITS } from '../../e2e/solutions';
+import { UNITS, unitSolutions } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = { 0: unit0Levels, 1: unit2Levels, 2: unit3Levels, 3: unit4Levels, 4: unit5Levels, 5: unit6Levels };
+const worlds = { 0: unit0Levels, 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels };
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -62,7 +62,7 @@ describe.each(UNITS.map(({ unit, levels }) => [unit, levels]))('unit %i', (unit,
 describe('the moves', () => {
     it('find each assumption by its statement', () => {
         const level = unit2Levels[4];
-        const { workspace } = solved(level, UNITS[1].levels[4][1].steps);
+        const { workspace } = solved(level, unitSolutions(2).levels[4][1].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  easylean_assume',
             '  easylean_assume',
@@ -157,7 +157,7 @@ describe('the moves of unit 3', () => {
 describe('the moves of unit 4', () => {
     it('are the rules for negation, and find assumptions by statement', () => {
         const level = unit4Levels[9];
-        const { workspace } = solved(level, UNITS[3].levels[9][0].steps);
+        const { workspace } = solved(level, unitSolutions(4).levels[9][0].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  apply Classical.byContradiction',
             '  intro _',
@@ -203,7 +203,7 @@ describe('the moves of unit 4', () => {
 describe('the moves of unit 5', () => {
     it('name new objects after the quantified variable with a subscript, and find assumptions by statement', () => {
         const level = unit5Levels[8];
-        const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, UNITS[4].levels[8][0].steps);
+        const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, unitSolutions(5).levels[8][0].steps);
         forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
         existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y₀'], goal: '∃ x, R x y₀' });
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
@@ -236,18 +236,18 @@ describe('the moves of unit 6', () => {
 
     it('replace by a law, in the goal or in a statement in hand', () => {
         const level = unit6Levels[5];
-        const { workspace } = solved(level, UNITS[5].levels[5][0].steps);
+        const { workspace } = solved(level, unitSolutions(6).levels[5][0].steps);
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('theorem easylean_imp_or ');
         expect(code).toContain('  (first | rewrite (occs := .pos [1]) [easylean_imp_or] | simp only [easylean_imp_or] | fail "easylean: no part of the form (A → B)")\n');
-        const inHand = solved(unit6Levels[6], UNITS[5].levels[6][0].steps).workspace;
+        const inHand = solved(unit6Levels[6], unitSolutions(6).levels[6][0].steps).workspace;
         expect(generateGameLeanCode(inHand, unit6Levels[6], '', { includeFallback: false }))
             .toContain('  have := ‹¬(P ∨ Q)›; (first | rewrite (occs := .pos [1]) [easylean_not_or] at this | simp only [easylean_not_or] at this | fail "easylean: no part of the form ¬(A ∨ B)")\n');
     });
 
     it('keep the bound variables of the formula when a law is about a quantifier', () => {
         const level = unit6Levels[9];
-        const { workspace } = solved(level, UNITS[5].levels[9][0].steps);
+        const { workspace } = solved(level, unitSolutions(6).levels[9][0].steps);
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∀ x, p x) ↔ ∃ x, ¬p x := fun _ _ => easylean_not_forall;');
         expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∃ y, p y) ↔ ∀ y, ¬p y := fun _ _ => easylean_not_exists;');
@@ -255,7 +255,7 @@ describe('the moves of unit 6', () => {
 
     it("offer the level's laws, and what the chosen one replaces in the chosen place", () => {
         setLevelLaws(unit6Levels[8].laws);
-        const { blocks: [, first, second] } = solved(unit6Levels[8], UNITS[5].levels[8][0].steps);
+        const { blocks: [, first, second] } = solved(unit6Levels[8], unitSolutions(6).levels[8][0].steps);
         expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ↔ A', 'easylean_not_not']]);
         // The place has no part of the other side's form: that direction shows the law.
         expect(options(first, 'DIRECTION')).toEqual([['את ¬(P ∨ ¬Q) ב־(¬P ∧ ¬¬Q)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);
@@ -286,7 +286,7 @@ describe('the proof state before each move', () => {
 
     it('comes from one check, a theorem per move', () => {
         const level = unit2Levels[0];
-        const { workspace, blocks } = solved(level, UNITS[1].levels[0][0].steps);
+        const { workspace, blocks } = solved(level, unitSolutions(2).levels[0][0].steps);
         const source = buildMoveStatesSource(workspace, level);
         expect(source.code.match(/^theorem unit2_l1_identity_before_\d/gm)).toHaveLength(2);
         expect(source.code.match(/^theorem easylean_mp /gm)).toHaveLength(1);

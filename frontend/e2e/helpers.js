@@ -1,4 +1,6 @@
 import { test as base, expect } from '@playwright/test';
+import { correctAnswer, evaluate, kindName, parseFormula, tableColumns, truthRows } from '../src/game/truthTable';
+import { unit1WorldName } from '../src/game/unit1World';
 
 const MAIN_CANVAS = 'svg.blocklySvg > g.blocklyWorkspace > g.blocklyBlockCanvas';
 
@@ -93,4 +95,39 @@ export const selectMove = async (page, blockId) => {
     await clickBlock(page, blockId);
     await expect(proofStatePanel(page)).toContainText(LOADING);
     return settledProofState(page);
+};
+
+// Unit 1: a truth-table level, its cells filled in with clicks (one for T,
+// two for F), and its questions answered.
+export const openTruthTable = async (page, index) => {
+    await page.goto('');
+    await page.getByRole('button', { name: unit1WorldName }).click();
+    await page.getByRole('combobox', { name: 'מעבר ישיר לשלב' }).selectOption(String(index));
+    await expect(page.getByRole('table', { name: 'טבלת אמת' })).toBeVisible();
+};
+
+export const fillTable = async (page, level) => {
+    const rows = truthRows(level.variables);
+    for (const column of tableColumns(level.variables, level.statements)) {
+        for (const [index, row] of rows.entries()) {
+            const cell = page.getByRole('button', { name: `${column}, שורה ${index + 1}`, exact: true });
+            await cell.click();
+            if (!evaluate(parseFormula(column), row)) await cell.click();
+        }
+    }
+};
+
+export const answerQuestions = async (page, level) => {
+    for (const [index, question] of level.questions.entries()) {
+        const group = page.getByRole('group', { name: `שאלה ${index + 1}` });
+        const answer = correctAnswer(level.variables, question);
+        if (question.kind === 'equivalent') {
+            await group.getByRole('radio', { name: answer.equivalent ? 'כן, הן שקולות' : 'לא, הן לא שקולות' }).check();
+            if (!answer.equivalent) await group.getByRole('combobox').selectOption(String(answer.row));
+        } else if (question.kind === 'falseRow') {
+            await group.getByRole('combobox').selectOption(String(answer.row));
+        } else {
+            await group.getByRole('radio', { name: kindName(answer.kind), exact: true }).check();
+        }
+    }
 };

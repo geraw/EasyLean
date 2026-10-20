@@ -24,12 +24,13 @@ Blockly (מהלכי הוכחה)
 | מחולל Lean | עץ הבלוקים → משפט ב־Lean, כולל חלקים של מהלכים שמפצלים את ההוכחה | `frontend/src/game/gameLeanCode.js`, `frontend/src/generator/lean.js` |
 | מצב ההוכחה לפני כל מהלך | בדיקה אחת של Lean, עם משפט לכל מהלך שנקטע לפניו; ממנה נבנות הרשימות והנוסחאות שבבלוקים | `frontend/src/game/moveStates.js` |
 | משוב | מצב ההוכחה לפני ואחרי מהלך, והסברי שגיאות במונחי הטענות | `frontend/src/game/GameWorkspace.jsx`, `moveExplanations.js`, `leanErrors.js` |
+| טבלאות אמת (יחידה 1) | הטבלה שממלאים, השאלות, והבדיקה וההסברים, בלי Lean | `frontend/src/game/TruthTableWorkspace.jsx`, `truthTable.js` |
 | שרת | מקבל קוד Lean, מריץ את Lean ומחזיר את הפלט | `backend/server.js` |
 | בדיקות | יחידה (Vitest), שרת (`node:test`), וקצה לקצה מול Lean אמיתי (Playwright) | `frontend/src/**/*.test.js`, `backend/test/`, `frontend/e2e/` |
 
 ## מנוע מצב ההוכחה
 
-**הוחלט:** לעבוד ישירות עם Lean, בכל היחידות, ולא עם מנוע JS משלנו. Lean מחזיר את המטרות ואת ההנחות בכל מקום בהוכחה, ואת הודעות השגיאה, והן ממופות לעברית. Mathlib לא בשימוש: מה שנדרש (קבוצות, יחסים, פונקציות, פונקציות על הטבעיים, וכמה כללים שמבחינים בין גרירה ל"לכל") מוגדר בקטע קצר לפני כל הוכחה (`LEAN_PRELUDE`, `EQUIV_PRELUDE` לשקילויות, `SET_PRELUDE`, `RELATION_PRELUDE` ליחסים, `FUNCTION_PRELUDE` לפונקציות, `NAT_PRELUDE`, ו־`STRUCTURE_PRELUDES` לרשימות, עצים ונוסחאות, ב־`frontend/src/generator/lean.js`), וכך כל בדיקה מהירה.
+**הוחלט:** לעבוד ישירות עם Lean, בכל יחידות ההוכחה, ולא עם מנוע JS משלנו. החריג הוא יחידה 1: טבלת אמת היא חישוב ולא הוכחה, והיא נבדקת בקוד האתר (`truthTable.js`). Lean מחזיר את המטרות ואת ההנחות בכל מקום בהוכחה, ואת הודעות השגיאה, והן ממופות לעברית. Mathlib לא בשימוש: מה שנדרש (קבוצות, יחסים, פונקציות, פונקציות על הטבעיים, וכמה כללים שמבחינים בין גרירה ל"לכל") מוגדר בקטע קצר לפני כל הוכחה (`LEAN_PRELUDE`, `EQUIV_PRELUDE` לשקילויות, `SET_PRELUDE`, `RELATION_PRELUDE` ליחסים, `FUNCTION_PRELUDE` לפונקציות, `NAT_PRELUDE`, ו־`STRUCTURE_PRELUDES` לרשימות, עצים ונוסחאות, ב־`frontend/src/generator/lean.js`), וכך כל בדיקה מהירה.
 
 ## כלים
 

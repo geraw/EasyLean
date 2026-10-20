@@ -37,7 +37,7 @@ export const UNITS = [
         ],
     },
     {
-        unit: 1,
+        unit: 2,
         world: 'יחידה 2 - מהנחה למסקנה',
         levels: [
             [{ label: 'פתרון', steps: [assume, close] }],
@@ -54,7 +54,7 @@ export const UNITS = [
         ],
     },
     {
-        unit: 2,
+        unit: 3,
         world: 'יחידה 3 - וגם, או, אם ורק אם',
         levels: [
             [{ label: 'פתרון', steps: [andElim('P ∧ Q'), close] }],
@@ -94,7 +94,7 @@ export const UNITS = [
         ],
     },
     {
-        unit: 3,
+        unit: 4,
         world: 'יחידה 4 - שלילה והוכחה בשלילה',
         levels: [
             [
@@ -121,7 +121,7 @@ export const UNITS = [
         ],
     },
     {
-        unit: 4,
+        unit: 5,
         world: 'יחידה 5 - כמתים',
         levels: [
             [{ label: 'פתרון', steps: [forallElim('∀ x, P x', 'a'), close] }],
@@ -149,7 +149,7 @@ export const UNITS = [
         ],
     },
     {
-        unit: 5,
+        unit: 6,
         world: 'יחידה 6 - שקילויות לוגיות',
         levels: [
             [{ label: 'פתרון', steps: [assume, andElim('¬P ∧ ¬Q'), notIntro, orCases('P ∨ Q', [contradiction('P')], [contradiction('Q')])] }],
@@ -192,3 +192,6 @@ export const UNITS = [
         ],
     },
 ];
+
+// The solutions of a unit, by its number.
+export const unitSolutions = (number) => UNITS.find(({ unit }) => unit === number);

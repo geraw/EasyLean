@@ -1,5 +1,5 @@
 import { test, expect, buildProof, clearProof } from './helpers';
-import { UNITS } from './solutions';
+import { UNITS, unitSolutions } from './solutions';
 
 // Every solution of every level is accepted, and the moves read like a
 // written proof, with assumptions chosen by their statement.
@@ -11,7 +11,7 @@ const openLevel = async (page, worldName, levelIndex = 0) => {
     await page.getByRole('combobox').selectOption(String(levelIndex));
 };
 
-const UNIT2 = UNITS[1].world;
+const UNIT2 = unitSolutions(2).world;
 
 // A move's text and the options of one of its fields, as students read them.
 const moveText = (page, blockId) => page.evaluate((id) => {
@@ -43,7 +43,7 @@ test('the planned error, closing too early, is explained by statements', async (
 });
 
 test('assuming the condition does not prove a negation, which has its own move', async ({ page }) => {
-    await openLevel(page, UNITS[4].world, 7);
+    await openLevel(page, unitSolutions(5).world, 7);
     await clearProof(page);
     await buildProof(page, [['assume'], ['forall_intro'], ['assume']]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
@@ -51,7 +51,7 @@ test('assuming the condition does not prove a negation, which has its own move',
 });
 
 test('a negation is not used as an implication, since it has its own moves', async ({ page }) => {
-    await openLevel(page, UNITS[3].world, 2);
+    await openLevel(page, unitSolutions(4).world, 2);
     await clearProof(page);
     await buildProof(page, [['not_intro'], ['forward', { RULE: 'P → Q', PREMISE: 'P' }], ['forward', { RULE: '¬Q', PREMISE: 'Q' }]]);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
@@ -62,13 +62,13 @@ test('after a long introduction, the button to the next level can be reached', a
     await page.setViewportSize({ width: 1900, height: 700 });
     await openLevel(page, UNIT2, 0);
     await clearProof(page);
-    await buildProof(page, UNITS[1].levels[0][0].steps);
+    await buildProof(page, unitSolutions(2).levels[0][0].steps);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     const next = page.getByRole('button', { name: 'לשלב הבא' });
     await next.scrollIntoViewIfNeeded();
     await expect(next).toBeInViewport();
     await next.click();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(`שלב 2/${UNITS[1].levels.length}`);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(`שלב 2/${unitSolutions(2).levels.length}`);
 });
 
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
@@ -97,7 +97,7 @@ test('a statement can be typed in instead of chosen', async ({ page }) => {
     await expect.poll(() => moveText(page, backward)).toBe('כדי להוכיח Q די להוכיח P');
 });
 
-const UNIT3 = UNITS[2].world;
+const UNIT3 = unitSolutions(3).world;
 
 test('a move that splits the proof heads each part by the proof state', async ({ page }) => {
     await openLevel(page, UNIT3, 1);

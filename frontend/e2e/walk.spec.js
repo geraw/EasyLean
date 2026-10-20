@@ -413,9 +413,9 @@ const UNIT6 = [
 ];
 
 const UNITS = [
-    { unit: 3, world: 'יחידה 4 - שלילה והוכחה בשלילה', walks: UNIT4 },
-    { unit: 4, world: 'יחידה 5 - כמתים', walks: UNIT5 },
-    { unit: 5, world: 'יחידה 6 - שקילויות לוגיות', walks: UNIT6 },
+    { unit: 4, world: 'יחידה 4 - שלילה והוכחה בשלילה', walks: UNIT4 },
+    { unit: 5, world: 'יחידה 5 - כמתים', walks: UNIT5 },
+    { unit: 6, world: 'יחידה 6 - שקילויות לוגיות', walks: UNIT6 },
 ];
 
 // The walks of a unit: a list, for every level, or by level number, for some.

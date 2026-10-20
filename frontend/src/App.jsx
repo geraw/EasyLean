@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import GameWorkspace from './game/GameWorkspace';
+import TruthTableWorkspace from './game/TruthTableWorkspace';
 import { unit0Levels, unit0WorldName } from './game/unit0World';
+import { unit1Levels, unit1WorldName } from './game/unit1World';
 import { unit2Levels, unit2WorldName } from './game/unit2World';
 import { unit3Levels, unit3WorldName } from './game/unit3World';
 import { unit4Levels, unit4WorldName } from './game/unit4World';
@@ -24,7 +26,9 @@ const modeButtonStyle = (active) => ({
 });
 
 const UNITS = {
-  unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit2', label: 'ליחידה 2' } },
+  unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
+  // Unit 1 is truth tables, filled in rather than proved.
+  unit1: { levels: unit1Levels, worldName: unit1WorldName, truthTables: true, next: { mode: 'unit2', label: 'ליחידה 2' } },
   unit2: { levels: unit2Levels, worldName: unit2WorldName, next: { mode: 'unit3', label: 'ליחידה 3' } },
   unit3: { levels: unit3Levels, worldName: unit3WorldName, next: { mode: 'unit4', label: 'ליחידה 4' } },
   unit4: { levels: unit4Levels, worldName: unit4WorldName, next: { mode: 'unit5', label: 'ליחידה 5' } },
@@ -43,18 +47,28 @@ function App() {
         ))}
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        <GameWorkspace
-          // A fresh workspace per unit, so switching units starts at its first level.
-          key={mode}
-          levels={UNITS[mode].levels}
-          worldName={UNITS[mode].worldName}
-          toolboxLabel="מהלכי הוכחה"
-          newTacticsLabel="מהלך חדש"
-          hideCompilerDetails
-          proofStateEndpoint={`${BACKEND_URL}/proof-state`}
-          nextWorldLabel={UNITS[mode].next?.label}
-          onNextWorld={UNITS[mode].next && (() => setMode(UNITS[mode].next.mode))}
-        />
+        {UNITS[mode].truthTables ? (
+          <TruthTableWorkspace
+            key={mode}
+            levels={UNITS[mode].levels}
+            worldName={UNITS[mode].worldName}
+            nextWorldLabel={UNITS[mode].next?.label}
+            onNextWorld={UNITS[mode].next && (() => setMode(UNITS[mode].next.mode))}
+          />
+        ) : (
+          <GameWorkspace
+            // A fresh workspace per unit, so switching units starts at its first level.
+            key={mode}
+            levels={UNITS[mode].levels}
+            worldName={UNITS[mode].worldName}
+            toolboxLabel="מהלכי הוכחה"
+            newTacticsLabel="מהלך חדש"
+            hideCompilerDetails
+            proofStateEndpoint={`${BACKEND_URL}/proof-state`}
+            nextWorldLabel={UNITS[mode].next?.label}
+            onNextWorld={UNITS[mode].next && (() => setMode(UNITS[mode].next.mode))}
+          />
+        )}
       </div>
     </div>
   );

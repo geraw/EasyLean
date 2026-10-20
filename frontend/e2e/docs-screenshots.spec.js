@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { test, expect, openWorld, buildProof, clearProof } from './helpers';
+import { test, expect, openWorld, buildProof, clearProof, openTruthTable, fillTable, answerQuestions } from './helpers';
 import { UNITS } from './solutions';
+import { unit1Levels } from '../src/game/unit1World';
 
 // Photographs every solution in solutions.js for the curriculum documents:
 // docs/curriculum/images/unit<U>-level<L>-<a|b|…>.png. Only runs on request:
@@ -39,3 +40,26 @@ for (const { unit, world, levels } of UNITS) {
         });
     });
 }
+
+// Unit 1: each truth table filled in, with its questions answered.
+unit1Levels.forEach((level, index) => {
+    const file = `unit1-level${index + 1}-a.png`;
+    test(file, async ({ page }) => {
+        await openTruthTable(page, index);
+        await fillTable(page, level);
+        await answerQuestions(page, level);
+        await page.getByRole('button', { name: 'בדוק טבלה' }).click();
+        await expect(page.getByText('הצלחה!')).toBeVisible();
+        await page.mouse.move(0, 0);
+        const table = await page.getByRole('table', { name: 'טבלת אמת' }).boundingBox();
+        const questions = level.questions.length ? await page.getByRole('heading', { name: /^שאלו?ת?ה?$/ }).locator('..').boundingBox() : table;
+        const pad = 12;
+        const left = Math.min(table.x, questions.x) - pad;
+        const right = Math.max(table.x + table.width, questions.x + questions.width) + pad;
+        fs.mkdirSync(OUT, { recursive: true });
+        await page.screenshot({
+            path: path.join(OUT, file),
+            clip: { x: left, y: table.y - pad, width: right - left, height: questions.y + questions.height - table.y + 2 * pad },
+        });
+    });
+});
