@@ -22,7 +22,6 @@ const forallIntro = ['forall_intro'];
 const existsIntro = (term) => ['exists_intro', { TERM: term }];
 const existsElim = (exists) => ['exists_elim', { EXISTS: exists }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
-const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
 
 // Unit 3: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -152,14 +151,6 @@ export const UNITS = [
         unit: 6,
         world: 'יחידה 6 - שקילויות לוגיות',
         levels: [
-            [{ label: 'פתרון', steps: [assume, andElim('¬P ∧ ¬Q'), notIntro, orCases('P ∨ Q', [contradiction('P')], [contradiction('Q')])] }],
-            [{ label: 'פתרון', steps: [assume, assume, notIntro, forward('P → Q', 'P'), contradiction('Q')] }],
-            [{
-                label: 'פתרון',
-                steps: [iffIntro(
-                    [assume, byContradiction, notElim('¬(¬P ∨ Q)'), orIntro('LEFT'), notIntro, notElim('¬(¬P ∨ Q)'), orIntro('RIGHT'), backward('P → Q'), close],
-                    [assume, assume, orCases('¬P ∨ Q', [exfalso, contradiction('P')], [close])])],
-            }],
             [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, P x'), forallElim('∀ x, ¬P x', 'x₀'), contradiction('P x₀')] }],
             [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, ¬P x'), forallElim('∀ x, P x', 'x₀'), contradiction('P x₀')] }],
             [{ label: 'פתרון', steps: [replace('easylean_imp_or', 'FORWARD'), orIntro('LEFT'), close] }],
@@ -172,14 +163,6 @@ export const UNITS = [
             [{
                 label: 'פתרון',
                 steps: [assume, replace('easylean_not_forall', 'FORWARD', '¬∀ x, ∃ y, R x y'), replace('easylean_not_exists', 'FORWARD', '∃ x, ¬∃ y, R x y'), close],
-            }],
-            [{
-                label: 'פתרון',
-                steps: [iffIntro(
-                    [assume, andIntro(
-                        [byContradiction, notElim('¬(P → Q)'), assume, exfalso, contradiction('P')],
-                        [notIntro, notElim('¬(P → Q)'), assume, close])],
-                    [assume, andElim('P ∧ ¬Q'), notIntro, forward('P → Q', 'P'), contradiction('Q')])],
             }],
             [{
                 label: 'פתרון',

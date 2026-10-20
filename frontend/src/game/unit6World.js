@@ -1,12 +1,13 @@
 import { goalXml } from './levelXml';
 
 // Unit 6 (see blocks/moves.js): logical equivalences, as the replacement
-// rules of Copi and Hurley and the derived rules of the natural-deduction
-// courses. First the levels complete the laws of units 4 and 5, each proved
-// there in one direction only; then the move "לפי השקילות" replaces a
-// statement by an equivalent one, also inside a larger statement, by a law
-// proved in both directions (LAWS in blocks/moves.js). Each level offers only
-// the moves and the laws of its solutions.
+// rules of Copi and Hurley. The laws of the connectives were proved in the
+// truth tables of unit 1; the laws of the quantifiers, which no table can
+// check, were proved in unit 5 in one direction, and the first two levels
+// complete them. Then the move "לפי השקילות" replaces a statement by an
+// equivalent one, also inside a larger statement, by a law already proved
+// (LAWS in blocks/moves.js). Each level offers only the moves and the laws of
+// its solutions.
 
 export const unit6WorldName = 'יחידה 6 - שקילויות לוגיות';
 
@@ -19,30 +20,28 @@ const TWO_PROPERTIES = 'variable {obj : Type} {P Q : obj → Prop}';
 const ASSUME_BLOCK = '"כדי להוכיח את הגרירה, נניח..."';
 const REPLACE_BLOCK = '"לפי השקילות ? נחליף ..."';
 const CLOSE_BLOCK = '"יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח."';
-const IFF_INTRO_BLOCK = '"כדי להוכיח את ה"אם ורק אם", נוכיח את שני הכיוונים"';
-const BY_CONTRADICTION_BLOCK = '"נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה"';
 const NOT_INTRO_BLOCK = '"כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה"';
 const CONTRADICTION_BLOCK = '"יש לנו ביד את ? ואת השלילה שלה, וזו סתירה."';
 
 const replaceInfo = {
     name: 'החלפה לפי שקילות',
-    doc: 'אם A ↔ B, מותר להחליף את A ב־B, או את B ב־A, גם בתוך טענה גדולה יותר: במטרה, או בטענה שבידינו, ואז התוצאה מצטרפת להנחות. משתמשים רק בשקילויות שכבר הוכחו, בשני הכיוונים. בהוכחה כתובה: "לפי השקילות ¬(A ∨ B) ↔ (¬A ∧ ¬B), נחליף את ¬(P ∨ Q) ב־(¬P ∧ ¬Q)".',
+    doc: 'אם A ↔ B, מותר להחליף את A ב־B, או את B ב־A, גם בתוך טענה גדולה יותר: במטרה, או בטענה שבידינו, ואז התוצאה מצטרפת להנחות. משתמשים רק בשקילויות שכבר הוכחו: בטבלת אמת (יחידה 1), או בשני הכיוונים במהלכים. בהוכחה כתובה: "לפי השקילות ¬(A ∨ B) ↔ (¬A ∧ ¬B), נחליף את ¬(P ∨ Q) ב־(¬P ∧ ¬Q)".',
 };
 
 // The laws, as cards in the levels that offer them.
 const law = (symbol, doc) => ({ label: 'שקילות', symbol, doc });
-const deMorganOr = law('דה מורגן ל"או"', '¬(A ∨ B) ↔ (¬A ∧ ¬B). הכיוון → הוא יחידה 4, שלב 5, והכיוון ← הוא שלב 1 ביחידה הזאת.');
-const implicationAsOr = law('גרירה כ"או"', '(A → B) ↔ (¬A ∨ B). הוכחתם את שני הכיוונים בשלב 3.');
-const contrapositive = law('קונטרה־פוזיציה', '(A → B) ↔ (¬B → ¬A). הכיוון ← הוא יחידה 4, שלב 9, והכיוון → הוא שלב 2 ביחידה הזאת.');
-const doubleNegation = law('שלילה כפולה', '¬¬A ↔ A. הכיוון → הוא יחידה 4, שלב 8, והכיוון ← הוא יחידה 4, שלב 2. מחליפים רק את ¬¬A ב־A: בכיוון ההפוך, כל טענה היא מהצורה A.');
-const notForall = law('שלילה של "לכל"', '¬∀x (P(x)) ↔ ∃x (¬P(x)). הכיוון → הוא יחידה 5, שלב 10, והכיוון ← הוא שלב 5 ביחידה הזאת.');
-const notImplies = law('שלילה של גרירה', '¬(A → B) ↔ (A ∧ ¬B). הוכחתם את שני הכיוונים בשלב 11.');
-const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P(x)). הכיוון → הוא יחידה 5, שלב 8, והכיוון ← הוא שלב 4 ביחידה הזאת.');
+const deMorganOr = law('דה מורגן ל"או"', '¬(A ∨ B) ↔ (¬A ∧ ¬B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 6.');
+const implicationAsOr = law('גרירה כ"או"', '(A → B) ↔ (¬A ∨ B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 4.');
+const contrapositive = law('קונטרה־פוזיציה', '(A → B) ↔ (¬B → ¬A). בדקתם אותה בטבלת אמת ביחידה 1, שלב 4.');
+const doubleNegation = law('שלילה כפולה', '¬¬A ↔ A. בדקתם אותה בטבלת אמת ביחידה 1, שלב 5. מחליפים רק את ¬¬A ב־A: בכיוון ההפוך, כל טענה היא מהצורה A.');
+const notForall = law('שלילה של "לכל"', '¬∀x (P(x)) ↔ ∃x (¬P(x)). הכיוון → הוא יחידה 5, שלב 10, והכיוון ← הוא שלב 2 ביחידה הזאת. אותה אי אפשר לבדוק בטבלת אמת.');
+const notImplies = law('שלילה של גרירה', '¬(A → B) ↔ (A ∧ ¬B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 5.');
+const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P(x)). הכיוון → הוא יחידה 5, שלב 8, והכיוון ← הוא שלב 1 ביחידה הזאת. אותה אי אפשר לבדוק בטבלת אמת.');
 
 const level = (number, fields) => ({
     id: `unit6-${number}`,
     levelNumber: number,
-    totalLevels: 13,
+    totalLevels: 9,
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
@@ -55,75 +54,17 @@ const level = (number, fields) => ({
 
 export const unit6Levels = [
     level(1, {
-        title: 'משלימים את דה מורגן',
-        name: 'unit6_l1_de_morgan_or_back',
-        proposition: '(¬P ∧ ¬Q) → ¬(P ∨ Q)',
-        goalLabel: '((¬P ∧ ¬Q) → ¬(P ∨ Q))',
-        toolboxBlocks: ['assume', 'and_elim', 'not_intro', 'or_elim', 'contradiction'],
-        introduction: `# שקילויות
-
-שתי טענות *שקולות* אם כל אחת נובעת מהשנייה: A ↔ B. ביחידה הזאת נשתמש בשקילויות כדי להחליף טענה בטענה ששקולה לה, גם בתוך טענה גדולה יותר.
-משתמשים רק בשקילות שהוכחתם, בשני הכיוונים. כמה מהן הוכחתם ביחידות 4 ו־5 בכיוון אחד בלבד, ולכן ארבעה מחמשת השלבים הראשונים משלימים את הכיוון השני, ובשלב 3 מוכיחים שקילות חדשה.
-
-ביחידה 4, שלב 5, הוכחתם ש־\`¬(P ∨ Q) → (¬P ∧ ¬Q)\`. כאן מוכיחים את הכיוון ההפוך: אם P לא נכונה וגם Q לא נכונה, אז לא נכון ש"P או Q".
-אחרי הנחת התנאי, המטרה היא שלילה: נניח P ∨ Q ונגיע לסתירה. בכל אחד מהמקרים של ה"או" יש סתירה.`,
-        hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו "מה"וגם" ?" עם ¬P ∧ ¬Q. עכשיו בידינו ¬P ו־¬Q.`,
-            `הוסיפו את הבלוק ${NOT_INTRO_BLOCK}. עכשיו כתוב בו: נניח (P ∨ Q) ונגיע לסתירה.`,
-            'הוסיפו את הבלוק "נחלק למקרים לפי ה"או" ?" עם P ∨ Q.',
-            `בכל מקרה: ${CONTRADICTION_BLOCK} עם P (במקרה הראשון) או עם Q (במקרה השני).`,
-        ],
-        conclusion: `עכשיו הוכחתם את שני הכיוונים, ולכן ¬(A ∨ B) ↔ (¬A ∧ ¬B) היא שקילות: *חוק דה מורגן* ל"או".
-אפשר להשתמש בה בלי להוכיח אותה שוב, לכל שתי טענות A ו־B.`,
-        startXml: goalXml('((¬P ∧ ¬Q) → ¬(P ∨ Q))'),
-    }),
-    level(2, {
-        title: 'משלימים את הקונטרה־פוזיציה',
-        name: 'unit6_l2_contrapositive_back',
-        proposition: '(P → Q) → (¬Q → ¬P)',
-        goalLabel: '((P → Q) → (¬Q → ¬P))',
-        toolboxBlocks: ['assume', 'not_intro', 'forward', 'contradiction'],
-        introduction: `# משלימים את הקונטרה־פוזיציה
-
-ביחידה 4, שלב 9, הוכחתם ש־\`(¬Q → ¬P) → (P → Q)\`. כאן מוכיחים את הכיוון ההפוך: אם P גוררת את Q, אז ¬Q גוררת את ¬P.
-אחרי שתי הנחות התנאי, המטרה היא ¬P. ההוכחה דומה ליחידה 4, שלב 3.`,
-        hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} פעמיים: נניח P → Q, ואחר כך נניח ¬Q. המטרה עכשיו: ¬P.`,
-            `הוסיפו את הבלוק ${NOT_INTRO_BLOCK}: נניח P ונגיע לסתירה.`,
-            `מ־P → Q ומ־P נובע Q, ואחר כך ${CONTRADICTION_BLOCK} עם Q.`,
-        ],
-        conclusion: `עכשיו (A → B) ↔ (¬B → ¬A) היא שקילות: גרירה שקולה ל*קונטרה־פוזיציה* שלה.`,
-        startXml: goalXml('((P → Q) → (¬Q → ¬P))'),
-    }),
-    level(3, {
-        title: 'גרירה היא "או"',
-        name: 'unit6_l3_implication_as_or',
-        proposition: '(P → Q) ↔ (¬P ∨ Q)',
-        goalLabel: '((P → Q) ↔ (¬P ∨ Q))',
-        toolboxBlocks: ['iff_intro', 'assume', 'by_contradiction', 'not_elim', 'or_intro', 'not_intro', 'apply_rule', 'or_elim', 'exfalso', 'contradiction', 'exact'],
-        introduction: `# גרירה היא "או"
-
-"אם P אז Q" אומרת: או ש־P לא נכונה, או ש־Q נכונה. כאן מוכיחים את השקילות הזאת בשני הכיוונים, כמו ביחידה 3, שלב 8.
-
-- **הכיוון ←** (מ־¬P ∨ Q ל־P → Q): נניח ¬P ∨ Q ונניח P, ונחלק למקרים. במקרה ¬P יש סתירה עם P, ומסתירה נובע הכול.
-- **הכיוון →** (מ־P → Q ל־¬P ∨ Q) קשה יותר: לא ידוע איזה צד של ה"או" נכון. מוכיחים בשלילה, כמו ביחידה 4, שלב 10.`,
-        hints: [
-            'גררו את הבלוק "כדי להוכיח את ה"אם ורק אם", נוכיח את שני הכיוונים" אל תוך בלוק המטרה.',
-            'בכיוון הראשון: נניח P → Q. אחר כך "נוכיח בשלילה": נניח ¬(¬P ∨ Q). לפי השלילה הזאת, די להוכיח ¬P ∨ Q, ובו בחרו את ¬P.',
-            'עכשיו נניח P ונגיע לסתירה: שוב לפי ¬(¬P ∨ Q) די להוכיח ¬P ∨ Q, והפעם בחרו את Q. לפי הגרירה P → Q די להוכיח P, ויש לנו אותה ביד.',
-            'בכיוון השני: נניח ¬P ∨ Q, ונניח P. נחלק למקרים לפי ¬P ∨ Q: במקרה ¬P, מסתירה נובע הכול, והסתירה היא P ו־¬P. במקרה Q, יש לנו אותה ביד.',
-        ],
-        conclusion: `עכשיו (A → B) ↔ (¬A ∨ B) היא שקילות. בשלב 6 תשתמשו בה כדי להוכיח גרירה בהוכחת "או".`,
-        startXml: goalXml('((P → Q) ↔ (¬P ∨ Q))'),
-    }),
-    level(4, {
         title: 'משלימים את השלילה של "קיים"',
-        name: 'unit6_l4_not_exists_back',
+        name: 'unit6_l1_not_exists_back',
         variableLine: DOMAIN,
         proposition: '(∀ x, ¬P x) → ¬∃ x, P x',
         goalLabel: '((∀x (¬P(x))) → ¬∃x (P(x)))',
         toolboxBlocks: ['assume', 'not_intro', 'exists_elim', 'forall_elim', 'contradiction'],
-        introduction: `# משלימים את השלילה של "קיים"
+        introduction: `# שקילויות בהוכחות
+
+ביחידה 1 בדקתם בטבלאות אמת שקילויות של הקשרים: גרירה כ"או", קונטרה־פוזיציה, דה מורגן, שלילה כפולה ושלילה של גרירה. ביחידה הזאת נשתמש בהן כמו בהוכחה כתובה: נחליף טענה בטענה ששקולה לה, גם בתוך טענה גדולה יותר. האותיות A ו־B בשקילויות הן כמו α ו־β בטבלאות: כל טענה.
+
+את השקילויות של הכמתים אי אפשר לבדוק בטבלה. ביחידה 5 הוכחתם כל אחת מהן בכיוון אחד, ושני השלבים הראשונים משלימים את הכיוון השני.
 
 ביחידה 5, שלב 8, הוכחתם ש־\`(¬∃x (P(x))) → (∀x (¬P(x)))\`. כאן מוכיחים את הכיוון ההפוך: אם אף עצם לא מקיים את P, אז לא קיים עצם שמקיים את P.`,
         hints: [
@@ -134,9 +75,9 @@ export const unit6Levels = [
         conclusion: 'עכשיו ¬∃x (P(x)) ↔ ∀x (¬P(x)) היא שקילות: "לא קיים" פירושו "לכל ... לא".',
         startXml: goalXml('((∀x (¬P(x))) → ¬∃x (P(x)))'),
     }),
-    level(5, {
+    level(2, {
         title: 'משלימים את השלילה של "לכל"',
-        name: 'unit6_l5_not_forall_back',
+        name: 'unit6_l2_not_forall_back',
         variableLine: DOMAIN,
         proposition: '(∃ x, ¬P x) → ¬∀ x, P x',
         goalLabel: '((∃x (¬P(x))) → ¬∀x (P(x)))',
@@ -150,12 +91,12 @@ export const unit6Levels = [
             `לפי ה"לכל" ∀x (P(x)) עבור העצם x₀ נובע P(x₀), ואחר כך ${CONTRADICTION_BLOCK} עם P(x₀).`,
         ],
         conclusion: `עכשיו ¬∀x (P(x)) ↔ ∃x (¬P(x)) היא שקילות: "לא לכל" פירושו "קיים ... לא".
-יש בידינו שש שקילויות, ומהשלב הבא משתמשים בהן.`,
+עכשיו גם השקילויות של הכמתים הוכחו בשני הכיוונים, ומהשלב הבא משתמשים בהן, יחד עם השקילויות מהטבלאות.`,
         startXml: goalXml('((∃x (¬P(x))) → ¬∀x (P(x)))'),
     }),
-    level(6, {
+    level(3, {
         title: 'במקום גרירה, "או"',
-        name: 'unit6_l6_replace_goal',
+        name: 'unit6_l3_replace_goal',
         params: '(h : ¬P)',
         proposition: 'P → Q',
         goalLabel: '(P → Q)',
@@ -163,7 +104,7 @@ export const unit6Levels = [
         toolboxBlocks: ['replace', 'or_intro', 'exact'],
         introduction: `# במקום גרירה, "או"
 
-לפי השקילות \`(A → B) ↔ (¬A ∨ B)\` משלב 3, להוכיח את P → Q זה כמו להוכיח את ¬P ∨ Q. מותר להחליף את המטרה בטענה ששקולה לה.
+לפי השקילות \`(A → B) ↔ (¬A ∨ B)\`, שבדקתם בטבלת אמת ביחידה 1, שלב 4, להוכיח את P → Q זה כמו להוכיח את ¬P ∨ Q. מותר להחליף את המטרה בטענה ששקולה לה.
 
 הבלוק ${REPLACE_BLOCK} עושה זאת: בוחרים בו את השקילות ואת המקום, המטרה או טענה שבידינו, ובשורה "נחליף" רואים מה יוחלף במה. אפשר לבחור שם גם את הכיוון ההפוך של השקילות, ואם יש כמה חלקים מאותה צורה, להחליף את כולם.
 כאן נתונה ההנחה ¬P. אחרי ההחלפה, המטרה היא ¬P ∨ Q, ואת ¬P יש לנו ביד.`,
@@ -179,9 +120,9 @@ export const unit6Levels = [
 גרירה שהתנאי שלה לא נכון היא נכונה, מה שלא תהיה המסקנה. זו *אמת ריקה*.`,
         startXml: goalXml('(P → Q)', '¬P'),
     }),
-    level(7, {
+    level(4, {
         title: 'מחליפים בהנחה',
-        name: 'unit6_l7_replace_assumption',
+        name: 'unit6_l4_replace_assumption',
         params: '(h : ¬(P ∨ Q))',
         proposition: '¬Q',
         goalLabel: '¬Q',
@@ -202,9 +143,9 @@ export const unit6Levels = [
 ביחידה 4 בניתם הוכחה כזאת מהכללים. שקילות שהוכחה פעם אחת חוסכת את העבודה בכל פעם שצריך אותה.`,
         startXml: goalXml('¬Q', '¬(P ∨ Q)'),
     }),
-    level(8, {
+    level(5, {
         title: 'קונטרה־פוזיציה כשיטת הוכחה',
-        name: 'unit6_l8_contrapositive',
+        name: 'unit6_l5_contrapositive',
         proposition: '(¬Q → ¬P) → (P → Q)',
         goalLabel: '((¬Q → ¬P) → (P → Q))',
         laws: ['easylean_contrapositive'],
@@ -212,7 +153,7 @@ export const unit6Levels = [
         introduction: `# קונטרה־פוזיציה כשיטת הוכחה
 
 במתמטיקה מוכיחים הרבה פעמים גרירה דרך ה*קונטרה־פוזיציה* שלה: במקום "אם P אז Q" מוכיחים "אם לא Q אז לא P".
-ביחידה 4, שלב 9, הוכחתם את הטענה הזאת בהוכחה בשלילה. עכשיו, כשהקונטרה־פוזיציה היא שקילות, מספיקים מהלכים ספורים.`,
+ביחידה 4, שלב 9, הוכחתם את הטענה הזאת בהוכחה בשלילה. עכשיו, כשהקונטרה־פוזיציה היא שקילות (יחידה 1, שלב 4), מספיקים מהלכים ספורים.`,
         newDefinitions: [contrapositive],
         hints: [
             `נניח ¬Q → ¬P. המטרה עכשיו: P → Q.`,
@@ -223,9 +164,9 @@ export const unit6Levels = [
         conclusion: `ביחידה 4 ההוכחה הזאת דרשה הוכחה בשלילה. כאן היא החלפה אחת: "לפי הקונטרה־פוזיציה, להוכיח P → Q זה כמו להוכיח ¬Q → ¬P, ויש לנו אותה ביד."`,
         startXml: goalXml('((¬Q → ¬P) → (P → Q))'),
     }),
-    level(9, {
+    level(6, {
         title: 'שרשרת של החלפות',
-        name: 'unit6_l9_chain',
+        name: 'unit6_l6_chain',
         proposition: '¬(P ∨ ¬Q) → (¬P ∧ Q)',
         goalLabel: '(¬(P ∨ ¬Q) → (¬P ∧ Q))',
         laws: ['easylean_not_or', 'easylean_not_not'],
@@ -245,9 +186,9 @@ export const unit6Levels = [
 כך מוכיחים זהויות באלגברה, וכך מוכיחים גם שקילויות בלוגיקה.`,
         startXml: goalXml('(¬(P ∨ ¬Q) → (¬P ∧ Q))'),
     }),
-    level(10, {
+    level(7, {
         title: 'דוחפים את השלילה פנימה',
-        name: 'unit6_l10_push_negation',
+        name: 'unit6_l7_push_negation',
         variableLine: RELATION,
         proposition: '(¬∀ x, ∃ y, R x y) → (∃ x, ∀ y, ¬R x y)',
         goalLabel: '((¬∀x (∃y (R(x,y)))) → (∃x (∀y (¬R(x,y)))))',
@@ -269,31 +210,9 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         conclusion: `"לא כל אחד מכיר מישהו" פירושו "יש מישהו שלא מכיר אף אחד". כך מוצאים את השלילה של כל טענה עם כמתים: מעבירים את השלילה פנימה, ומחליפים כל כמת שהיא עוברת.`,
         startXml: goalXml('((¬∀x (∃y (R(x,y)))) → (∃x (∀y (¬R(x,y)))))'),
     }),
-    level(11, {
-        title: 'השלילה של גרירה',
-        name: 'unit6_l11_not_implies',
-        proposition: '¬(P → Q) ↔ (P ∧ ¬Q)',
-        goalLabel: '(¬(P → Q) ↔ (P ∧ ¬Q))',
-        toolboxBlocks: ['iff_intro', 'assume', 'and_intro', 'by_contradiction', 'not_elim', 'exfalso', 'contradiction', 'not_intro', 'exact', 'and_elim', 'forward'],
-        introduction: `# השלילה של גרירה
-
-מתי "אם P אז Q" לא נכונה? רק כש־P נכונה ו־Q לא נכונה. כאן מוכיחים זאת בשני הכיוונים, ואחרי השלב הזה ¬(A → B) ↔ (A ∧ ¬B) היא שקילות, שאפשר להחליף לפיה.
-
-- **הכיוון ←** (מ־P ∧ ¬Q ל־¬(P → Q)): נניח P → Q, ונגיע לסתירה עם ¬Q.
-- **הכיוון →** קשה יותר. את ¬Q מוכיחים בהנחת Q, ואת P מוכיחים בשלילה: בשני המקרים, לפי השלילה ¬(P → Q), די להוכיח את הגרירה P → Q.`,
-        hints: [
-            `גררו את הבלוק ${IFF_INTRO_BLOCK} אל תוך בלוק המטרה.`,
-            'בכיוון הראשון: נניח ¬(P → Q), ונוכיח כל צד של P ∧ ¬Q לחוד.',
-            `את P: ${BY_CONTRADICTION_BLOCK}, נניח ¬P. לפי השלילה ¬(P → Q), די להוכיח P → Q. נניח P, וממנה ומ־¬P נובע הכול.`,
-            'את ¬Q: נניח Q ונגיע לסתירה. שוב לפי ¬(P → Q) די להוכיח P → Q: נניח P, ו־Q בידינו.',
-            'בכיוון השני: נניח P ∧ ¬Q, ומה"וגם" נובעות P ו־¬Q. כדי להוכיח ¬(P → Q), נניח P → Q: ממנה ומ־P נובע Q, וזו סתירה עם ¬Q.',
-        ],
-        conclusion: `עכשיו ¬(A → B) ↔ (A ∧ ¬B) היא שקילות: השלילה של "אם A אז B" היא "A, ובכל זאת לא B". בשלב הבא תשתמשו בה.`,
-        startXml: goalXml('(¬(P → Q) ↔ (P ∧ ¬Q))'),
-    }),
-    level(12, {
+    level(8, {
         title: 'דוגמה נגדית',
-        name: 'unit6_l12_counterexample',
+        name: 'unit6_l8_counterexample',
         variableLine: TWO_PROPERTIES,
         proposition: '(¬∀ x, P x → Q x) → (∃ x, P x ∧ ¬Q x)',
         goalLabel: '((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))',
@@ -301,7 +220,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# דוגמה נגדית
 
-"כל P הוא Q" היא ∀x (P(x) → Q(x)). מה פירוש השלילה שלה? מעבירים את השלילה פנימה: קודם דרך ה"לכל", ואחר כך דרך הגרירה, לפי השקילות משלב 11.
+"כל P הוא Q" היא ∀x (P(x) → Q(x)). מה פירוש השלילה שלה? מעבירים את השלילה פנימה: קודם דרך ה"לכל", ואחר כך דרך הגרירה, לפי השלילה של גרירה (יחידה 1, שלב 5).
 מה שמתקבל, ∃x (P(x) ∧ ¬Q(x)), הוא *דוגמה נגדית*: עצם שהוא P ואינו Q.`,
         newDefinitions: [notForall, notImplies],
         hints: [
@@ -313,18 +232,17 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         conclusion: `"לא כל P הוא Q" פירושו "יש P שאינו Q". כך מפריכים טענה כללית: מראים דוגמה נגדית.`,
         startXml: goalXml('((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))'),
     }),
-    level(13, {
+    level(9, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
-        name: 'unit6_l13_de_morgan_and',
+        name: 'unit6_l9_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         laws: ['easylean_imp_or'],
         toolboxBlocks: ['assume', 'replace', 'not_intro', 'not_elim', 'and_intro', 'exact'],
-        introduction: `# בונוס: דה מורגן ל"וגם"
+        introduction: `# בונוס: דה מורגן ל"וגם", בהוכחה
 
-חוק דה מורגן השני: אם לא נכון ש"P וגם Q", אז P לא נכונה או Q לא נכונה.
-להוכיח "או" כשלא ידוע איזה צד נכון זה קשה. אבל לפי השקילות משלב 3, להוכיח ¬P ∨ ¬Q זה כמו להוכיח P → ¬Q, וגרירה יודעים להוכיח.
-כך שקילויות שהוכחו עוזרות להוכיח חוקים חדשים.`,
+ביחידה 1, שלב 5, ראיתם בטבלת אמת ש־¬(α ∧ β) ≡ ¬α ∨ ¬β. טבלה היא רק אחת הדרכים להוכיח שקילות. כאן מוכיחים את הכיוון → בהוכחה: אם לא נכון ש"P וגם Q", אז P לא נכונה או Q לא נכונה.
+להוכיח "או" כשלא ידוע איזה צד נכון זה קשה. אבל לפי השקילות (A → B) ↔ (¬A ∨ B), להוכיח ¬P ∨ ¬Q זה כמו להוכיח P → ¬Q: נניח P ונוכיח ¬Q. זו טכניקת ההוכחה של "או" מההרצאה.`,
         newDefinitions: [implicationAsOr],
         hints: [
             'נניח ¬(P ∧ Q).',
@@ -332,8 +250,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
             `נניח P, ואחר כך ${NOT_INTRO_BLOCK}: נניח Q ונגיע לסתירה.`,
             'לפי השלילה ¬(P ∧ Q) די להוכיח P ∧ Q. הוכיחו אותה בשני חלקים: את P ואת Q יש לנו ביד.',
         ],
-        conclusion: `סיימתם את יחידה 6, כולל שלב הבונוס! הוכחתם את ¬(A ∧ B) → (¬A ∨ ¬B) בעזרת שקילות, וזה הכיוון הקשה של דה מורגן ל"וגם".
-ביחידות הבאות, על קבוצות, ההגדרות הן "וגם", "או" ושלילה, ולכן אותם חוקים מופיעים שם בשפת הקבוצות, למשל חוק דה מורגן לקבוצות.`,
+        conclusion: `סיימתם את יחידה 6, כולל שלב הבונוס! את ¬(A ∧ B) → (¬A ∨ ¬B) בדקתם קודם בטבלה, ועכשיו הוכחתם אותה גם בהוכחה: כדי להוכיח "או", הוכחתם גרירה.`,
         startXml: goalXml('(¬(P ∧ Q) → (¬P ∨ ¬Q))'),
     }),
 ];
