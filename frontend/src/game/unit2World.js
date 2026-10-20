@@ -1,10 +1,16 @@
 import { goalXml } from './levelXml';
 
-// Unit 2 (see blocks/moves.js): implication, proved by assuming its
-// condition and used forward or backward, in moves that read like a proof
-// written by hand.
+// Unit 2 (see blocks/moves.js): the proof screen, in its first level, and
+// then implication, proved by assuming its condition and used forward or
+// backward, in moves that read like a proof written by hand. The first
+// planned error, explained on the screen, is in level 3.
 
 export const unit2WorldName = 'יחידה 2 - מהנחה למסקנה';
+
+const closeInfo = {
+    name: 'סיום ההוכחה',
+    doc: 'כאשר אחת ההנחות אומרת בדיוק את מה שרוצים להוכיח, ההוכחה הושלמה. בהוכחה כתובה: "יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח".',
+};
 
 const assumeInfo = {
     name: 'הוכחת גרירה',
@@ -27,9 +33,44 @@ export const unit2Levels = [
     {
         id: 'unit2-1',
         levelNumber: 1,
-        totalLevels: 5,
+        totalLevels: 6,
+        title: 'המטרה כבר בידינו',
+        name: 'unit2_l1_given',
+        variableLine: 'variable {P : Prop}',
+        params: '(h : P)',
+        proposition: 'P',
+        goalLabel: 'P',
+        objects: [],
+        assumptions: [{ name: 'h', prop: 'P' }],
+        toolboxBlocks: ['exact'],
+        introduction: `# מסך ההוכחות
+
+מכאן והלאה בונים הוכחות. בכל שלב מוכיחים טענה אחת. בעמודה הזאת מופיעים ההסבר, מה נתון לנו (ההנחות) ומה צריך להוכיח (המטרה).
+כאן נתונה ההנחה P, והמטרה היא להוכיח את P.
+
+ההוכחה נבנית מבלוקים, וכל בלוק הוא משפט בהוכחה, כמו בהוכחה שכותבים ביד.
+בצד שמאל של אזור העבודה נמצא הארגז "מהלכי הוכחה": לחצו עליו, וגררו את הבלוק "יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח"
+אל תוך בלוק המטרה, למקום שכתוב בו "בנו כאן את ההוכחה". הבלוק מסיים את ההוכחה כשאחת ההנחות שבידינו אומרת בדיוק את המטרה, כמו כאן.
+
+מתחת לאזור העבודה מופיע מצב ההוכחה: "מה יש לנו ביד" ו"מה נשאר להוכיח". כשתסיימו, לחצו על "בדוק הוכחה".`,
+        newTacticsBlocks: ['exact'],
+        newTacticsInfo: [closeInfo],
+        newDefinitions: [],
+        hints: [
+            'פתחו את הארגז "מהלכי הוכחה" וגררו את הבלוק "יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח" אל תוך בלוק המטרה.',
+            'אחר כך לחצו על "בדוק הוכחה".',
+        ],
+        conclusion: `ההנחה P אמרה בדיוק את המטרה, ולכן ההוכחה הושלמה. בהוכחה כתובה הייתם כותבים: "P, וזה מה שהיה צריך להוכיח".
+לחיצה על בלוק של מהלך מאפשרת לבחור במצב ההוכחה "לפני המהלך" או "אחרי המהלך": לפני המהלך נשאר להוכיח את P, ואחריו לא נשאר דבר להוכיח.
+עכשיו אתם מכירים את חלקי המסך. מהשלב הבא נלמד להוכיח גרירות.`,
+        startXml: goalXml('P', 'P'),
+    },
+    {
+        id: 'unit2-2',
+        levelNumber: 2,
+        totalLevels: 6,
         title: 'אותה טענה משני הצדדים',
-        name: 'unit2_l1_identity',
+        name: 'unit2_l2_identity',
         variableLine: 'variable {P : Prop}',
         params: '',
         proposition: 'P → P',
@@ -49,7 +90,7 @@ export const unit2Levels = [
 
 כשיש כמה מהלכים, לחיצה על מהלך מסמנת אותו בכחול, ובמצב ההוכחה אפשר לבחור "לפני המהלך" או "אחרי המהלך".
 נסו זאת על בלוק ההנחה: לפניו המטרה היא \`P → P\`, ואחריו P בידינו והמטרה היא P.`,
-        // The closing move (exact) is introduced in unit 0.
+        // The closing move (exact) is introduced in level 1.
         newTacticsBlocks: ['assume'],
         newTacticsInfo: [assumeInfo],
         newDefinitions: [],
@@ -62,11 +103,11 @@ export const unit2Levels = [
         startXml: goalXml('P → P'),
     },
     {
-        id: 'unit2-2',
-        levelNumber: 2,
-        totalLevels: 5,
+        id: 'unit2-3',
+        levelNumber: 3,
+        totalLevels: 6,
         title: 'שימוש בגרירה: מחליפים את המטרה',
-        name: 'unit2_l2_apply',
+        name: 'unit2_l3_apply',
         variableLine: 'variable {P Q : Prop}',
         params: '(h1 : (P → Q)) (h : P)',
         proposition: 'Q',
@@ -107,11 +148,11 @@ export const unit2Levels = [
         startXml: goalXml('Q', '(P → Q),  P', '<block type="exact"></block>'),
     },
     {
-        id: 'unit2-3',
-        levelNumber: 3,
-        totalLevels: 5,
+        id: 'unit2-4',
+        levelNumber: 4,
+        totalLevels: 6,
         title: 'מסיקים קדימה',
-        name: 'unit2_l3_forward',
+        name: 'unit2_l4_forward',
         variableLine: 'variable {P Q R : Prop}',
         params: '(h1 : (P → Q)) (h2 : (Q → R)) (hp : P)',
         proposition: 'R',
@@ -125,7 +166,7 @@ export const unit2Levels = [
         toolboxBlocks: ['forward', 'exact'],
         introduction: `# מסיקים קדימה
 
-בשלב 2 השתמשתם בגרירה *אחורה*: המסקנה שלה הייתה המטרה, ולכן עברתם להוכיח את התנאי שלה.
+בשלב 3 השתמשתם בגרירה *אחורה*: המסקנה שלה הייתה המטרה, ולכן עברתם להוכיח את התנאי שלה.
 
 אפשר להשתמש בגרירה גם *קדימה*: אם בידינו הגרירה \`P → Q\` וגם התנאי שלה P, אז המסקנה Q נכונה,
 והיא מצטרפת להנחות. ההנחות הקודמות נשארות, והמטרה לא משתנה. בהוכחה כתובה: "מ־P → Q ומ־P נובע Q".
@@ -141,15 +182,15 @@ export const unit2Levels = [
             'עכשיו ההנחה R אומרת בדיוק את המטרה.',
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "מ־P → Q ומ־P נובע Q. מ־Q → R ומ־Q נובע R, וזה מה שצריך להוכיח."
-הלכתם קדימה מההנחות עד שהגעתם למטרה. את אותה הוכחה אפשר לבנות גם אחורה, מהמטרה, כמו בשלב 2.`,
+הלכתם קדימה מההנחות עד שהגעתם למטרה. את אותה הוכחה אפשר לבנות גם אחורה, מהמטרה, כמו בשלב 3.`,
         startXml: goalXml('R', '(P → Q),  (Q → R),  P'),
     },
     {
-        id: 'unit2-4',
-        levelNumber: 4,
-        totalLevels: 5,
+        id: 'unit2-5',
+        levelNumber: 5,
+        totalLevels: 6,
         title: 'קוראים את המטרה לפי הסדר',
-        name: 'unit2_l4_reordered',
+        name: 'unit2_l5_reordered',
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '(P → ((P → Q) → Q))',
@@ -163,8 +204,8 @@ export const unit2Levels = [
 לכן קודם נניח P, ואז המטרה היא שוב גרירה, ונניח גם את התנאי שלה, \`P → Q\`.
 
 ההנחה \`P → Q\` היא גרירה, ולכן אפשר להשתמש בה בכל אחת משתי הדרכים:
-אחורה, כמו בשלב 2 (המסקנה שלה היא המטרה, ולכן די להוכיח את התנאי שלה),
-או קדימה, כמו בשלב 3 (התנאי שלה בידינו, ולכן נובעת המסקנה שלה).`,
+אחורה, כמו בשלב 3 (המסקנה שלה היא המטרה, ולכן די להוכיח את התנאי שלה),
+או קדימה, כמו בשלב 4 (התנאי שלה בידינו, ולכן נובעת המסקנה שלה).`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
@@ -178,11 +219,11 @@ export const unit2Levels = [
         startXml: goalXml('(P → ((P → Q) → Q))'),
     },
     {
-        id: 'unit2-5',
-        levelNumber: 5,
-        totalLevels: 5,
+        id: 'unit2-6',
+        levelNumber: 6,
+        totalLevels: 6,
         title: 'שרשרת של שלוש הנחות',
-        name: 'unit2_l5_chain',
+        name: 'unit2_l6_chain',
         variableLine: 'variable {P Q R : Prop}',
         params: '',
         proposition: '((P → Q) → ((Q → R) → (P → R)))',

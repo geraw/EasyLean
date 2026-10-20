@@ -37,7 +37,7 @@
 
 | מהלך | Lean | לפני → אחרי |
 |---|---|---|
-| **זה בדיוק (יחידה 0):** יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח. | `assumption` | `A ⊢ A` ⟶ סגור |
+| **זה בדיוק (שלב 2.1):** יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח. | `assumption` | `A ⊢ A` ⟶ סגור |
 | **נניח (יחידה 2):** כדי להוכיח את הגרירה, נניח P ונוכיח Q | `easylean_assume` | `⊢ P → Q` ⟶ `P ⊢ Q` |
 | **הסקה קדימה (יחידה 2):** מהגרירה [P → Q] ומ־[P] נובע Q | `have := easylean_mp ‹P → Q› ‹P›` | `P → Q, P` ⟶ גם `Q` |
 | **מעבר לתנאי (יחידה 2):** לפי הגרירה [P → Q] שיש לנו ביד, כדי להוכיח Q די להוכיח P | `refine easylean_mp ‹P → Q› ?_` | `P → Q ⊢ Q` ⟶ `P → Q ⊢ P` |
@@ -74,7 +74,7 @@
 
 ## שלבים
 
-לכל שלב: מה לומדים בו, למה הוא בנוי כך, איך אנחנו רוצים שסטודנטים יפתרו אותו, ושיקולים ושאלות שעוד צריך להכריע. צילומי הפתרונות נוצרים מ־`frontend/e2e/solutions.js` (ראו [יחידה 0](00-getting-started.md#שלבים)). בכל שלב בארגז רק המהלכים של הפתרונות שלו, ובתפריט של מהלך ההחלפה רק השקילויות שלהם.
+לכל שלב: מה לומדים בו, למה הוא בנוי כך, איך אנחנו רוצים שסטודנטים יפתרו אותו, ושיקולים ושאלות שעוד צריך להכריע. צילומי הפתרונות נוצרים מ־`frontend/e2e/solutions.js` (ראו [יחידה 2](02-implications.md#שלבים)). בכל שלב בארגז רק המהלכים של הפתרונות שלו, ובתפריט של מהלך ההחלפה רק השקילויות שלהם.
 
 **סדר היחידה.** קודם משלימים את השקילויות של הכמתים (6.1–6.2), במהלכים מוכרים. אחר כך המהלך החדש: במטרה (6.3), בטענה שבידינו (6.4), כשיטת הוכחה עם שתי דרכים (6.5), בתוך טענה ובשרשרת (6.6), ובתוך כמת (6.7), ושתי ההחלפות יחד, דרך "לכל" ודרך גרירה, כדי לנסח דוגמה נגדית (6.8). הבונוס (6.9) מוכיח במהלכים את מה שנבדק בטבלה.
 
@@ -241,7 +241,7 @@
   - Irving M. Copi, Carl Cohen, Kenneth McMahon, *Introduction to Logic*, פרק "Methods of Deduction" (כללי ההחלפה)
   - Patrick J. Hurley, *A Concise Introduction to Logic*, פרק 7 (Rules of Replacement I–II)
   - [forall x: Calgary](https://forallx.openlogicproject.org/)
-  - Michael Huth, Mark Ryan, *Logic in Computer Science*, פרק 2.2
+  - Michael Huth, Mark Ryan, *Logic in Computer Science*, פרק 2.3
   - [Logic and Proof](https://leanprover-community.github.io/logic_and_proof/)
   - Kenneth H. Rosen, *Discrete Mathematics and Its Applications*, §1.3–1.5
   - Susanna S. Epp, *Discrete Mathematics with Applications*, פרקים 2–3

@@ -37,7 +37,7 @@ for (const { unit, world, levels } of UNITS) {
 }
 
 test('the planned error, closing too early, is explained by statements', async ({ page }) => {
-    await openLevel(page, UNIT2, 1);
+    await openLevel(page, UNIT2, 2);
     const state = page.getByRole('region', { name: 'מצב ההוכחה' });
     await expect(state.getByRole('alert')).toContainText('אין בידינו הנחה שאומרת Q');
 });
@@ -60,19 +60,19 @@ test('a negation is not used as an implication, since it has its own moves', asy
 
 test('after a long introduction, the button to the next level can be reached', async ({ page }) => {
     await page.setViewportSize({ width: 1900, height: 700 });
-    await openLevel(page, UNIT2, 0);
+    await openLevel(page, UNIT2, 1);
     await clearProof(page);
-    await buildProof(page, unitSolutions(2).levels[0][0].steps);
+    await buildProof(page, unitSolutions(2).levels[1][0].steps);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
     const next = page.getByRole('button', { name: 'לשלב הבא' });
     await next.scrollIntoViewIfNeeded();
     await expect(next).toBeInViewport();
     await next.click();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(`שלב 2/${unitSolutions(2).levels.length}`);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(`שלב 3/${unitSolutions(2).levels.length}`);
 });
 
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
-    await openLevel(page, UNIT2, 4);
+    await openLevel(page, UNIT2, 5);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);
     await expect.poll(() => moveText(page, first)).toBe('כדי להוכיח את הגרירה, נניח (P → Q) ונוכיח ((Q → R) → (P → R))');
     await expect.poll(() => moveText(page, second)).toBe('כדי להוכיח את הגרירה, נניח (Q → R) ונוכיח (P → R)');
@@ -87,7 +87,7 @@ test('a move offers the assumptions in hand before it, and reads like a written 
 });
 
 test('a statement can be typed in instead of chosen', async ({ page }) => {
-    await openLevel(page, UNIT2, 1);
+    await openLevel(page, UNIT2, 2);
     const [backward] = await buildProof(page, [['apply_rule']]);
     // Choosing the menu's last item opens Blockly's prompt.
     await page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getField('RULE').setValue('__write_own__'), backward);

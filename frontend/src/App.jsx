@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import GameWorkspace from './game/GameWorkspace';
 import TruthTableWorkspace from './game/TruthTableWorkspace';
-import { unit0Levels, unit0WorldName } from './game/unit0World';
 import { unit1Levels, unit1WorldName } from './game/unit1World';
 import { unit2Levels, unit2WorldName } from './game/unit2World';
 import { unit3Levels, unit3WorldName } from './game/unit3World';
@@ -26,7 +25,6 @@ const modeButtonStyle = (active) => ({
 });
 
 const UNITS = {
-  unit0: { levels: unit0Levels, worldName: unit0WorldName, next: { mode: 'unit1', label: 'ליחידה 1' } },
   // Unit 1 is truth tables, filled in rather than proved.
   unit1: { levels: unit1Levels, worldName: unit1WorldName, truthTables: true, next: { mode: 'unit2', label: 'ליחידה 2' } },
   unit2: { levels: unit2Levels, worldName: unit2WorldName, next: { mode: 'unit3', label: 'ליחידה 3' } },
@@ -37,7 +35,7 @@ const UNITS = {
 };
 
 function App() {
-  const [mode, setMode] = useState('unit0');
+  const [mode, setMode] = useState('unit1');
 
   return (
     <div className="App">

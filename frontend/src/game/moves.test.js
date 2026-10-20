@@ -7,7 +7,6 @@ import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
 import { defineMoveBlocks, phraseOf, setLevelLaws } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
-import { unit0Levels } from './unit0World';
 import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
@@ -17,7 +16,7 @@ import { UNITS, unitSolutions } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = { 0: unit0Levels, 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels };
+const worlds = { 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels };
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -61,8 +60,8 @@ describe.each(UNITS.map(({ unit, levels }) => [unit, levels]))('unit %i', (unit,
 
 describe('the moves', () => {
     it('find each assumption by its statement', () => {
-        const level = unit2Levels[4];
-        const { workspace } = solved(level, unitSolutions(2).levels[4][1].steps);
+        const level = unit2Levels[5];
+        const { workspace } = solved(level, unitSolutions(2).levels[5][1].steps);
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  easylean_assume',
             '  easylean_assume',
@@ -74,7 +73,7 @@ describe('the moves', () => {
     });
 
     it('read like a written proof, following the proof state and their fields', () => {
-        const { blocks: [assume, forward, backward] } = solved(unit2Levels[4], [
+        const { blocks: [assume, forward, backward] } = solved(unit2Levels[5], [
             ['assume'], ['forward', { RULE: 'P → Q', PREMISE: 'P' }], ['apply_rule', { RULE: 'Q → R' }],
         ]);
         expect(phraseOf(assume)).toBe('כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה');
@@ -85,7 +84,7 @@ describe('the moves', () => {
     });
 
     it('offer the assumptions in hand before them, and typing one in', () => {
-        const { blocks: [backward] } = solved(unit2Levels[1], [['apply_rule']]);
+        const { blocks: [backward] } = solved(unit2Levels[2], [['apply_rule']]);
         const field = backward.getField('RULE');
         expect(field.getValue()).toBe('?');
         backward.setStateBefore({ assumptions: ['P', 'P → Q'], goal: 'Q' });
@@ -285,10 +284,10 @@ describe('the proof state before each move', () => {
     });
 
     it('comes from one check, a theorem per move', () => {
-        const level = unit2Levels[0];
-        const { workspace, blocks } = solved(level, unitSolutions(2).levels[0][0].steps);
+        const level = unit2Levels[1];
+        const { workspace, blocks } = solved(level, unitSolutions(2).levels[1][0].steps);
         const source = buildMoveStatesSource(workspace, level);
-        expect(source.code.match(/^theorem unit2_l1_identity_before_\d/gm)).toHaveLength(2);
+        expect(source.code.match(/^theorem unit2_l2_identity_before_\d/gm)).toHaveLength(2);
         expect(source.code.match(/^theorem easylean_mp /gm)).toHaveLength(1);
         // Lean's output for this code (lines 11-12 and 13-14).
         const output = [

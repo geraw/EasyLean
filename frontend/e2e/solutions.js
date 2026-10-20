@@ -29,16 +29,10 @@ const swapAndForward = (and, left, right) => [assume, andElim(and), combine(left
 
 export const UNITS = [
     {
-        unit: 0,
-        world: 'יחידה 0 - היכרות עם הסביבה',
-        levels: [
-            [{ label: 'פתרון', steps: [close] }],
-        ],
-    },
-    {
         unit: 2,
         world: 'יחידה 2 - מהנחה למסקנה',
         levels: [
+            [{ label: 'פתרון', steps: [close] }],
             [{ label: 'פתרון', steps: [assume, close] }],
             [{ label: 'אחורה', steps: [backward('P → Q'), close] }],
             [{ label: 'קדימה', steps: [forward('P → Q', 'P'), forward('Q → R', 'Q'), close] }],
