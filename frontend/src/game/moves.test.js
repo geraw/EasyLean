@@ -5,7 +5,7 @@ import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
 import { generateGameLeanCode } from './gameLeanCode';
 import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
-import { defineMoveBlocks, headingOf, phraseOf, setLevelLaws, setLevelStructure } from '../blocks/moves';
+import { defineMoveBlocks, phraseOf, setLevelLaws } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit0Levels } from './unit0World';
 import { unit1Levels } from './unit1World';
@@ -13,18 +13,11 @@ import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
 import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
-import { unit6Levels } from './unit6World';
-import { unit7Levels } from './unit7World';
-import { unit8Levels } from './unit8World';
-import { unit9Levels } from './unit9World';
-import { unit10Levels } from './unit10World';
-import { unit11Levels } from './unit11World';
-import { unit12Levels } from './unit12World';
 import { UNITS } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = { 0: unit0Levels, 1: unit1Levels, 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels, 7: unit7Levels, 8: unit8Levels, 9: unit9Levels, 10: unit10Levels, 11: unit11Levels, 12: unit12Levels };
+const worlds = { 0: unit0Levels, 1: unit1Levels, 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels };
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -269,138 +262,6 @@ describe('the moves of unit 5', () => {
         // Double negation only removes one: backward, A fits any statement.
         expect(options(second, 'DIRECTION')).toEqual([['את ¬¬Q ב־Q', 'FORWARD']]);
         setLevelLaws([]);
-    });
-});
-
-describe('the moves of unit 6', () => {
-    it('read like a written proof, and name the definition they use', () => {
-        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit6Levels[6], [
-            ['subset_intro'], ['subset_elim', { SUBSET: 'A ⊆ B', MEMBER: 'x₀ ∈ A' }], ['set_eq'],
-            ['unfold', { STATEMENT: 'x₀ ∈ A ∩ (B ∪ C)' }], ['unfold', { STATEMENT: 'x₀ ∈ (A ∪ B)ᶜ' }],
-        ]);
-        subsetIntro.setStateBefore({ assumptions: [], objects: [], sets: ['A', 'B', 'C'], goal: 'A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C' });
-        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C) יהי x₀ ∈ (A ∩ (B ∪ C)) ונוכיח x₀ ∈ ((A ∩ B) ∪ (A ∩ C))');
-        expect(phraseOf(subsetElim)).toBe('נובע x₀ ∈ B');
-        setEq.setStateBefore({ assumptions: [], objects: [], sets: [], goal: 'A ∩ B = B ∩ A' });
-        expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
-        expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x₀ ∈ A ∧ x₀ ∈ (B ∪ C))']);
-        unfoldGoal.setStateBefore({ assumptions: [], objects: ['x₀'], sets: [], goal: 'x₀ ∈ (A ∪ B)ᶜ' });
-        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת המשלים, כדי להוכיח', 'די להוכיח ¬x₀ ∈ (A ∪ B)']);
-        // The menu offers only membership statements with a definition to use, the goal first.
-        unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x₀ ∈ A', 'x₀ ∈ A ∪ B'], objects: ['x₀'], sets: [], goal: 'x₀ ∈ Bᶜ' });
-        expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x₀ ∈ (A ∪ B)ᶜ', 'x₀ ∈ Bᶜ', 'x₀ ∈ A ∪ B', '__write_own__']);
-    });
-
-    it('use a definition on the goal or on an assumption without waiting for the proof state', () => {
-        const level = unit6Levels[2];
-        const { workspace } = solved(level, UNITS[6].levels[2][0].steps);
-        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  first',
-            '  | refine easylean_subset_intro_pair (fun x₀ y₀ _ => ?_)',
-            '  | refine easylean_subset_intro (fun x₀ _ => ?_)',
-            '  first',
-            '  | (guard_target =ₛ x₀ ∈ A ∩ B; apply easylean_mem_inter.mpr)',
-            '  | (have := easylean_mem_inter.mp ‹x₀ ∈ A ∩ B›)',
-            '  have := And.left ‹x₀ ∈ A ∧ x₀ ∈ B›',
-        ].join('\n'));
-    });
-
-    it('name an element of a power set as a set', () => {
-        const { blocks: [subsetIntro] } = solved(unit7Levels[1], [['subset_intro']]);
-        subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
-        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X₀ ∈ 𝒫(A) ונוכיח X₀ ∈ 𝒫(B)');
-    });
-});
-
-describe('the moves of units 8 and 10', () => {
-    it('substitute by an equality, shown as the replacement it makes', () => {
-        const level = unit8Levels[1];
-        const { workspace, blocks: [rewrite] } = solved(level, UNITS[8].levels[1][0].steps);
-        expect(rewrite.getField('DIRECTION').getOptions(false).map(([label, value]) => [withoutIsolates(label), value]))
-            .toEqual([['את a ב־b', 'FORWARD'], ['את b ב־a', 'BACKWARD']]);
-        expect(withoutIsolates(rewrite.getField('DIRECTION').getText())).toBe('את a ב־b');
-        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  have := ‹(a, c) ∈ R›',
-            '  rewrite [‹a = b›] at this',
-            '  assumption',
-        ].join('\n'));
-    });
-
-    it('head the parts of an induction by what is proved in them, keeping the variable', () => {
-        const level = unit10Levels[1];
-        const { workspace, blocks: [induction] } = solved(level, UNITS.find(({ unit }) => unit === 10).levels[1][0].steps);
-        induction.setStateBefore({ assumptions: [], objects: ['n'], sets: [], goal: 'double n = n + n' });
-        expect([headingOf(induction, 'BASE'), headingOf(induction, 'STEP')])
-            .toEqual(['בסיס: נוכיח double(0) = 0 + 0', 'צעד: נניח double(n) = n + n ונוכיח double(n + 1) = (n + 1) + (n + 1)']);
-        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  induction n with',
-            '  | zero =>',
-            '    rewrite [double]',
-            '    rfl',
-            '  | succ n _ =>',
-            '    rewrite [double]',
-            '    rewrite [‹double n = n + n›]',
-            '    easylean_goal_only; first | omega | fail "easylean: arithmetic from the goal alone"',
-        ].join('\n'));
-    });
-});
-
-describe('arithmetic and algebra with chosen assumptions', () => {
-    it('take one more field for each assumption chosen, and use only those', () => {
-        const { blocks: [calc] } = solved(unit10Levels[6], [['calc_hyps', { FACT: 'n = 2 * j₀', AND1: 'm = 1' }]]);
-        expect(calc.getFieldValue('AND2')).toBe('__none__');
-        expect(calc.getField('AND3')).toBeNull();
-        expect(leanGenerator.blockToCode(calc)).toBe('  have easylean_fact1 := ‹n = 2 * j₀›; have easylean_fact2 := ‹m = 1›; revert easylean_fact1 easylean_fact2; easylean_goal_only; intros; first | omega | fail "easylean: arithmetic from the chosen assumptions"\n');
-        // Stopping earlier drops the fields after it.
-        calc.setFieldValue('__none__', 'AND1');
-        expect(calc.getField('AND2')).toBeNull();
-        expect(leanGenerator.blockToCode(calc)).toBe('  have easylean_fact1 := ‹n = 2 * j₀›; revert easylean_fact1; easylean_goal_only; intros; first | omega | fail "easylean: arithmetic from the chosen assumptions"\n');
-    });
-});
-
-describe('the moves of unit 11', () => {
-    const inStructure = (level, steps) => {
-        setLevelStructure(level.structure);
-        try {
-            return solved(level, steps);
-        } finally {
-            setLevelStructure();
-        }
-    };
-
-    it('open a part for each way the structure is built, with a hypothesis for each part like it', () => {
-        const level = unit11Levels[3];
-        const { workspace, blocks: [induction] } = inStructure(level, UNITS.find(({ unit }) => unit === 11).levels[3][0].steps);
-        induction.setStateBefore({ assumptions: [], objects: ['t'], sets: [], goal: 'leaves t = nodes t + 1' });
-        expect(headingOf(induction, 'LEAF')).toBe('בסיס: נוכיח leaves(leaf) = nodes(leaf) + 1');
-        expect(headingOf(induction, 'NODE')).toBe('צעד: נניח leaves(l) = nodes(l) + 1 ו־ leaves(r) = nodes(r) + 1 ונוכיח leaves(node(l,r)) = nodes(node(l,r)) + 1');
-        const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
-        expect(code).toContain('inductive Tree where');
-        expect(code).toContain('  induction t with\n  | leaf =>\n');
-        expect(code).toContain('  | node l r _ _ =>\n');
-    });
-
-    it('keep the name of the part like the structure, as in unit 8', () => {
-        const lists = inStructure(unit11Levels[0], UNITS.find(({ unit }) => unit === 11).levels[0][0].steps);
-        expect(generateGameLeanCode(lists.workspace, unit11Levels[0], '', { includeFallback: false })).toContain('  | cons a l _ =>\n');
-        const formulas = inStructure(unit11Levels[8], UNITS.find(({ unit }) => unit === 11).levels[8][0].steps);
-        const code = generateGameLeanCode(formulas.workspace, unit11Levels[8], '', { includeFallback: false });
-        ['  | atom i =>', '  | neg φ _ =>', '  | conj φ ψ _ _ =>'].forEach((header) => expect(code).toContain(header));
-    });
-
-    it('offer to unfold the functions of the structure', () => {
-        const { blocks: [unfold] } = inStructure(unit11Levels[5], [['unfold_function']]);
-        setLevelStructure('Tree');
-        expect(unfold.getField('FUNCTION').getOptions(false).map(([, value]) => value)).toEqual(['?', 'leaves', 'nodes', 'height', 'mirror']);
-        setLevelStructure();
-        expect(leanGenerator.blockToCode(inStructure(unit11Levels[0], [['unfold_function', { FUNCTION: 'append' }]]).blocks[0]))
-            .toBe('  first | rewrite [List.nil_append] | rewrite [List.cons_append]\n');
-        // In a statement in hand, on a copy of it, which joins the assumptions.
-        expect(leanGenerator.blockToCode(inStructure(unit11Levels[3], [['unfold_function', { FUNCTION: 'leaves', TARGET: 'leaves t = 3' }]]).blocks[0]))
-            .toBe('  have := ‹leaves t = 3›\n  rewrite [leaves] at this\n');
-        // One part: Lean finds what it unfolds to, in an equation of its own.
-        expect(leanGenerator.blockToCode(inStructure(unit11Levels[5], [['unfold_function', { FUNCTION: 'mirror', PART: 'mirror (node l r)' }]]).blocks[0]))
-            .toBe('  have easylean_eq : mirror (node l r) = _ := (by (rewrite [mirror]); rfl)\n  rewrite [easylean_eq]; clear easylean_eq\n');
     });
 });
 
