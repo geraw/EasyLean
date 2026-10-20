@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { LEAN_PRELUDE } from '../generator/lean';
 import { findIncompleteMove, generateGameLeanCode, generateGameLeanSource, getLastProofBlockId } from './gameLeanCode';
-import { unit1Levels } from './unit1World';
+import { unit2Levels } from './unit2World';
 import { buildInto, buildProof, loadWorkspace } from '../test/blocklyWorkspace';
 import { goalXml } from './levelXml';
 
-const level = unit1Levels[0];
+const level = unit2Levels[0];
 // Every proof starts with the lemmas of LEAN_PRELUDE; P = their number of lines.
 const P = LEAN_PRELUDE.split('\n').length - 1;
 const ASSUME = '  easylean_assume';
-const header = `\n${LEAN_PRELUDE}set_option linter.unusedVariables false\nvariable {P : Prop}\n\ntheorem unit1_l1_identity  : P → P := by\n`;
+const header = `\n${LEAN_PRELUDE}set_option linter.unusedVariables false\nvariable {P : Prop}\n\ntheorem unit2_l1_identity  : P → P := by\n`;
 const code = (workspace, options) => generateGameLeanCode(workspace, level, '', options);
 
 const solvedWorkspace = () => {

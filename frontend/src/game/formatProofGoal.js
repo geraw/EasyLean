@@ -94,7 +94,7 @@ const writePowerSets = (text) => {
     return result + text.slice(index);
 };
 
-// The functions of units 10 and 11, and the ways structures are built, applied
+// The functions of units 11 and 12, and the ways structures are built, applied
 // to their arguments as functions are written: `double (k + 1)` is
 // `double(k + 1)`, `mirror (node l r)` is `mirror(node(l,r))`, and Lean's
 // `List.length l` is `length(l)`.
@@ -159,7 +159,7 @@ const writeApplications = (text) => {
     return result;
 };
 
-// Lists (unit 11) and sets (units 6-7): Lean prints `(l ++ m) ++ k` as
+// Lists (unit 12) and sets (units 7-8): Lean prints `(l ++ m) ++ k` as
 // `l ++ m ++ k`, `(a :: l) ++ m` as `a :: l ++ m`, and `(A \ B) ∩ C` as
 // `A \ B ∩ C`, by the precedence of the operators. The display writes the
 // parentheses of every operation inside another one (but a :: inside a ::,
@@ -240,7 +240,7 @@ const writeLists = (text) => {
     return result.join(' ');
 };
 
-// The image and the preimage (unit 9), as the course writes them: Lean's
+// The image and the preimage (unit 10), as the course writes them: Lean's
 // `Set.image f A` is f[A], and `Set.preimage f B` is f⁻¹[B]; and a set given
 // by a property, `setOf fun x => P x`, is {x | P(x)} (to the end of the
 // statement, or of the parentheses around it).
@@ -368,12 +368,12 @@ const SET_OPERATIONS = {
     '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
     '⋃': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
     '⋂': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
-    // Relations (unit 8): a member is a pair (x, y).
+    // Relations (unit 9): a member is a pair (x, y).
     '⁻¹': { lemma: 'easylean_mem_inv', name: 'היחס ההפוך', means: (t, [r]) => { const [x, y] = pairOf(t); return `(${y}, ${x}) ∈ ${r}`; } },
     // The middle of a composition is y, as in the textbooks: (x, z) ∈ R ∘ S.
     '∘': { lemma: 'easylean_mem_comp', name: 'ההרכבה', means: (t, [r, s]) => { const [x, z] = pairOf(t); return `∃ y, (${x}, y) ∈ ${s} ∧ (y, ${z}) ∈ ${r}`; } },
     '[]_': { lemma: 'easylean_mem_cls', name: 'מחלקת השקילות', means: (t, [x, r]) => `(${stripOuterParentheses(x)}, ${stripOuterParentheses(t)}) ∈ ${r}` },
-    // Functions (unit 9): the image, the preimage, and a set given by a property.
+    // Functions (unit 10): the image, the preimage, and a set given by a property.
     image: { lemma: 'easylean_mem_image', name: 'התמונה', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
     preimage: { lemma: 'easylean_mem_preimage', name: 'התמונה ההפוכה', means: (t, [f, b]) => `${f} ${t} ∈ ${b}` },
     setOf: { lemma: 'easylean_mem_setOf', name: 'קבוצה לפי תכונה', means: (t, [x, p]) => substituteName(stripOuterParentheses(p), stripOuterParentheses(x), t) },
@@ -390,7 +390,7 @@ const pairOf = (text) => {
     return comma ? [inner.slice(0, comma.index).trim(), inner.slice(comma.index + 1).trim()] : [`${text}.1`, `${text}.2`];
 };
 
-// The properties of a relation (unit 8), defined as statements about its
+// The properties of a relation (unit 9), defined as statements about its
 // pairs: what each says, the lemma stating it (see RELATION_PRELUDE), and its
 // name in Hebrew.
 const PROPERTIES = {
@@ -398,7 +398,7 @@ const PROPERTIES = {
     symmetric: { name: 'הסימטריות', means: (r) => `∀ x y, (x, y) ∈ ${r} → (y, x) ∈ ${r}` },
     transitive: { name: 'הטרנזיטיביות', means: (r) => `∀ x y z, (x, y) ∈ ${r} ∧ (y, z) ∈ ${r} → (x, z) ∈ ${r}` },
     antisymmetric: { name: 'האנטי־סימטריות', means: (r) => `∀ x y, (x, y) ∈ ${r} ∧ (y, x) ∈ ${r} → x = y` },
-    // Of a function (unit 9): (g ∘ f)(x) is written g(f(x)), as the move does.
+    // Of a function (unit 10): (g ∘ f)(x) is written g(f(x)), as the move does.
     injective: { name: 'פונקציה חד־חד־ערכית', means: (f) => `∀ x y, ${applied(f, 'x')} = ${applied(f, 'y')} → x = y` },
     surjective: { name: 'פונקציה על', means: (f) => `∀ y, ∃ x, ${applied(f, 'x')} = y` },
 };

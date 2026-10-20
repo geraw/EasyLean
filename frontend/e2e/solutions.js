@@ -24,7 +24,7 @@ const existsElim = (exists) => ['exists_elim', { EXISTS: exists }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
 const iffIntro = (forward, backward) => ['iff_intro', {}, { FORWARD: forward, BACKWARD: backward }];
 
-// Unit 2: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
+// Unit 3: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
 const swapAndForward = (and, left, right) => [assume, andElim(and), combine(left, right), close];
 
@@ -38,7 +38,7 @@ export const UNITS = [
     },
     {
         unit: 1,
-        world: 'יחידה 1 - מהנחה למסקנה',
+        world: 'יחידה 2 - מהנחה למסקנה',
         levels: [
             [{ label: 'פתרון', steps: [assume, close] }],
             [{ label: 'אחורה', steps: [backward('P → Q'), close] }],
@@ -55,7 +55,7 @@ export const UNITS = [
     },
     {
         unit: 2,
-        world: 'יחידה 2 - וגם, או, אם ורק אם',
+        world: 'יחידה 3 - וגם, או, אם ורק אם',
         levels: [
             [{ label: 'פתרון', steps: [andElim('P ∧ Q'), close] }],
             [{ label: 'פתרון', steps: [andIntro([close], [close])] }],
@@ -95,7 +95,7 @@ export const UNITS = [
     },
     {
         unit: 3,
-        world: 'יחידה 3 - שלילה והוכחה בשלילה',
+        world: 'יחידה 4 - שלילה והוכחה בשלילה',
         levels: [
             [
                 { label: 'פתרון', steps: [contradiction('P')] },
@@ -122,7 +122,7 @@ export const UNITS = [
     },
     {
         unit: 4,
-        world: 'יחידה 4 - כמתים',
+        world: 'יחידה 5 - כמתים',
         levels: [
             [{ label: 'פתרון', steps: [forallElim('∀ x, P x', 'a'), close] }],
             [
@@ -150,7 +150,7 @@ export const UNITS = [
     },
     {
         unit: 5,
-        world: 'יחידה 5 - שקילויות לוגיות',
+        world: 'יחידה 6 - שקילויות לוגיות',
         levels: [
             [{ label: 'פתרון', steps: [assume, andElim('¬P ∧ ¬Q'), notIntro, orCases('P ∨ Q', [contradiction('P')], [contradiction('Q')])] }],
             [{ label: 'פתרון', steps: [assume, assume, notIntro, forward('P → Q', 'P'), contradiction('Q')] }],

@@ -28,11 +28,11 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
     return code + nextCode;
 };
 
-// Units 6 and 7: a small set theory, placed before the proofs of the levels
+// Units 7 and 8: a small set theory, placed before the proofs of the levels
 // that use sets (level.usesSets). A set is a property of objects, and each
 // operation is defined through membership, so that using its definition (the
 // easylean_mem_* lemmas, see the definition move in blocks/moves.js) leaves a
-// formula of units 1-4. Core Lean has no sets, and Mathlib would make every
+// formula of units 2-5. Core Lean has no sets, and Mathlib would make every
 // check slower and the server image larger.
 export const SET_PRELUDE = `def Set (α : Type u) := α → Prop
 instance : Membership α (Set α) := ⟨fun A x => A x⟩
@@ -67,7 +67,7 @@ theorem easylean_set_eq {α : Type u} {A B : Set α} (hab : A ⊆ B) (hba : B �
   funext (fun x => propext ⟨hab x, hba x⟩)
 `;
 
-// Unit 8: relations, as sets of ordered pairs (a relation on obj is a
+// Unit 9: relations, as sets of ordered pairs (a relation on obj is a
 // Set (obj × obj)), placed after the set theory, before the proofs of the
 // levels that use them (level.usesRelations). The inverse R⁻¹, and the
 // composition R ∘ S: first S, then R, as in the course. The properties of a
@@ -92,7 +92,7 @@ theorem easylean_transitive {α : Type u} {R : Set (α × α)} : transitive R �
 theorem easylean_antisymmetric {α : Type u} {R : Set (α × α)} : antisymmetric R ↔ ∀ x y, (x, y) ∈ R ∧ (y, x) ∈ R → x = y := Iff.rfl
 `;
 
-// Unit 9: functions, as Lean's functions (f : obj → obj, written f(x) as in
+// Unit 10: functions, as Lean's functions (f : obj → obj, written f(x) as in
 // the course), with injective and surjective as definitions read by the move
 // "לפי ההגדרה" (which also writes (g ∘ f)(x) as g(f(x))), the image f[A] and
 // the preimage f⁻¹[B] (shown so, see formatProofGoal.js), and a set given by
@@ -111,7 +111,7 @@ theorem easylean_mem_preimage {α : Type u} {β : Type v} {f : α → β} {B : S
 theorem easylean_mem_setOf {α : Type u} {p : α → Prop} {a : α} : a ∈ setOf p ↔ p a := Iff.rfl
 `;
 
-// Unit 5 and after: the laws of logical equivalence (LAWS in
+// Unit 6 and after: the laws of logical equivalence (LAWS in
 // blocks/moves.js), placed before the proofs of the levels that offer them
 // (level.laws). Each law is proved by the students, in both directions, in
 // earlier levels; here it is proved again, so that Lean can use it.
@@ -125,7 +125,7 @@ theorem easylean_not_exists {α : Type u} {p : α → Prop} : (¬∃ x, p x) ↔
 theorem easylean_not_forall {α : Type u} {p : α → Prop} : (¬∀ x, p x) ↔ ∃ x, ¬p x := ⟨fun h => Classical.byContradiction fun h' => h fun x => Classical.byContradiction fun hx => h' ⟨x, hx⟩, fun ⟨x, hx⟩ h => hx (h x)⟩
 `;
 
-// Unit 10: functions on the natural numbers defined by recursion, placed
+// Unit 11: functions on the natural numbers defined by recursion, placed
 // before the proofs of the levels that use them (level.usesNat), and the
 // definition of addition on its second argument. Unfolding them is a move
 // of its own: the calculation moves (omega, grind) do not look inside them.
@@ -149,7 +149,7 @@ theorem easylean_add_succ (n m : Nat) : n + (m + 1) = (n + m) + 1 := rfl
 // indentation). The moves add their own (see blocks/moves.js).
 export const leanBranches = {};
 
-// Unit 11: structures defined by construction, placed before the proofs of the
+// Unit 12: structures defined by construction, placed before the proofs of the
 // levels that do induction on them (level.structure), with the functions
 // defined on them by recursion. Lean prints `node l r` and `List.length l`,
 // not `l.node r` or `l.length`, so that they read as functions of their

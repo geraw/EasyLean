@@ -134,9 +134,9 @@ class FieldDirection extends Blockly.FieldDropdown {
     }
 }
 
-// Unit 5. The laws of logical equivalence, each proved in both directions in
+// Unit 6. The laws of logical equivalence, each proved in both directions in
 // earlier levels, as students read them (with schematic letters A, B, as the
-// moves of unit 3 do) and as Lean's lemmas (EQUIV_PRELUDE). A law about a
+// moves of unit 4 do) and as Lean's lemmas (EQUIV_PRELUDE). A law about a
 // quantifier is restated with the bound variable of the formula it is used in
 // (see variable), so that a substitution keeps the formula's names. Double
 // negation is used only to remove one: backward, its side A fits any statement.
@@ -185,9 +185,9 @@ const contraposed = {
     text: ({ a, b }) => `(¬(${b})) → (¬(${a}))`,
 };
 
-// Unit 5. The laws of logical equivalence, each proved in both directions in
+// Unit 6. The laws of logical equivalence, each proved in both directions in
 // earlier levels, as students read them (with schematic letters A, B, as the
-// moves of unit 3 do), as Lean's lemmas (EQUIV_PRELUDE), and as the forms of
+// moves of unit 4 do), as Lean's lemmas (EQUIV_PRELUDE), and as the forms of
 // their two sides, to show what a replacement replaces. A law about a
 // quantifier is restated with the bound variable of the formula it is used in
 // (see variable), so that a substitution keeps the formula's names. Double
@@ -299,7 +299,7 @@ class FieldLawDirection extends Blockly.FieldDropdown {
     }
 }
 
-// The structures that induction is on, each by the ways it is built (units 10
+// The structures that induction is on, each by the ways it is built (units 11
 // and 11): a part of the proof for each, headed by what is proved in it. A
 // part's case in Lean names the parts of the structure (args) and the
 // induction hypotheses (one _ each, found by their statement); the structure's
@@ -337,7 +337,7 @@ let levelStructure = 'Nat';
 export const setLevelStructure = (structure = 'Nat') => { levelStructure = STRUCTURES[structure] ? structure : 'Nat'; };
 
 // The functions defined by recursion, and the definitions of addition and
-// power (units 10 and 11): their names, the structure they are defined on, and
+// power (units 11 and 12): their names, the structure they are defined on, and
 // the equations that unfold them (the first that applies).
 const FUNCTIONS = [
     ['double', 'double', ['double'], 'Nat'],
@@ -485,7 +485,7 @@ const filled = (value) => value && value !== PLACEHOLDER;
 const negation = (formula) => `¬(${formula})`;
 
 // The element taken to prove an inclusion: a set when the sets are of sets
-// (a power set), a pair (x₀, y₀) when they are relations (unit 8), otherwise
+// (a power set), a pair (x₀, y₀) when they are relations (unit 9), otherwise
 // an object.
 const elementName = (block, smaller, larger = '') => {
     if (isRelationSet(block, smaller) || isRelationSet(block, larger)) {
@@ -1129,7 +1129,7 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Unit 8. An equality whose two sides are the same by the definitions.
+    // Unit 9. An equality whose two sides are the same by the definitions.
     Blockly.Blocks['rfl'] = {
         init() {
             this.appendDummyInput().appendField('שני הצדדים שווים לפי ההגדרה.');
@@ -1137,7 +1137,7 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Unit 5. Replacing a statement by an equivalent one, by a law proved
+    // Unit 6. Replacing a statement by an equivalent one, by a law proved
     // before, in the goal or in a statement in hand (whose result joins it).
     Blockly.Blocks['replace'] = {
         init() {
@@ -1205,7 +1205,7 @@ export const defineMoveBlocks = () => {
         },
     };
 
-    // Induction (units 10 and 11): a part for each way the level's structure is
+    // Induction (units 11 and 12): a part for each way the level's structure is
     // built, a basis for each one without parts like it, and a step, with an
     // induction hypothesis for each part like it, for each of the others.
     Blockly.Blocks['induction'] = {
@@ -1341,7 +1341,7 @@ leanGenerator.forBlock['forward'] = (block) => {
     return `  ${refuseNegation(rule, 'forward')}have := easylean_mp ‹${rule}› ‹${block.getFieldValue('PREMISE')}›\n`;
 };
 
-// Unit 2. Each move is the specific rule, so that it fails on a goal or an
+// Unit 3. Each move is the specific rule, so that it fails on a goal or an
 // assumption of the wrong kind; the parts of a move that splits the proof are
 // opened by leanBranches.
 leanGenerator.forBlock['and_elim'] = (block) => {
@@ -1366,7 +1366,7 @@ leanGenerator.forBlock['iff_elim'] = (block) => {
     return `  have := Iff.mp ‹${iff}›\n  have := Iff.mpr ‹${iff}›\n`;
 };
 
-// Unit 3. A contradiction is stated as False, so that it only closes the
+// Unit 4. A contradiction is stated as False, so that it only closes the
 // goal ⊥ (see the explanations in leanErrors.js).
 // A negation ¬Q contradicts ¬¬Q or Q: Lean tries both, Q last, so that when
 // neither is in hand it explains that Q is not.
@@ -1386,7 +1386,7 @@ leanGenerator.forBlock['exfalso'] = () => '  apply False.elim\n';
 
 leanGenerator.forBlock['by_contradiction'] = () => '  apply Classical.byContradiction\n  intro _\n';
 
-// Unit 4. The rules of LEAN_PRELUDE (easylean_forall_…) and Exists.…, which
+// Unit 5. The rules of LEAN_PRELUDE (easylean_forall_…) and Exists.…, which
 // the explanations in leanErrors.js know; a new object is named by newObjectName.
 leanGenerator.forBlock['forall_elim'] = (block) =>
     `  have := easylean_forall_elim ‹${block.getFieldValue('FORALL')}› (${block.getFieldValue('TERM')})\n`;
@@ -1404,7 +1404,7 @@ leanGenerator.forBlock['exists_elim'] = (block) => {
     return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
-// Units 6 and 7. The rules and definitions of SET_PRELUDE.
+// Units 7 and 8. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
     const element = sets ? elementName(block, sets[0], sets[1]) : 'x₀';
@@ -1432,13 +1432,13 @@ leanGenerator.forBlock['unfold'] = (block) => {
     const statement = block.getFieldValue('STATEMENT');
     const definition = unfoldMembership(statement);
     if (!definition) return `  have := ‹${statement}›\n`;
-    // A composition of functions (not of relations, unit 8) is written
+    // A composition of functions (not of relations, unit 9) is written
     // applied, g (f x), as the block writes it (and as `Function.comp` means).
     const applied = statement.includes('∘') && block.stateBefore?.functions?.length ? '; try simp only [Function.comp_apply]' : '';
     return `  first\n  | (guard_target =ₛ ${statement}; apply ${definition.lemma}.mpr${applied})\n  | (have := ${definition.lemma}.mp ‹${statement}›${applied ? `${applied} at this` : ''})\n`;
 };
 
-// Unit 5. `rewrite` replaces the first part of the form of the law's side;
+// Unit 6. `rewrite` replaces the first part of the form of the law's side;
 // inside a quantifier, which `rewrite` cannot reach, `simp only` does (and it
 // replaces all of them; in the levels there is one). A law about a
 // quantifier is restated, for this move only, with the formula's bound
@@ -1466,7 +1466,7 @@ leanGenerator.forBlock['replace'] = (block) => {
     return `  ${copy}${restated}(first | rewrite (occs := .pos [1]) [${rule}]${at} | simp only [${rule}]${at} | fail "easylean: no part of the form ${side}")${cleanup}\n`;
 };
 
-// Unit 8. `rewrite`, not `rw`, which would also try to close the goal; in a
+// Unit 9. `rewrite`, not `rw`, which would also try to close the goal; in a
 // statement in hand, a copy of it is rewritten.
 leanGenerator.forBlock['rfl'] = () => '  rfl\n';
 
@@ -1484,7 +1484,7 @@ leanGenerator.forBlock['induction'] = (block) => `  induction ${block.getFieldVa
 // The claim is proved in its part (see leanBranches), and then it is in hand.
 leanGenerator.forBlock['claim'] = (block) => (filled(block.getFieldValue('CLAIM')) ? '' : '  skip\n');
 
-// In a statement in hand, on a copy of it, as `rewrite` (unit 8) does. Lean
+// In a statement in hand, on a copy of it, as `rewrite` (unit 9) does. Lean
 // unfolds the chosen part in an equation of its own (easylean_eq), whose right
 // side it finds, and replaces the part by it. A part without variables is the
 // base case of its definition, which `rewrite` tries first (and the equation

@@ -71,7 +71,7 @@ const GameWorkspace = ({
     newTacticsLabel = 'טקטיקה חדשה',
     hideCompilerDetails = false,
     proofStateEndpoint = null,
-    // After the last level, offers moving on to the next unit (e.g. "ליחידה 1").
+    // After the last level, offers moving on to the next unit (e.g. "ליחידה 2").
     nextWorldLabel = null,
     onNextWorld = null,
 }) => {
@@ -379,20 +379,20 @@ const GameWorkspace = ({
     // name apart from the assumptions: they are things we have, not claims.
     const renderGoal = ({ assumptions: all, goal }, spacing) => {
         const domains = new Set(all.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
-        // Lists, trees and formulas (unit 9) are objects too.
+        // Lists, trees and formulas (unit 10) are objects too.
         const isObject = ({ prop }) => domains.has(prop.trim()) || ['Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim())
             || prop.trim().split(' × ').every((part) => domains.has(part));
         const objects = all.filter(isObject).flatMap(({ name }) => name.split(/\s+/));
         // Sets of objects (A : Set obj), and families of sets, are listed by name too.
         const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
-        // Relations (R : Set (obj × obj), unit 10) are listed apart from the sets.
+        // Relations (R : Set (obj × obj), unit 11) are listed apart from the sets.
         const isRelation = ({ prop }) => /^Set\s*\(.*×.*\)$/.test(prop.trim());
         // Natural numbers (n : Nat) are listed by name too.
         const isNumber = ({ prop }) => ['Nat', 'ℕ'].includes(prop.trim());
         const numbers = all.filter(isNumber).flatMap(({ name }) => name.split(/\s+/));
         const sets = all.filter((a) => isSet(a) && !isRelation(a)).flatMap(({ name }) => name.split(/\s+/));
         const relations = all.filter(isRelation).flatMap(({ name }) => name.split(/\s+/));
-        // Functions (f : obj → obj, unit 9) are listed by name too.
+        // Functions (f : obj → obj, unit 10) are listed by name too.
         const isType = (text) => domains.has(text) || ['Nat', 'ℕ'].includes(text) || /^Set\s/.test(text);
         const isFunction = ({ prop }) => { const sides = prop.trim().split(' → '); return sides.length === 2 && sides.every(isType); };
         const functions = all.filter(isFunction).flatMap(({ name }) => name.split(/\s+/));
@@ -594,7 +594,7 @@ const GameWorkspace = ({
                                 // right edge, so the open toolbox no longer covers where moves are dropped.
                                 toolboxPosition: 'end',
                                 grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
-                                // Proofs with several parts (unit 2 on) can be wider than the
+                                // Proofs with several parts (unit 3 on) can be wider than the
                                 // workspace; zoom buttons let students fit them in.
                                 zoom: { controls: true, wheel: false, startScale: 1, maxScale: 1.5, minScale: 0.5, scaleSpeed: 1.2 },
                             }}

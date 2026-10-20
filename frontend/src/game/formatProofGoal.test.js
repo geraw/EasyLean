@@ -88,14 +88,14 @@ describe('formatProofGoal with quantifiers', () => {
     });
 });
 
-describe('formatProofGoal with the functions of unit 8', () => {
+describe('formatProofGoal with the functions of unit 9', () => {
     it('writes their arguments in parentheses', () => {
         expect(formatProofGoal('double (k + 1) = k + 1 + (k + 1)')).toBe('double(k + 1) = k + 1 + (k + 1)');
         expect(formatProofGoal('2 * sumTo n = n * (n + 1)')).toBe('2 · sumTo(n) = n · (n + 1)');
     });
 });
 
-describe('formatProofGoal with the structures of unit 9', () => {
+describe('formatProofGoal with the structures of unit 10', () => {
     it('writes functions and the ways structures are built as applied to their arguments', () => {
         expect(formatProofGoal('mirror (mirror (node l r)) = (node l r)')).toBe('mirror(mirror(node(l,r))) = node(l,r)');
         expect(formatProofGoal('List.length (l ++ m) = List.length l + List.length m')).toBe('length(l ++ m) = length(l) + length(m)');

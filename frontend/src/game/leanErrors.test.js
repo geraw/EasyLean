@@ -85,7 +85,7 @@ describe('findLeanProblem', () => {
     });
 });
 
-// Real Lean 4.26 output for unit 2 rules used on the wrong connective.
+// Real Lean 4.26 output for unit 3 rules used on the wrong connective.
 const andIntroOnOr = `Proof.lean:5:2: error: Tactic \`apply\` failed: could not unify the conclusion of \`@And.intro\`
   ?a ∧ ?b
 with the goal
@@ -145,7 +145,7 @@ describe('explainLeanMessage for and, or, iff', () => {
     });
 });
 
-// Real Lean 4.26 output for unit 3 rules used the wrong way.
+// Real Lean 4.26 output for unit 4 rules used the wrong way.
 const contradictionOnOtherGoal = `Proof.lean:5:2: error: Type mismatch
   absurd hp hn
 has type
@@ -237,7 +237,7 @@ describe('explainLeanMessage for a forward step', () => {
     });
 });
 
-// Real Lean 4.26 output for unit 4's quantifier rules, and for assuming the
+// Real Lean 4.26 output for unit 5's quantifier rules, and for assuming the
 // condition of an implication, used on formulas of the wrong kind.
 const assumeOnForall = `Proof.lean:9:2: error: Type mismatch
   easylean_imp_intro fun h => ?m.5

@@ -50,14 +50,14 @@ const segmentOutput = (messages, { offset, firstLine, lastLine }) => messages
 // assumptions: they are things we have, not claims.
 const objectsOf = (assumptions) => {
     const domains = new Set(assumptions.filter(({ prop }) => /^(Type|Sort)\b/.test(prop.trim())).flatMap(({ name }) => name.split(/\s+/)));
-    // Natural numbers (n : ℕ), and lists, trees and formulas (unit 11), are objects too.
+    // Natural numbers (n : ℕ), and lists, trees and formulas (unit 12), are objects too.
     // A pair of objects (obj × obj) is one too.
     const isObject = ({ prop }) => domains.has(prop.trim()) || ['Nat', 'ℕ', 'Tree', 'Formula'].includes(prop.trim()) || /^List\s/.test(prop.trim())
         || prop.trim().split(' × ').every((part) => domains.has(part));
     const isSet = ({ prop }) => /^Set\b/.test(prop.trim());
-    // A relation is a set of pairs (R : Set (obj × obj), unit 8).
+    // A relation is a set of pairs (R : Set (obj × obj), unit 9).
     const isRelation = ({ prop }) => /^Set\s*\(.*×.*\)$/.test(prop.trim());
-    // A function between domains or sets of them (f : obj → obj, unit 9).
+    // A function between domains or sets of them (f : obj → obj, unit 10).
     const isType = (text) => domains.has(text) || ['Nat', 'ℕ'].includes(text) || /^Set\s/.test(text);
     const isFunction = ({ prop }) => { const sides = prop.trim().split(' → '); return sides.length === 2 && sides.every(isType); };
     const names = (test) => assumptions.filter(test).flatMap(({ name }) => name.split(/\s+/));

@@ -1,6 +1,6 @@
 import { test, expect } from './helpers';
 
-// A student's walk through units 3-5, as their hints describe each level:
+// A student's walk through units 4-6, as their hints describe each level:
 // blocks dragged from the toolbox with the mouse, and fields chosen only
 // among the options their menu shows. (The solutions in solutions.spec.js
 // are built directly, which does not catch a hint that cannot be followed.) SHOTS=<dir> saves a screenshot of each level; WHERE=1
@@ -156,8 +156,8 @@ const choose = async (page, id, field, label) => {
 
 const state = (page) => page.getByRole('region', { name: 'מצב ההוכחה' }).innerText();
 
-// Each level of unit 3, as its hints describe it.
-const UNIT3 = [
+// Each level of unit 4, as its hints describe it.
+const UNIT4 = [
     async (page, log) => {
         const c = await drag(page, 'contradiction', { goal: true });
         await choose(page, c, 'FACT', 'P'); log(await phrase(page, c));
@@ -219,8 +219,8 @@ const UNIT3 = [
     },
 ];
 
-// Each level of unit 4, as its hints describe it.
-const UNIT4 = [
+// Each level of unit 5, as its hints describe it.
+const UNIT5 = [
     async (page, log) => {
         const e = await drag(page, 'forall_elim', { goal: true });
         await choose(page, e, 'FORALL', '∀x (P(x))'); await choose(page, e, 'TERM', 'a'); log(await phrase(page, e));
@@ -295,7 +295,7 @@ const UNIT4 = [
     },
 ];
 
-// Each level of unit 5, as its hints describe it.
+// Each level of unit 6, as its hints describe it.
 const replace = async (page, where, law, direction, target, log) => {
     const r = await drag(page, 'replace', where);
     // The place first: the direction shows what is replaced there.
@@ -307,7 +307,7 @@ const replace = async (page, where, law, direction, target, log) => {
 };
 const IMP_OR = '(A → B) ↔ (¬A ∨ B)';
 const NOT_OR = '¬(A ∨ B) ↔ (¬A ∧ ¬B)';
-const UNIT5 = [
+const UNIT6 = [
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const d = await drag(page, 'and_elim', { after: a }); await choose(page, d, 'AND', '(¬P ∧ ¬Q)'); log(await phrase(page, d));
@@ -413,9 +413,9 @@ const UNIT5 = [
 ];
 
 const UNITS = [
-    { unit: 3, world: 'יחידה 3 - שלילה והוכחה בשלילה', walks: UNIT3 },
-    { unit: 4, world: 'יחידה 4 - כמתים', walks: UNIT4 },
-    { unit: 5, world: 'יחידה 5 - שקילויות לוגיות', walks: UNIT5 },
+    { unit: 3, world: 'יחידה 4 - שלילה והוכחה בשלילה', walks: UNIT4 },
+    { unit: 4, world: 'יחידה 5 - כמתים', walks: UNIT5 },
+    { unit: 5, world: 'יחידה 6 - שקילויות לוגיות', walks: UNIT6 },
 ];
 
 // The walks of a unit: a list, for every level, or by level number, for some.

@@ -1,7 +1,7 @@
 import { goalXml } from './levelXml';
 
 // Unit 0 (see blocks/moves.js): getting to know the screen, with one level.
-// The first planned error, explained on the screen, is in unit 1, level 2.
+// The first planned error, explained on the screen, is in unit 2, level 2.
 // The assumptions keep names only inside Lean (params), where students never see them.
 
 export const unit0WorldName = 'יחידה 0 - היכרות עם הסביבה';
@@ -44,7 +44,7 @@ export const unit0Levels = [
         ],
         conclusion: `ההנחה P אמרה בדיוק את המטרה, ולכן ההוכחה הושלמה. בהוכחה כתובה הייתם כותבים: "P, וזה מה שהיה צריך להוכיח".
 לחיצה על בלוק של מהלך מאפשרת לבחור במצב ההוכחה "לפני המהלך" או "אחרי המהלך": לפני המהלך נשאר להוכיח את P, ואחריו לא נשאר דבר להוכיח.
-סיימתם את יחידה 0, ואתם מכירים את חלקי המסך. ביחידה 1 נלמד להוכיח גרירות.`,
+סיימתם את יחידה 0, ואתם מכירים את חלקי המסך. ביחידה 2 נלמד להוכיח גרירות.`,
         startXml: goalXml('P', 'P'),
     },
 ];

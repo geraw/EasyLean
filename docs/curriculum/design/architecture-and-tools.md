@@ -44,7 +44,7 @@ Blockly (מהלכי הוכחה)
 
 ```js
 {
-    id: 'unit1-2',
+    id: 'unit2-2',
     title: 'שימוש בגרירה: מחליפים את המטרה',
     variableLine: 'variable {P Q : Prop}',
     params: '(h1 : (P → Q)) (h : P)',   // לשמות האלה יש תפקיד רק ב־Lean; הסטודנט לא רואה אותם

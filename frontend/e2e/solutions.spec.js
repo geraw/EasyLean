@@ -11,7 +11,7 @@ const openLevel = async (page, worldName, levelIndex = 0) => {
     await page.getByRole('combobox').selectOption(String(levelIndex));
 };
 
-const UNIT1 = UNITS[1].world;
+const UNIT2 = UNITS[1].world;
 
 // A move's text and the options of one of its fields, as students read them.
 const moveText = (page, blockId) => page.evaluate((id) => {
@@ -37,7 +37,7 @@ for (const { unit, world, levels } of UNITS) {
 }
 
 test('the planned error, closing too early, is explained by statements', async ({ page }) => {
-    await openLevel(page, UNIT1, 1);
+    await openLevel(page, UNIT2, 1);
     const state = page.getByRole('region', { name: 'מצב ההוכחה' });
     await expect(state.getByRole('alert')).toContainText('אין בידינו הנחה שאומרת Q');
 });
@@ -60,7 +60,7 @@ test('a negation is not used as an implication, since it has its own moves', asy
 
 test('after a long introduction, the button to the next level can be reached', async ({ page }) => {
     await page.setViewportSize({ width: 1900, height: 700 });
-    await openLevel(page, UNIT1, 0);
+    await openLevel(page, UNIT2, 0);
     await clearProof(page);
     await buildProof(page, UNITS[1].levels[0][0].steps);
     await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
@@ -72,7 +72,7 @@ test('after a long introduction, the button to the next level can be reached', a
 });
 
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
-    await openLevel(page, UNIT1, 4);
+    await openLevel(page, UNIT2, 4);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);
     await expect.poll(() => moveText(page, first)).toBe('כדי להוכיח את הגרירה, נניח (P → Q) ונוכיח ((Q → R) → (P → R))');
     await expect.poll(() => moveText(page, second)).toBe('כדי להוכיח את הגרירה, נניח (Q → R) ונוכיח (P → R)');
@@ -87,7 +87,7 @@ test('a move offers the assumptions in hand before it, and reads like a written 
 });
 
 test('a statement can be typed in instead of chosen', async ({ page }) => {
-    await openLevel(page, UNIT1, 1);
+    await openLevel(page, UNIT2, 1);
     const [backward] = await buildProof(page, [['apply_rule']]);
     // Choosing the menu's last item opens Blockly's prompt.
     await page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getField('RULE').setValue('__write_own__'), backward);
@@ -97,10 +97,10 @@ test('a statement can be typed in instead of chosen', async ({ page }) => {
     await expect.poll(() => moveText(page, backward)).toBe('כדי להוכיח Q די להוכיח P');
 });
 
-const UNIT2 = UNITS[2].world;
+const UNIT3 = UNITS[2].world;
 
 test('a move that splits the proof heads each part by the proof state', async ({ page }) => {
-    await openLevel(page, UNIT2, 1);
+    await openLevel(page, UNIT3, 1);
     const [andIntro] = await buildProof(page, [['and_intro']]);
     const heading = (part) => page.evaluate(([id, prefix]) => {
         const block = window.__easyleanWorkspace.getBlockById(id);
@@ -112,7 +112,7 @@ test('a move that splits the proof heads each part by the proof state', async ({
 });
 
 test('the side of an "or" is chosen by what it says', async ({ page }) => {
-    await openLevel(page, UNIT2, 3);
+    await openLevel(page, UNIT3, 3);
     const [orIntro] = await buildProof(page, [['or_intro']]);
     await expect.poll(() => fieldOptions(page, orIntro, 'SIDE')).toEqual(['?', 'Q', 'P']);
     await expect.poll(() => moveText(page, orIntro)).toBe('כדי להוכיח (Q ∨ P) די להוכיח');
