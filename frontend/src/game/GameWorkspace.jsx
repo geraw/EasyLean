@@ -456,6 +456,10 @@ const GameWorkspace = ({
         <div role="region" aria-label="מצב ההוכחה" style={{ padding: '12px', background: '#eef4ff', border: '1px solid #b7cbea', borderRadius: '5px', flexShrink: 0, maxHeight: '40%', overflowY: 'auto', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
                 <h3 style={{ margin: 0 }}>מצב ההוכחה</h3>
+                {/* Which point of the proof the state is at: its end, until a move is chosen. */}
+                {!evaluatedBlockId && (
+                    <span style={{ fontSize: '13px', color: '#555' }}>המצב בסוף ההוכחה. לחצו על מהלך כדי לראות את המצב לפניו ואחריו.</span>
+                )}
                 {evaluatedBlockId && (
                     <div
                         role="radiogroup"
