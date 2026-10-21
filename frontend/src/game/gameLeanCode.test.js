@@ -9,6 +9,8 @@ const level = unit2Levels[1];
 // Every proof starts with the lemmas of LEAN_PRELUDE; P = their number of lines.
 const P = LEAN_PRELUDE.split('\n').length - 1;
 const ASSUME = '  easylean_assume';
+// What is inside the assumption is a part of its own (see wrap in blocks/moves.js).
+const INSIDE = '  ·';
 const header = `\n${LEAN_PRELUDE}set_option linter.unusedVariables false\nvariable {P : Prop}\n\ntheorem unit2_l2_identity  : P → P := by\n`;
 const code = (workspace, options) => generateGameLeanCode(workspace, level, '', options);
 
@@ -21,7 +23,7 @@ const solvedWorkspace = () => {
 describe('generateGameLeanCode', () => {
     it('generates the whole proof', () => {
         const { workspace } = solvedWorkspace();
-        expect(code(workspace)).toBe(`${header}${ASSUME}\n  assumption\n`);
+        expect(code(workspace)).toBe(`${header}${ASSUME}\n${INSIDE}\n    assumption\n`);
     });
 
     it('falls back to sorry for an empty proof, or to a hole when computing proof state', () => {
@@ -32,12 +34,12 @@ describe('generateGameLeanCode', () => {
 
     it('stops before the selected move ("before")', () => {
         const { workspace, exact } = solvedWorkspace();
-        expect(code(workspace, { includeFallback: false, untilBlockId: exact.id })).toBe(`${header}${ASSUME}\n`);
+        expect(code(workspace, { includeFallback: false, untilBlockId: exact.id })).toBe(`${header}${ASSUME}\n${INSIDE}\n    skip\n`);
     });
 
     it('stops after the selected move ("after")', () => {
         const { workspace, intro } = solvedWorkspace();
-        expect(code(workspace, { includeFallback: false, untilBlockId: intro.id, includeUntilBlock: true })).toBe(`${header}${ASSUME}\n`);
+        expect(code(workspace, { includeFallback: false, untilBlockId: intro.id, includeUntilBlock: true })).toBe(`${header}${ASSUME}\n${INSIDE}\n    skip\n`);
     });
 
     it('uses a hole before the first move', () => {
@@ -50,7 +52,7 @@ describe('generateGameLeanCode', () => {
         const goal = workspace.getTopBlocks(true).find(b => b.type === 'game_goal');
         // statementToCode adds its own indentation, which Lean accepts.
         const lines = code(workspace, { untilBlockId: goal.id }).split('\n').map(line => line.trim());
-        expect(lines.slice(-3)).toEqual([ASSUME.trim(), 'assumption', '']);
+        expect(lines.slice(-4)).toEqual([ASSUME.trim(), '·', 'assumption', '']);
     });
 
     it('returns an empty string without a goal block', () => {
@@ -64,7 +66,7 @@ describe('generateGameLeanSource', () => {
         const { code, lineBlockIds } = generateGameLeanSource(workspace, level, '');
         const lines = code.split('\n');
         expect(lines[P + 5]).toBe(ASSUME); // line P + 6
-        expect([...lineBlockIds]).toEqual([[P + 6, intro.id], [P + 7, exact.id]]);
+        expect([...lineBlockIds]).toEqual([[P + 6, intro.id], [P + 7, intro.id], [P + 8, exact.id]]);
     });
 });
 
@@ -140,7 +142,7 @@ describe('generateGameLeanSource with rules that split the proof', () => {
         buildInto(cases, 'LEFT', [['or_intro', { SIDE: 'RIGHT' }], ['exact']]);
         buildInto(cases, 'RIGHT', [['or_intro', { SIDE: 'LEFT' }], ['exact']]);
         const proof = generateGameLeanSource(workspace, orLevel, '').code.split(':= by\n')[1];
-        expect(proof).toBe('  cases ‹P ∨ Q› with\n  | inl _ =>\n    apply Or.inr\n    assumption\n  | inr _ =>\n    apply Or.inl\n    assumption\n');
+        expect(proof).toBe('  cases ‹P ∨ Q› with\n  | inl _ =>\n    apply Or.inr\n    ·\n      assumption\n  | inr _ =>\n    apply Or.inl\n    ·\n      assumption\n');
     });
 
     it('keeps every case of an "or" when cut inside the first one', () => {
@@ -157,8 +159,9 @@ describe('generateGameLeanSource with rules that split the proof', () => {
 describe('findIncompleteMove', () => {
     it('finds the first move, in proof order, whose field still holds the placeholder', () => {
         const workspace = loadWorkspace(goalXml('P ∧ Q'));
-        const [split, last] = buildProof(workspace, [['and_intro'], ['and_elim']]);
+        const [split] = buildProof(workspace, [['and_intro']]);
         const [filled, empty] = buildInto(split, 'LEFT', [['and_elim', { AND: 'P ∧ Q' }], ['and_elim']]);
+        const [last] = buildInto(split, 'RIGHT', [['and_elim']]);
         expect(findIncompleteMove(workspace)?.id).toBe(empty.id);
         empty.setFieldValue('P ∧ Q', 'AND');
         expect(findIncompleteMove(workspace)?.id).toBe(last.id);

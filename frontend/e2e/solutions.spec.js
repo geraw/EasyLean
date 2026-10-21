@@ -14,12 +14,13 @@ const openLevel = async (page, worldName, levelIndex = 0) => {
 const UNIT2 = unitSolutions(2).world;
 
 // A move's text and the options of one of its fields, as students read them.
-const moveText = (page, blockId) => page.evaluate((id) => {
+// Its opening line, or its closing line ('CLOSE', for a move that opens a structure).
+const moveText = (page, blockId, prefix = 'PHRASE') => page.evaluate(([id, prefix]) => {
     const block = window.__easyleanWorkspace.getBlockById(id);
-    return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`PHRASE${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069]/g, '');
-}, blockId);
+    return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069\u200f]/g, '');
+}, [blockId, prefix]);
 const fieldOptions = (page, blockId, field) => page.evaluate(([id, name]) => window.__easyleanWorkspace.getBlockById(id).getField(name)
-    .getOptions(false).map(([label]) => label.replace(/[\u2066\u2067\u2069]/g, '')), [blockId, field]);
+    .getOptions(false).map(([label]) => label.replace(/[\u2066\u2067\u2069\u200f]/g, '')), [blockId, field]);
 
 for (const { unit, world, levels } of UNITS) {
     levels.forEach((solutions, index) => {
@@ -74,12 +75,14 @@ test('after a long introduction, the button to the next level can be reached', a
 test('a move offers the assumptions in hand before it, and reads like a written proof', async ({ page }) => {
     await openLevel(page, UNIT2, 5);
     const [first, second, third, forward] = await buildProof(page, [['assume'], ['assume'], ['assume'], ['forward']]);
-    await expect.poll(() => moveText(page, first)).toBe('כדי להוכיח את הגרירה, נניח (P → Q) ונוכיח ((Q → R) → (P → R))');
-    await expect.poll(() => moveText(page, second)).toBe('כדי להוכיח את הגרירה, נניח (Q → R) ונוכיח (P → R)');
-    await expect.poll(() => moveText(page, third)).toBe('כדי להוכיח את הגרירה, נניח P ונוכיח R');
+    // Each assumption opens the proof of what is left, inside it, and closes it.
+    await expect.poll(() => moveText(page, first)).toBe('נניח (P → Q). עלינו להראות ((Q → R) → (P → R)).');
+    await expect.poll(() => moveText(page, second)).toBe('נניח (Q → R). עלינו להראות (P → R).');
+    await expect.poll(() => moveText(page, third)).toBe('נניח P. עלינו להראות R.');
+    await expect.poll(() => moveText(page, first, 'CLOSE')).toBe('לכן ((P → Q) → ((Q → R) → (P → R))).');
     await expect.poll(() => fieldOptions(page, forward, 'RULE')).toEqual(['?', '(P → Q)', '(Q → R)', 'P', '✎ כתיבה ידנית...']);
     await page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).setFieldValue('P → Q', 'RULE'), forward);
-    await expect.poll(() => moveText(page, forward)).toBe('נובע Q');
+    await expect.poll(() => moveText(page, forward)).toBe('נקבל Q.');
     const state = page.getByRole('region', { name: 'מצב ההוכחה' });
     await expect(state).toContainText('(P → Q)');
     // Assumptions are listed by statement only, never as "name : statement".
@@ -94,7 +97,7 @@ test('a statement can be typed in instead of chosen', async ({ page }) => {
     await page.locator('dialog.blocklyDialog input').fill('P -> Q');
     await page.locator('dialog.blocklyDialog').getByRole('button', { name: 'OK' }).click();
     await expect.poll(() => page.evaluate((id) => window.__easyleanWorkspace.getBlockById(id).getFieldValue('RULE'), backward)).toBe('P → Q');
-    await expect.poll(() => moveText(page, backward)).toBe('כדי להוכיח Q די להוכיח P');
+    await expect.poll(() => moveText(page, backward)).toBe('כדי להוכיח Q די להוכיח P.');
 });
 
 const UNIT3 = unitSolutions(3).world;
@@ -104,16 +107,17 @@ test('a move that splits the proof heads each part by the proof state', async ({
     const [andIntro] = await buildProof(page, [['and_intro']]);
     const heading = (part) => page.evaluate(([id, prefix]) => {
         const block = window.__easyleanWorkspace.getBlockById(id);
-        return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069]/g, '');
+        return [0, 1, 2, 3, 4, 5].map((index) => block.getFieldValue(`${prefix}${index}`)).filter(Boolean).join(' ').replace(/[\u2066\u2067\u2069\u200f]/g, '');
     }, [andIntro, `${part}_TEXT`]);
-    await expect.poll(() => moveText(page, andIntro)).toBe('כדי להוכיח (P ∧ Q) נוכיח כל צד לחוד');
-    await expect.poll(() => heading('LEFT')).toBe('נוכיח P');
-    await expect.poll(() => heading('RIGHT')).toBe('נוכיח Q');
+    await expect.poll(() => moveText(page, andIntro)).toBe('נוכיח את שני החלקים של (P ∧ Q).');
+    await expect.poll(() => heading('LEFT')).toBe('החלק הראשון: P');
+    await expect.poll(() => heading('RIGHT')).toBe('החלק השני: Q');
+    await expect.poll(() => moveText(page, andIntro, 'CLOSE')).toBe('הוכחנו את שני החלקים, ולכן (P ∧ Q).');
 });
 
 test('the side of an "or" is chosen by what it says', async ({ page }) => {
     await openLevel(page, UNIT3, 3);
     const [orIntro] = await buildProof(page, [['or_intro']]);
     await expect.poll(() => fieldOptions(page, orIntro, 'SIDE')).toEqual(['?', 'Q', 'P']);
-    await expect.poll(() => moveText(page, orIntro)).toBe('כדי להוכיח (Q ∨ P) די להוכיח');
+    await expect.poll(() => moveText(page, orIntro)).toBe('כדי להוכיח (Q ∨ P) נוכיח את');
 });

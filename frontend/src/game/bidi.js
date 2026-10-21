@@ -41,4 +41,4 @@ const RLI = '\u2067';
 export const isolateHebrew = (text) => `${RLI}${text}${PDI}`;
 
 // For tests: the text as a student reads it, without the invisible isolates.
-export const withoutIsolates = (text) => text.replace(/[\u2066\u2067\u2069]/g, '');
+export const withoutIsolates = (text) => text.replace(/[\u2066\u2067\u2069\u200f]/g, '');

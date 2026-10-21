@@ -36,16 +36,24 @@ export const buildProof = (page, steps) => page.evaluate((steps) => {
     if (missing.length) throw new Error(`Not in this level's toolbox: ${[...new Set(missing)].join(', ')}`);
     const goal = workspace.getTopBlocks(true).find((b) => b.type === 'game_goal');
     const ids = [];
-    const build = (connection, steps) => steps.forEach(([type, fields = {}, parts = {}]) => {
-        const block = workspace.newBlock(type);
-        Object.entries(fields).forEach(([name, value]) => block.setFieldValue(value, name));
-        block.initSvg();
-        block.render();
-        connection.connect(block.previousConnection);
-        ids.push(block.id);
-        Object.entries(parts).forEach(([input, partSteps]) => build(block.getInput(input).connection, partSteps));
-        connection = block.nextConnection;
-    });
+    // A move that opens a structure (no next move: see wrap in blocks/moves.js)
+    // holds the rest of the steps, unless its inside is given as a part.
+    const build = (connection, steps) => {
+        for (const [index, [type, fields = {}, parts = {}]] of steps.entries()) {
+            const block = workspace.newBlock(type);
+            Object.entries(fields).forEach(([name, value]) => block.setFieldValue(value, name));
+            block.initSvg();
+            block.render();
+            connection.connect(block.previousConnection);
+            ids.push(block.id);
+            Object.entries(parts).forEach(([input, partSteps]) => build(block.getInput(input).connection, partSteps));
+            if (!block.nextConnection && block.getInput('BODY') && !parts.BODY) {
+                build(block.getInput('BODY').connection, steps.slice(index + 1));
+                return;
+            }
+            connection = block.nextConnection;
+        }
+    };
     build(goal.getInput('PROOF').connection, steps);
     return ids;
 }, steps);

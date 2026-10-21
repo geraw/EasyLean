@@ -20,15 +20,19 @@ export const buildProof = (workspace, steps) => {
 };
 
 // Like buildProof, but into a statement input of any block (a part of a rule
-// that splits the proof).
+// that splits the proof). A move that opens a structure (no next move: see
+// wrap in blocks/moves.js) holds the steps after it; the blocks come back in
+// the order of the steps.
 export const buildInto = (parent, input, steps) => {
     const workspace = parent.workspace;
     let connection = parent.getInput(input).connection;
-    return steps.map(([type, fields = {}]) => {
+    const blocks = [];
+    for (const [type, fields = {}] of steps) {
         const block = workspace.newBlock(type);
         Object.entries(fields).forEach(([name, value]) => block.setFieldValue(value, name));
         connection.connect(block.previousConnection);
-        connection = block.nextConnection;
-        return block;
-    });
+        blocks.push(block);
+        connection = block.nextConnection || block.getInput('BODY')?.connection;
+    }
+    return blocks;
 };

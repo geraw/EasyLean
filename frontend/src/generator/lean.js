@@ -115,6 +115,15 @@ theorem easylean_mem_setOf {α : Type u} {p : α → Prop} {a : α} : a ∈ setO
 // blocks/moves.js), placed before the proofs of the levels that offer them
 // (level.laws). Each law is proved by the students, in both directions, in
 // earlier levels; here it is proved again, so that Lean can use it.
+// The proof strategies of the lecture that are derived rules (unit 7): modus
+// tollens, proof by contraposition, and proving "or" by assuming the negation
+// of one side. Placed only before the levels that offer them (see
+// STRATEGY_MOVES in game/gameLeanCode.js).
+export const STRATEGY_PRELUDE = `theorem easylean_mt {a b : Prop} (h : a → b) (nb : ¬b) : ¬a := fun x => nb (h x)
+theorem easylean_by_contrapositive {a b : Prop} (h : ¬b → ¬a) : a → b := fun x => Classical.byContradiction fun nb => h nb x
+theorem easylean_or_by_negation {a b : Prop} (h : ¬a → b) : a ∨ b := (Classical.em a).elim Or.inl fun n => Or.inr (h n)
+`;
+
 export const EQUIV_PRELUDE = `theorem easylean_not_not {a : Prop} : ¬¬a ↔ a := ⟨fun h => Classical.byContradiction h, fun h n => n h⟩
 theorem easylean_not_or {a b : Prop} : ¬(a ∨ b) ↔ (¬a ∧ ¬b) := ⟨fun h => ⟨fun x => h (Or.inl x), fun x => h (Or.inr x)⟩, fun h x => x.elim h.1 h.2⟩
 theorem easylean_not_and {a b : Prop} : ¬(a ∧ b) ↔ (¬a ∨ ¬b) := ⟨fun h => (Classical.em a).elim (fun x => Or.inr fun y => h ⟨x, y⟩) Or.inl, fun h ⟨x, y⟩ => h.elim (· x) (· y)⟩

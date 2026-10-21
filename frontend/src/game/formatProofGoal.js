@@ -316,10 +316,11 @@ export const substitute = (body, variable, term) => {
     return body.replace(new RegExp(`(?<![\\p{L}\\p{N}_'])${name}(?![\\p{L}\\p{N}_'₀-₉])`, 'gu'), /\s/.test(term) ? `(${term})` : term);
 };
 
-// The name of a new object for a quantified variable: the variable's name
-// with the first subscript no object in hand has (x₀, x₁, ...), so that the
-// object is not confused with the variable of a formula.
+// The name of a new object for a quantified variable: the variable's own
+// name, as the course writes it ("יהי x שרירותי"), or, when an object in hand
+// already has it, the first subscript none has (x₀, x₁, ...).
 export const freshName = (variable, taken = []) => {
+    if (!taken.includes(variable)) return variable;
     const subscript = (n) => String(n).replace(/\d/g, (digit) => '₀₁₂₃₄₅₆₇₈₉'[digit]);
     for (let n = 0; ; n += 1) if (!taken.includes(`${variable}${subscript(n)}`)) return `${variable}${subscript(n)}`;
 };

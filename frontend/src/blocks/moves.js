@@ -436,7 +436,12 @@ const appendPhrase = (block, input = block.appendDummyInput('PHRASE'), prefix = 
 const appendPart = (block, name) => appendPhrase(block, block.appendStatementInput(name).setCheck('tactic'), `${name}_TEXT`);
 
 // Sets the sentence, given as Hebrew strings and { formula } parts, without
-// firing events: it is not a change the student made.
+// firing events: it is not a change the student made. The punctuation after a
+// formula (end: '.') is in its label, after a right-to-left mark (RLM): a
+// label is drawn left to right, and Blockly ends it with an RLM, so the mark
+// before the formula makes the formula and its punctuation one right-to-left
+// run, with the punctuation on the formula's left, where the sentence ends.
+const RLM = '\u200f';
 const setPhrase = (block, parts, prefix = 'PHRASE') => {
     Blockly.Events.disable();
     try {
@@ -444,7 +449,8 @@ const setPhrase = (block, parts, prefix = 'PHRASE') => {
             const field = block.getField(`${prefix}${index}`);
             if (!field) return;
             const part = parts[index];
-            const text = part === undefined ? '' : typeof part === 'string' ? part : shown(part.formula);
+            const formula = part?.raw !== undefined ? isolateFormulas(part.raw) : part && shown(part.formula);
+            const text = part === undefined ? '' : typeof part === 'string' ? part : part.end ? `${RLM}${formula}${part.end}` : formula;
             if (field.getValue() !== text) field.setValue(text);
             if (field.isVisible() !== Boolean(text)) field.setVisible(Boolean(text));
         }
@@ -481,7 +487,7 @@ export const headingOf = (block, name) => [
 
 // The sentence as students read it, or a part's heading (for tests).
 export const phraseOf = (block, prefix = 'PHRASE') => Array.from({ length: PHRASE_LENGTH }, (_, index) => block.getFieldValue(`${prefix}${index}`))
-    .filter(Boolean).join(' ').replace(/[\u2066\u2069]/g, '');
+    .filter(Boolean).join(' ').replace(/[\u2066\u2069\u200f]/g, '');
 
 const filled = (value) => value && value !== PLACEHOLDER;
 
@@ -655,20 +661,39 @@ const setResult = (block, target) => {
     setPhrase(block, added ? ['ונקבל', { formula: added }] : ['ונקבל …'], 'RESULT');
 };
 
+// A move that opens a structure of the proof, as the course writes it: an
+// opening line, the proof inside it, and a closing line ("נניח P. … לכן
+// P → Q."). Nothing follows it, since what is inside proves the goal it was
+// given. In Lean, the inside is a part of its own (see leanBranches).
+const appendClose = (block) => appendPhrase(block, block.appendDummyInput('CLOSE'), 'CLOSE');
+const setClose = (block, parts) => setPhrase(block, parts, 'CLOSE');
+const closing = (block, tooltip) => {
+    appendClose(block);
+    move(block, tooltip);
+    block.setNextStatement(false);
+};
+const wrap = (block, tooltip) => {
+    block.appendStatementInput('BODY').setCheck('tactic');
+    closing(block, tooltip);
+};
+
 export const defineMoveBlocks = () => {
-    // Closing the goal: something in hand says exactly the goal. Lean looks
-    // for it among everything in hand, so the student does not point to it.
+    // Closing the goal: something in hand says exactly the goal ("Q בידינו").
+    // Lean looks for it among everything in hand, so the student does not
+    // point to it.
     Blockly.Blocks['exact'] = {
         init() {
-            this.appendDummyInput().appendField(new Blockly.FieldLabel('יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.'), 'TEXT');
-            move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שרוצים להוכיח, ההוכחה הושלמה.');
+            appendPhrase(this);
+            move(this, 'כאשר אחת ההנחות אומרת בדיוק את מה שעלינו להראות, ההוכחה הושלמה.');
+            this.updateText();
         },
         ...followState,
         // In a step whose goal is its induction hypothesis, says so.
         updateText() {
-            setLabel(this, 'TEXT', isInductionHypothesis(this, this.stateBefore?.goal)
-                ? 'זו בדיוק הנחת האינדוקציה.'
-                : 'יש לנו ביד בדיוק את מה שאנחנו רוצים להוכיח.');
+            const goal = this.stateBefore?.goal;
+            if (isInductionHypothesis(this, goal)) setPhrase(this, ['זו בדיוק הנחת האינדוקציה.']);
+            else if (goal) setPhrase(this, [{ formula: goal }, 'בידינו, וזה מה שעלינו להראות.']);
+            else setPhrase(this, ['המטרה בידינו, וזה מה שעלינו להראות.']);
         },
     };
 
@@ -676,15 +701,20 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['assume'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה.');
+            wrap(this, 'כדי להוכיח גרירה, מניחים את התנאי שלה ומוכיחים את המסקנה שלה.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const goal = this.stateBefore?.goal;
             const parts = splitImplication(goal);
-            if (parts && parts[1] !== 'False') setPhrase(this, ['כדי להוכיח את הגרירה, נניח', { formula: parts[0] }, 'ונוכיח', { formula: parts[1] }]);
-            else setPhrase(this, ['כדי להוכיח את הגרירה, נניח את התנאי שלה ונוכיח את המסקנה שלה']);
+            if (parts && parts[1] !== 'False') {
+                setPhrase(this, ['נניח', { formula: parts[0], end: '.' }, 'עלינו להראות', { formula: parts[1], end: '.' }]);
+                setClose(this, ['לכן', { formula: goal, end: '.' }]);
+            } else {
+                setPhrase(this, ['נניח את התנאי של הגרירה. עלינו להראות את המסקנה שלה.']);
+                setClose(this, ['לכן הגרירה נכונה.']);
+            }
         },
     };
 
@@ -693,19 +723,18 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['apply_rule'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי הגרירה')
-                .appendField(new FieldAssumption(), 'RULE')
-                .appendField('שיש לנו ביד,');
+                .appendField('לפי')
+                .appendField(new FieldAssumption(), 'RULE');
             appendPhrase(this);
-            move(this, 'אם המסקנה של גרירה שבידינו היא מה שצריך להוכיח, די להוכיח את התנאי שלה.');
+            move(this, 'אם המסקנה של גרירה שבידינו היא מה שעלינו להראות, די להוכיח את התנאי שלה.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const rule = this.getFieldValue('RULE');
             const parts = filled(rule) && splitImplication(rule);
-            if (!parts) setPhrase(this, ['כדי להוכיח את המסקנה שלה, די להוכיח את התנאי שלה']);
-            else setPhrase(this, ['כדי להוכיח', { formula: parts[1] }, 'די להוכיח', { formula: parts[0] }]);
+            if (!parts) setPhrase(this, ['כדי להוכיח את המסקנה של הגרירה, די להוכיח את התנאי שלה.']);
+            else setPhrase(this, ['כדי להוכיח', { formula: parts[1] }, 'די להוכיח', { formula: parts[0], end: '.' }]);
         },
     };
 
@@ -713,19 +742,19 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['forward'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מהגרירה')
+                .appendField('מ־')
                 .appendField(new FieldAssumption(), 'RULE')
                 .appendField('ומ־')
                 .appendField(new FieldAssumption(), 'PREMISE');
             appendPhrase(this);
-            move(this, 'מגרירה ומהתנאי שלה נובעת המסקנה שלה, והיא מצטרפת להנחות.');
+            move(this, 'מגרירה ומהתנאי שלה נקבל את המסקנה שלה, והיא מצטרפת להנחות.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const rule = this.getFieldValue('RULE');
             const parts = filled(rule) && splitImplication(rule);
-            setPhrase(this, parts ? ['נובע', { formula: parts[1] }] : ['נובעת המסקנה של הגרירה']);
+            setPhrase(this, parts ? ['נקבל', { formula: parts[1], end: '.' }] : ['נקבל את המסקנה של הגרירה.']);
         },
     };
 
@@ -733,10 +762,10 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['and_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מה"וגם"')
+                .appendField('מ־')
                 .appendField(new FieldAssumption(), 'AND');
             appendPhrase(this);
-            move(this, 'מ"P וגם Q" נובע P, ונובע גם Q. שניהם מצטרפים להנחות.');
+            move(this, 'מ"P וגם Q" נקבל את P ואת Q. שתיהן מצטרפות להנחות.');
             this.updateText();
         },
         ...followState,
@@ -744,8 +773,8 @@ export const defineMoveBlocks = () => {
             const and = this.getFieldValue('AND');
             const sides = filled(and) && splitConnective(and, '∧');
             setPhrase(this, sides
-                ? ['נובע', { formula: sides[0] }, 'ונובע', { formula: sides[1] }]
-                : ['נובעים שני הצדדים שלו']);
+                ? ['נקבל', { formula: sides[0] }, 'וגם', { formula: sides[1], end: '.' }]
+                : ['נקבל את שני החלקים של ה"וגם".']);
         },
     };
 
@@ -755,17 +784,17 @@ export const defineMoveBlocks = () => {
             appendPhrase(this);
             appendPart(this, 'LEFT');
             appendPart(this, 'RIGHT');
-            move(this, 'כדי להוכיח "P וגם Q" מוכיחים את P ומוכיחים את Q, כל אחד לחוד.');
+            closing(this, 'כדי להוכיח "P וגם Q" מוכיחים את P ומוכיחים את Q, כל אחד לחוד.');
             this.updateText();
         },
         ...followState,
         updateText() {
-            const sides = splitConnective(this.stateBefore?.goal, '∧');
-            setPhrase(this, sides
-                ? ['כדי להוכיח', { formula: this.stateBefore.goal }, 'נוכיח כל צד לחוד']
-                : ['כדי להוכיח את ה"וגם", נוכיח כל צד לחוד']);
-            setPartHeading(this, 'LEFT', sides ? ['נוכיח', { formula: sides[0] }] : ['צד שמאל:']);
-            setPartHeading(this, 'RIGHT', sides ? ['נוכיח', { formula: sides[1] }] : ['צד ימין:']);
+            const goal = this.stateBefore?.goal;
+            const sides = splitConnective(goal, '∧');
+            setPhrase(this, sides ? ['נוכיח את שני החלקים של', { formula: goal, end: '.' }] : ['נוכיח את שני החלקים של ה"וגם".']);
+            setPartHeading(this, 'LEFT', sides ? ['החלק הראשון:', { formula: sides[0] }] : ['החלק הראשון:']);
+            setPartHeading(this, 'RIGHT', sides ? ['החלק השני:', { formula: sides[1] }] : ['החלק השני:']);
+            setClose(this, sides ? ['הוכחנו את שני החלקים, ולכן', { formula: goal, end: '.' }] : ['הוכחנו את שני החלקים, ולכן ה"וגם" נכון.']);
         },
     };
 
@@ -778,7 +807,7 @@ export const defineMoveBlocks = () => {
                 .appendField('ומ־')
                 .appendField(new FieldAssumption(), 'RIGHT');
             appendPhrase(this);
-            move(this, 'מ־P ומ־Q נובע "P וגם Q", והוא מצטרף להנחות.');
+            move(this, 'מ־P ומ־Q נקבל "P וגם Q", והוא מצטרף להנחות.');
             this.updateText();
         },
         ...followState,
@@ -786,8 +815,8 @@ export const defineMoveBlocks = () => {
             const left = this.getFieldValue('LEFT');
             const right = this.getFieldValue('RIGHT');
             setPhrase(this, filled(left) && filled(right)
-                ? ['נובע', { formula: `(${left}) ∧ (${right})` }]
-                : ['נובע ה"וגם" של שתיהן']);
+                ? ['נקבל', { formula: `(${left}) ∧ (${right})`, end: '.' }]
+                : ['נקבל את ה"וגם" של שתיהן.']);
         },
     };
 
@@ -795,15 +824,15 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['or_intro'] = {
         init() {
             appendPhrase(this).appendField(new FieldSide(), 'SIDE');
-            move(this, 'כדי להוכיח "P או Q" די להוכיח את אחד הצדדים: את זה שאפשר להוכיח ממה שבידינו.');
+            wrap(this, 'כדי להוכיח "P או Q" די להוכיח את אחד הצדדים: את זה שאפשר להוכיח ממה שבידינו.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const goal = this.stateBefore?.goal;
-            setPhrase(this, splitConnective(goal, '∨')
-                ? ['כדי להוכיח', { formula: goal }, 'די להוכיח']
-                : ['כדי להוכיח את ה"או" די להוכיח את']);
+            const or = splitConnective(goal, '∨');
+            setPhrase(this, or ? ['כדי להוכיח', { formula: goal }, 'נוכיח את'] : ['כדי להוכיח את ה"או" נוכיח את']);
+            setClose(this, or ? ['לכן', { formula: goal, end: '.' }] : ['לכן ה"או" נכון.']);
             this.getField('SIDE')?.refreshText();
         },
     };
@@ -812,19 +841,21 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['or_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('נחלק למקרים לפי ה"או"')
+                .appendField('נחלק למקרים לפי')
                 .appendField(new FieldAssumption(), 'OR');
             appendPart(this, 'LEFT');
             appendPart(this, 'RIGHT');
-            move(this, 'אם ידוע "P או Q", מוכיחים את המטרה פעם אחת בהנחה P ופעם אחת בהנחה Q.');
+            closing(this, 'אם ידוע "P או Q", מוכיחים את המטרה פעם אחת בהנחה P ופעם אחת בהנחה Q.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const or = this.getFieldValue('OR');
             const sides = filled(or) && splitConnective(or, '∨');
-            setPartHeading(this, 'LEFT', sides ? ['מקרה ראשון: נניח', { formula: sides[0] }] : ['מקרה ראשון: צד שמאל נכון']);
-            setPartHeading(this, 'RIGHT', sides ? ['מקרה שני: נניח', { formula: sides[1] }] : ['מקרה שני: צד ימין נכון']);
+            const goal = this.stateBefore?.goal;
+            setPartHeading(this, 'LEFT', sides ? ['מקרה 1:', { formula: sides[0] }] : ['מקרה 1: צד שמאל נכון']);
+            setPartHeading(this, 'RIGHT', sides ? ['מקרה 2:', { formula: sides[1] }] : ['מקרה 2: צד ימין נכון']);
+            setClose(this, goal ? ['המקרים מכסים את כל האפשרויות, ובשניהם', { formula: goal, end: '.' }] : ['המקרים מכסים את כל האפשרויות, ובשניהם המטרה נכונה.']);
         },
     };
 
@@ -834,17 +865,17 @@ export const defineMoveBlocks = () => {
             appendPhrase(this);
             appendPart(this, 'FORWARD');
             appendPart(this, 'BACKWARD');
-            move(this, 'כדי להוכיח "P אם ורק אם Q" מוכיחים את P → Q ואת Q → P, כל אחת לחוד.');
+            closing(this, 'כדי להוכיח "P אם ורק אם Q" מוכיחים את P → Q ואת Q → P, כל אחת לחוד.');
             this.updateText();
         },
         ...followState,
         updateText() {
-            const sides = splitConnective(this.stateBefore?.goal, '↔');
-            setPhrase(this, sides
-                ? ['כדי להוכיח', { formula: this.stateBefore.goal }, 'נוכיח את שני הכיוונים']
-                : ['כדי להוכיח את ה"אם ורק אם", נוכיח את שני הכיוונים']);
-            setPartHeading(this, 'FORWARD', sides ? ['נוכיח', { formula: `(${sides[0]}) → (${sides[1]})` }] : ['כיוון ראשון (→):']);
-            setPartHeading(this, 'BACKWARD', sides ? ['נוכיח', { formula: `(${sides[1]}) → (${sides[0]})` }] : ['כיוון שני (←):']);
+            const goal = this.stateBefore?.goal;
+            const sides = splitConnective(goal, '↔');
+            setPhrase(this, sides ? ['נוכיח את שני הכיוונים של', { formula: goal, end: '.' }] : ['נוכיח את שני הכיוונים של ה"אם ורק אם".']);
+            setPartHeading(this, 'FORWARD', sides ? ['הכיוון הראשון:', { formula: `(${sides[0]}) → (${sides[1]})` }] : ['הכיוון הראשון (→):']);
+            setPartHeading(this, 'BACKWARD', sides ? ['הכיוון השני:', { formula: `(${sides[1]}) → (${sides[0]})` }] : ['הכיוון השני (←):']);
+            setClose(this, sides ? ['הוכחנו את שני הכיוונים, ולכן', { formula: goal, end: '.' }] : ['הוכחנו את שני הכיוונים, ולכן ה"אם ורק אם" נכון.']);
         },
     };
 
@@ -852,10 +883,10 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['iff_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('מה"אם ורק אם"')
+                .appendField('מ־')
                 .appendField(new FieldAssumption(), 'IFF');
             appendPhrase(this);
-            move(this, 'מ"P אם ורק אם Q" נובעות הגרירות P → Q ו־Q → P. שתיהן מצטרפות להנחות.');
+            move(this, 'מ"P אם ורק אם Q" נקבל את הגרירות P → Q ו־Q → P. שתיהן מצטרפות להנחות.');
             this.updateText();
         },
         ...followState,
@@ -863,8 +894,8 @@ export const defineMoveBlocks = () => {
             const iff = this.getFieldValue('IFF');
             const sides = filled(iff) && splitConnective(iff, '↔');
             setPhrase(this, sides
-                ? ['נובע', { formula: `(${sides[0]}) → (${sides[1]})` }, 'ונובע', { formula: `(${sides[1]}) → (${sides[0]})` }]
-                : ['נובעים שני הכיוונים שלו']);
+                ? ['נקבל', { formula: `(${sides[0]}) → (${sides[1]})` }, 'וגם', { formula: `(${sides[1]}) → (${sides[0]})`, end: '.' }]
+                : ['נקבל את שני הכיוונים שלו.']);
         },
     };
     // A statement and its negation, both in hand: a contradiction, which
@@ -873,7 +904,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['contradiction'] = {
         init() {
             this.appendDummyInput()
-                .appendField('יש לנו ביד את')
+                .appendField('קיבלנו')
                 .appendField(new FieldAssumption(), 'FACT');
             appendPhrase(this);
             move(this, 'טענה ושלילתה יחד הן סתירה.');
@@ -883,8 +914,8 @@ export const defineMoveBlocks = () => {
         updateText() {
             const fact = this.getFieldValue('FACT');
             setPhrase(this, filled(fact)
-                ? ['ואת', { formula: contradictionPartner(fact, this.stateBefore?.assumptions) }, 'וזו סתירה.']
-                : ['ואת השלילה שלה, וזו סתירה.']);
+                ? ['וגם', { formula: contradictionPartner(fact, this.stateBefore?.assumptions), end: ',' }, 'בסתירה.']
+                : ['וגם את השלילה שלה, בסתירה.']);
         },
     };
 
@@ -892,7 +923,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['not_intro'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח ¬A מניחים A ומגיעים לסתירה.');
+            wrap(this, 'כדי להוכיח ¬A מניחים בשלילה את A ומגיעים לסתירה.');
             this.updateText();
         },
         ...followState,
@@ -900,8 +931,9 @@ export const defineMoveBlocks = () => {
             const goal = this.stateBefore?.goal;
             const denied = negatedStatement(goal);
             setPhrase(this, denied
-                ? ['כדי להוכיח', { formula: goal }, 'נניח', { formula: denied }, 'ונגיע לסתירה']
-                : ['כדי להוכיח את השלילה, נניח את הטענה שהיא שוללת ונגיע לסתירה']);
+                ? ['נניח בשלילה', { formula: denied, end: '.' }, 'עלינו להגיע לסתירה.']
+                : ['נניח בשלילה את הטענה שהמטרה שוללת. עלינו להגיע לסתירה.']);
+            setClose(this, denied ? ['קיבלנו סתירה, ולכן', { formula: goal, end: '.' }] : ['קיבלנו סתירה, ולכן השלילה נכונה.']);
         },
     };
 
@@ -910,9 +942,8 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['not_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי השלילה')
-                .appendField(new FieldAssumption(), 'NEGATION')
-                .appendField('שיש לנו ביד,');
+                .appendField('לפי')
+                .appendField(new FieldAssumption(), 'NEGATION');
             appendPhrase(this);
             move(this, 'אם בידינו ¬A, כדי להגיע לסתירה די להוכיח את A.');
             this.updateText();
@@ -922,8 +953,8 @@ export const defineMoveBlocks = () => {
             const negation = this.getFieldValue('NEGATION');
             const denied = filled(negation) && negatedStatement(negation);
             setPhrase(this, denied
-                ? ['כדי להגיע לסתירה די להוכיח', { formula: denied }]
-                : ['כדי להגיע לסתירה די להוכיח את הטענה שהיא שוללת']);
+                ? ['כדי להגיע לסתירה די להוכיח', { formula: denied, end: '.' }]
+                : ['כדי להגיע לסתירה די להוכיח את הטענה שהיא שוללת.']);
         },
     };
 
@@ -938,8 +969,8 @@ export const defineMoveBlocks = () => {
         updateText() {
             const goal = this.stateBefore?.goal;
             setPhrase(this, goal
-                ? ['מסתירה נובע הכול, ולכן כדי להוכיח', { formula: goal }, 'די להגיע לסתירה']
-                : ['מסתירה נובע הכול, ולכן די להגיע לסתירה']);
+                ? ['מסתירה נובע הכול: כדי להוכיח', { formula: goal }, 'די להגיע לסתירה.']
+                : ['מסתירה נובע הכול: די להגיע לסתירה.']);
         },
     };
 
@@ -947,15 +978,16 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['by_contradiction'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח P מניחים ¬P ומגיעים לסתירה. מתאים לכל מטרה.');
+            wrap(this, 'כדי להוכיח P מניחים בשלילה ¬P ומגיעים לסתירה. מתאים לכל מטרה.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const goal = this.stateBefore?.goal;
             setPhrase(this, goal
-                ? ['נוכיח בשלילה: נניח', { formula: negation(goal) }, 'ונגיע לסתירה']
-                : ['נוכיח בשלילה: נניח שהמטרה לא נכונה ונגיע לסתירה']);
+                ? ['נניח בשלילה', { formula: negation(goal), end: '.' }, 'עלינו להגיע לסתירה.']
+                : ['נניח בשלילה שהמטרה לא נכונה. עלינו להגיע לסתירה.']);
+            setClose(this, goal ? ['קיבלנו סתירה, ולכן', { formula: goal, end: '.' }] : ['קיבלנו סתירה, ולכן המטרה נכונה.']);
         },
     };
 
@@ -963,12 +995,13 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['forall_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי ה"לכל"')
+                .appendField('ב־')
                 .appendField(new FieldAssumption(), 'FORALL')
-                .appendField('עבור העצם')
+                .appendField('נציב')
+                .appendField(new Blockly.FieldLabel(''), 'VARIABLE')
                 .appendField(new FieldAssumption({ objects: true }), 'TERM');
             appendPhrase(this);
-            move(this, 'מ"לכל x מתקיים P(x)" נובע P(a) לכל עצם a: מציבים את a במקום x. התוצאה מצטרפת להנחות.');
+            move(this, 'ב"לכל x מתקיים P(x)" מותר להציב כל עצם a במקום x, ונקבל P(a). התוצאה מצטרפת להנחות.');
             this.updateText();
         },
         ...followState,
@@ -976,9 +1009,11 @@ export const defineMoveBlocks = () => {
             const forall = this.getFieldValue('FORALL');
             const term = this.getFieldValue('TERM');
             const quantified = filled(forall) && splitQuantifier(forall, '∀');
+            // "נציב x = a", or, for the object of the variable's own name, "נציב את x".
+            setLabel(this, 'VARIABLE', !quantified ? '' : term === quantified.variable ? 'את' : isolateFormulas(`${quantified.variable} =`));
             setPhrase(this, quantified && filled(term)
-                ? ['נובע', { formula: substitute(quantified.body, quantified.variable, term) }]
-                : ['נובע מה שהוא אומר על העצם']);
+                ? ['ונקבל', { formula: substitute(quantified.body, quantified.variable, term), end: '.' }]
+                : ['ונקבל מה שהוא אומר על העצם.']);
         },
     };
 
@@ -986,7 +1021,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['forall_intro'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח "לכל x מתקיים P(x)" לוקחים עצם שרירותי x, שלא ידוע עליו דבר, ומוכיחים P(x).');
+            wrap(this, 'כדי להוכיח "לכל x מתקיים P(x)" לוקחים x שרירותי, שלא ידוע עליו דבר, ומוכיחים P(x).');
             this.updateText();
         },
         ...followState,
@@ -994,11 +1029,13 @@ export const defineMoveBlocks = () => {
             const goal = this.stateBefore?.goal;
             const quantified = splitQuantifier(goal, '∀');
             if (!quantified) {
-                setPhrase(this, ['כדי להוכיח "לכל": יהי עצם שרירותי, ונוכיח שהוא מקיים את התכונה']);
+                setPhrase(this, ['יהי עצם שרירותי. עלינו להראות שהוא מקיים את התכונה.']);
+                setClose(this, ['מאחר שהעצם שרירותי, הטענה נכונה לכל עצם.']);
                 return;
             }
             const name = newObjectName(this, quantified.variable);
-            setPhrase(this, ['כדי להוכיח', { formula: goal }, 'יהי', { formula: name }, 'עצם שרירותי, ונוכיח', { formula: substitute(quantified.body, quantified.variable, name) }]);
+            setPhrase(this, ['יהי', { formula: name }, 'שרירותי. עלינו להראות', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
+            setClose(this, ['מאחר ש־', { formula: name }, 'שרירותי,', { formula: goal, end: '.' }]);
         },
     };
 
@@ -1007,7 +1044,7 @@ export const defineMoveBlocks = () => {
         init() {
             appendPhrase(this).appendField(new FieldAssumption({ objects: true }), 'TERM');
             appendPhrase(this, this.appendDummyInput('AFTER'), 'AFTER');
-            move(this, 'כדי להוכיח "קיים x כך ש־P(x)" בוחרים עצם מתאים a (עד), ומוכיחים P(a).');
+            wrap(this, 'כדי להוכיח "קיים x כך ש־P(x)" בוחרים עצם מתאים a (עד), ומוכיחים P(a).');
             this.updateText();
         },
         ...followState,
@@ -1015,10 +1052,11 @@ export const defineMoveBlocks = () => {
             const goal = this.stateBefore?.goal;
             const quantified = splitQuantifier(goal, '∃');
             const term = this.getFieldValue('TERM');
-            setPhrase(this, quantified ? ['כדי להוכיח', { formula: goal }, 'נבחר את העצם'] : ['כדי להוכיח "קיים" נבחר את העצם']);
+            setPhrase(this, !quantified ? ['נבחר את העצם'] : term === quantified.variable ? ['נבחר את'] : ['נבחר', { raw: `${quantified.variable} =` }]);
             setPhrase(this, quantified && filled(term)
-                ? ['ונוכיח', { formula: substitute(quantified.body, quantified.variable, term) }]
-                : ['ונוכיח שהוא מתאים'], 'AFTER');
+                ? ['עלינו להראות', { formula: substitute(quantified.body, quantified.variable, term), end: '.' }]
+                : ['עלינו להראות שהוא מתאים.'], 'AFTER');
+            setClose(this, quantified ? ['לכן קיים', { formula: quantified.variable }, 'כזה:', { formula: goal, end: '.' }] : ['לכן קיים עצם כזה.']);
         },
     };
 
@@ -1026,10 +1064,10 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['exists_elim'] = {
         init() {
             this.appendDummyInput()
-                .appendField('לפי ה"קיים"')
+                .appendField('לפי')
                 .appendField(new FieldAssumption(), 'EXISTS');
             appendPhrase(this);
-            move(this, 'מ"קיים x כך ש־P(x)" מקבלים עצם חדש x, שעליו ידוע רק ש־P(x). העצם וההנחה מצטרפים למה שיש בידינו.');
+            move(this, 'מ"קיים x כך ש־P(x)" לוקחים x כזה ונותנים לו שם: עליו ידוע רק ש־P(x). את הערך שלו לא בוחרים.');
             this.updateText();
         },
         ...followState,
@@ -1037,11 +1075,104 @@ export const defineMoveBlocks = () => {
             const exists = this.getFieldValue('EXISTS');
             const quantified = filled(exists) && splitQuantifier(exists, '∃');
             if (!quantified) {
-                setPhrase(this, ['יהי עצם חדש שמקיים אותו']);
+                setPhrase(this, ['יהי עצם כזה.']);
                 return;
             }
             const name = newObjectName(this, quantified.variable);
-            setPhrase(this, ['יהי', { formula: name }, 'עצם כך ש־', { formula: substitute(quantified.body, quantified.variable, name) }]);
+            setPhrase(this, ['יהי', { formula: name }, 'כזה, כלומר', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
+        },
+    };
+
+    // Unit 7: the lecture's strategies that are derived rules.
+    // Modus tollens: from an implication and the negation of its conclusion,
+    // the negation of its condition ("כשיש ¬β, מקבלים ¬α").
+    Blockly.Blocks['modus_tollens'] = {
+        init() {
+            this.appendDummyInput()
+                .appendField('מ־')
+                .appendField(new FieldAssumption(), 'RULE')
+                .appendField('ומ־')
+                .appendField(new FieldAssumption(), 'NEGATION');
+            appendPhrase(this);
+            move(this, 'מגרירה ומהשלילה של המסקנה שלה נקבל את השלילה של התנאי שלה, והיא מצטרפת להנחות.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const rule = this.getFieldValue('RULE');
+            const parts = filled(rule) && splitImplication(rule);
+            setPhrase(this, parts ? ['נקבל', { formula: negation(parts[0]), end: '.' }] : ['נקבל את השלילה של התנאי של הגרירה.']);
+        },
+    };
+
+    // Proof by contraposition: to prove P → Q, assume ¬Q and prove ¬P.
+    Blockly.Blocks['contrapositive'] = {
+        init() {
+            appendPhrase(this);
+            wrap(this, 'כדי להוכיח P → Q מוכיחים את הקונטרפוזיציה שלה, ¬Q → ¬P: מניחים ¬Q ומוכיחים ¬P.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            const parts = splitImplication(goal);
+            if (parts && parts[1] !== 'False') {
+                const [condition, conclusion] = parts;
+                setPhrase(this, ['נוכיח את הקונטרפוזיציה: נניח', { formula: negation(conclusion), end: '.' }, 'עלינו להראות', { formula: negation(condition), end: '.' }]);
+                setClose(this, ['הוכחנו', { formula: `(${negation(conclusion)}) → (${negation(condition)})`, end: ',' }, 'ולכן', { formula: goal, end: '.' }]);
+            } else {
+                setPhrase(this, ['נוכיח את הקונטרפוזיציה: נניח את השלילה של המסקנה. עלינו להראות את השלילה של התנאי.']);
+                setClose(this, ['הוכחנו את הקונטרפוזיציה, ולכן הגרירה נכונה.']);
+            }
+        },
+    };
+
+    // Proving an "or" as the lecture does: assume the negation of one side,
+    // and prove the other (¬α → β ≡ α ∨ β).
+    Blockly.Blocks['or_by_negation'] = {
+        init() {
+            appendPhrase(this);
+            wrap(this, 'כדי להוכיח P ∨ Q מניחים ¬P ומוכיחים Q.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const goal = this.stateBefore?.goal;
+            const sides = splitConnective(goal, '∨');
+            if (sides) {
+                setPhrase(this, ['נניח', { formula: negation(sides[0]), end: '.' }, 'עלינו להראות', { formula: sides[1], end: '.' }]);
+                setClose(this, ['הוכחנו', { formula: `(${negation(sides[0])}) → (${sides[1]})`, end: ',' }, 'ולכן', { formula: goal, end: '.' }]);
+            } else {
+                setPhrase(this, ['נניח את השלילה של הצד הראשון של ה"או". עלינו להראות את הצד השני.']);
+                setClose(this, ['לכן ה"או" נכון.']);
+            }
+        },
+    };
+
+    // Cases by a statement and its negation: every statement is true or not
+    // (α ∨ ¬α). The statement is chosen from the level's (level.claims).
+    Blockly.Blocks['em_cases'] = {
+        init() {
+            const field = new FieldClaim();
+            field.prompt = 'כתבו את הטענה שלפיה מחלקים למקרים';
+            this.appendDummyInput()
+                .appendField('נחלק למקרים:')
+                .appendField(field, 'STATEMENT');
+            appendPhrase(this);
+            appendPart(this, 'LEFT');
+            appendPart(this, 'RIGHT');
+            closing(this, 'כל טענה נכונה או לא נכונה, ולכן אפשר לחלק למקרים: פעם היא נכונה, ופעם השלילה שלה נכונה.');
+            this.updateText();
+        },
+        ...followState,
+        updateText() {
+            const statement = this.getFieldValue('STATEMENT');
+            const goal = this.stateBefore?.goal;
+            const chosen = filled(statement);
+            setPhrase(this, chosen ? ['או', { formula: negation(statement) }] : ['או השלילה שלה']);
+            setPartHeading(this, 'LEFT', chosen ? ['מקרה 1:', { formula: statement }] : ['מקרה 1: הטענה נכונה']);
+            setPartHeading(this, 'RIGHT', chosen ? ['מקרה 2:', { formula: negation(statement) }] : ['מקרה 2: השלילה שלה נכונה']);
+            setClose(this, goal ? ['המקרים מכסים את כל האפשרויות, ובשניהם', { formula: goal, end: '.' }] : ['המקרים מכסים את כל האפשרויות, ובשניהם המטרה נכונה.']);
         },
     };
 
@@ -1407,6 +1538,19 @@ leanGenerator.forBlock['exists_elim'] = (block) => {
     return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
+// Unit 7. The derived rules of STRATEGY_PRELUDE; a negation is refused as
+// an implication, as in the forward and backward moves.
+leanGenerator.forBlock['modus_tollens'] = (block) => {
+    const rule = block.getFieldValue('RULE');
+    return `  ${refuseNegation(rule, 'forward')}have := easylean_mt ‹${rule}› ‹${block.getFieldValue('NEGATION')}›\n`;
+};
+
+leanGenerator.forBlock['contrapositive'] = () => '  (first | fail_if_success show ¬ _ | fail "easylean: the goal is a negation"); refine easylean_by_contrapositive (fun _ => ?_)\n';
+
+leanGenerator.forBlock['or_by_negation'] = () => '  refine easylean_or_by_negation (fun _ => ?_)\n';
+
+leanGenerator.forBlock['em_cases'] = (block) => `  cases Classical.em (${block.getFieldValue('STATEMENT')}) with\n`;
+
 // Units 7 and 8. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
@@ -1534,9 +1678,13 @@ Object.assign(leanBranches, {
         }));
     },
     set_eq: () => [{ input: 'FIRST', header: '·' }, { input: 'SECOND', header: '·' }],
+    // The moves that open a structure: what is inside them (see wrap).
+    ...Object.fromEntries(['assume', 'or_intro', 'not_intro', 'by_contradiction', 'forall_intro', 'exists_intro', 'contrapositive', 'or_by_negation']
+        .map((type) => [type, () => [{ input: 'BODY', header: '·' }]])),
     and_intro: () => [{ input: 'LEFT', header: '·' }, { input: 'RIGHT', header: '·' }],
     iff_intro: () => [{ input: 'FORWARD', header: '·' }, { input: 'BACKWARD', header: '·' }],
     or_elim: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
+    em_cases: () => [{ input: 'LEFT', header: '| inl _ =>' }, { input: 'RIGHT', header: '| inr _ =>' }],
     claim: (block) => {
         const claim = block.getFieldValue('CLAIM');
         return filled(claim) ? [{ input: 'PROOF', header: `have : ${claim} := by` }] : [];

@@ -1,7 +1,11 @@
-import { EQUIV_PRELUDE, FUNCTION_PRELUDE, LEAN_PRELUDE, NAT_PRELUDE, RELATION_PRELUDE, SET_PRELUDE, STRUCTURE_PRELUDES, leanBranches, leanGenerator } from '../generator/lean';
+import { EQUIV_PRELUDE, FUNCTION_PRELUDE, LEAN_PRELUDE, NAT_PRELUDE, RELATION_PRELUDE, SET_PRELUDE, STRATEGY_PRELUDE, STRUCTURE_PRELUDES, leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
 
 const findGoalBlock = (workspace) => workspace?.getTopBlocks(true).find(b => b.type === 'game_goal');
+
+// The moves whose rules are in STRATEGY_PRELUDE (unit 7): only the levels that
+// offer one of them get it.
+const STRATEGY_MOVES = ['modus_tollens', 'contrapositive', 'or_by_negation'];
 
 // Lean source for a game level, plus which move produced each line (so a
 // Lean error can be shown on the block that caused it, or, for a part of the
@@ -24,7 +28,7 @@ export const generateGameLeanSource = (workspace, level, preamble, { includeFall
 
     // Levels often give assumptions the proof does not need, so Lean's
     // unused-variable warnings are just noise here.
-    const header = `${preamble}\n${LEAN_PRELUDE}${level.laws?.length ? EQUIV_PRELUDE : ''}${level.usesSets ? SET_PRELUDE : ''}${level.usesRelations ? RELATION_PRELUDE : ''}${level.usesFunctions ? FUNCTION_PRELUDE : ''}${level.usesNat ? NAT_PRELUDE : ''}${STRUCTURE_PRELUDES[level.structure] || ''}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
+    const header = `${preamble}\n${LEAN_PRELUDE}${level.laws?.length ? EQUIV_PRELUDE : ''}${level.toolboxBlocks?.some((type) => STRATEGY_MOVES.includes(type)) ? STRATEGY_PRELUDE : ''}${level.usesSets ? SET_PRELUDE : ''}${level.usesRelations ? RELATION_PRELUDE : ''}${level.usesFunctions ? FUNCTION_PRELUDE : ''}${level.usesNat ? NAT_PRELUDE : ''}${STRUCTURE_PRELUDES[level.structure] || ''}set_option linter.unusedVariables false\n${level.variableLine}\n\ntheorem ${level.name} ${level.params} : ${level.proposition} := by\n`;
     const lines = [];
     const lineBlockIds = new Map();
     const partLastBlockIds = new Map();
@@ -83,15 +87,9 @@ export const generateGameLeanSource = (workspace, level, preamble, { includeFall
 
 export const generateGameLeanCode = (...args) => generateGameLeanSource(...args).code;
 
-export const getLastProofBlockId = (workspace) => {
-    let proofBlock = findGoalBlock(workspace)?.getInputTargetBlock('PROOF');
-    let lastBlockId = null;
-    while (proofBlock) {
-        lastBlockId = proofBlock.id;
-        proofBlock = proofBlock.getNextBlock();
-    }
-    return lastBlockId;
-};
+// The last move in the order the proof is read (inside the parts of a move,
+// and inside a move that opens a structure, after it).
+export const getLastProofBlockId = (workspace) => proofMoves(workspace).at(-1)?.id ?? null;
 
 // The moves of the proof in the order they are read: each move, then the
 // moves inside its parts, then the next move.

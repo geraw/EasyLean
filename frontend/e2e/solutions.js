@@ -21,6 +21,11 @@ const forallElim = (forall, term) => ['forall_elim', { FORALL: forall, TERM: ter
 const forallIntro = ['forall_intro'];
 const existsIntro = (term) => ['exists_intro', { TERM: term }];
 const existsElim = (exists) => ['exists_elim', { EXISTS: exists }];
+// Unit 7: the lecture's strategies.
+const mt = (rule, negation) => ['modus_tollens', { RULE: rule, NEGATION: negation }];
+const contrapositive = ['contrapositive'];
+const orByNegation = ['or_by_negation'];
+const emCases = (statement, left, right) => ['em_cases', { STATEMENT: statement }, { LEFT: left, RIGHT: right }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
 
 // Unit 3: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
@@ -122,22 +127,22 @@ export const UNITS = [
                 { label: 'קדימה', steps: [forallElim('∀ x, P x → Q x', 'a'), forward('P a → Q a', 'P a'), close] },
                 { label: 'אחורה', steps: [forallElim('∀ x, P x → Q x', 'a'), backward('P a → Q a'), close] },
             ],
-            [{ label: 'פתרון', steps: [assume, forallIntro, forallElim('∀ x, P x ∧ Q x', 'x₀'), andElim('P x₀ ∧ Q x₀'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, forallElim('∀ x, P x ∧ Q x', 'x'), andElim('P x ∧ Q x'), close] }],
             [
-                { label: 'קדימה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), forallElim('∀ x, P x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), close] },
-                { label: 'אחורה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x₀'), backward('P x₀ → Q x₀'), forallElim('∀ x, P x', 'x₀'), close] },
+                { label: 'קדימה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x'), forallElim('∀ x, P x', 'x'), forward('P x → Q x', 'P x'), close] },
+                { label: 'אחורה', steps: [assume, assume, forallIntro, forallElim('∀ x, P x → Q x', 'x'), backward('P x → Q x'), forallElim('∀ x, P x', 'x'), close] },
             ],
             [{ label: 'פתרון', steps: [existsIntro('a'), orIntro('LEFT'), close] }],
-            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, P x ∧ Q x'), andElim('P x₀ ∧ Q x₀'), existsIntro('x₀'), close] }],
+            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, P x ∧ Q x'), andElim('P x ∧ Q x'), existsIntro('x'), close] }],
             [
-                { label: 'קדימה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x₀'), forward('P x₀ → Q x₀', 'P x₀'), existsIntro('x₀'), close] },
-                { label: 'אחורה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x₀'), existsIntro('x₀'), backward('P x₀ → Q x₀'), close] },
+                { label: 'קדימה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x'), forward('P x → Q x', 'P x'), existsIntro('x'), close] },
+                { label: 'אחורה', steps: [existsElim('∃ x, P x'), forallElim('∀ x, P x → Q x', 'x'), existsIntro('x'), backward('P x → Q x'), close] },
             ],
-            [{ label: 'פתרון', steps: [assume, forallIntro, notIntro, notElim('¬∃ x, P x'), existsIntro('x₀'), close] }],
-            [{ label: 'פתרון', steps: [assume, forallIntro, existsElim('∃ x, ∀ y, R x y'), forallElim('∀ y, R x₀ y', 'y₀'), existsIntro('x₀'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, notIntro, notElim('¬∃ x, P x'), existsIntro('x'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, existsElim('∃ x, ∀ y, R x y'), forallElim('∀ y, R x y', 'y'), existsIntro('x'), close] }],
             [{
                 label: 'פתרון',
-                steps: [assume, byContradiction, notElim('¬∀ x, P x'), forallIntro, byContradiction, notElim('¬∃ x, ¬P x'), existsIntro('x₀'), close],
+                steps: [assume, byContradiction, notElim('¬∀ x, P x'), forallIntro, byContradiction, notElim('¬∃ x, ¬P x'), existsIntro('x'), close],
             }],
         ],
     },
@@ -145,8 +150,8 @@ export const UNITS = [
         unit: 6,
         world: 'יחידה 6 - שקילויות לוגיות',
         levels: [
-            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, P x'), forallElim('∀ x, ¬P x', 'x₀'), contradiction('P x₀')] }],
-            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, ¬P x'), forallElim('∀ x, P x', 'x₀'), contradiction('P x₀')] }],
+            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, P x'), forallElim('∀ x, ¬P x', 'x'), contradiction('P x')] }],
+            [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, ¬P x'), forallElim('∀ x, P x', 'x'), contradiction('P x')] }],
             [{ label: 'פתרון', steps: [replace('easylean_imp_or', 'FORWARD'), orIntro('LEFT'), close] }],
             [{ label: 'פתרון', steps: [replace('easylean_not_or', 'FORWARD', '¬(P ∨ Q)'), andElim('¬P ∧ ¬Q'), close] }],
             [
@@ -190,6 +195,51 @@ export const UNITS = [
                     steps: [assume, replace('easylean_imp_or', 'BACKWARD'), assume, notIntro, notElim('¬(P ∧ Q)'), andIntro([close], [close])],
                 },
             ],
+        ],
+    },
+    {
+        unit: 7,
+        world: 'יחידה 7 - מבני הוכחה',
+        levels: [
+            [{
+                label: 'פתרון',
+                steps: [assume, andIntro(
+                    [forallIntro, forallElim('∀ x, P x ∧ Q x', 'x'), andElim('P x ∧ Q x'), close],
+                    [forallIntro, forallElim('∀ x, P x ∧ Q x', 'x'), andElim('P x ∧ Q x'), close])],
+            }],
+            [{ label: 'פתרון', steps: [mt('P → Q', '¬Q'), close] }],
+            [{ label: 'פתרון', steps: [contrapositive, forward('¬R → ¬Q', '¬R'), forward('¬Q → ¬P', '¬Q'), close] }],
+            [
+                { label: 'ישירה', steps: [forallIntro, forallElim('∀ x, (P x → R x) ∧ (R x → Q x)', 'x'), andElim('(P x → R x) ∧ (R x → Q x)'), assume, forward('P x → R x', 'P x'), forward('R x → Q x', 'R x'), close] },
+                { label: 'קונטרפוזיציה', steps: [forallIntro, forallElim('∀ x, (P x → R x) ∧ (R x → Q x)', 'x'), andElim('(P x → R x) ∧ (R x → Q x)'), contrapositive, mt('R x → Q x', '¬Q x'), mt('P x → R x', '¬R x'), close] },
+                { label: 'בשלילה', steps: [forallIntro, forallElim('∀ x, (P x → R x) ∧ (R x → Q x)', 'x'), andElim('(P x → R x) ∧ (R x → Q x)'), assume, byContradiction, forward('P x → R x', 'P x'), forward('R x → Q x', 'R x'), contradiction('Q x')] },
+            ],
+            [{
+                label: 'פתרון',
+                steps: [notIntro, existsElim('∃ b, ∀ (y : obj), Shaves b y ↔ ¬Shaves y y'), forallElim('∀ (y : obj), Shaves b y ↔ ¬Shaves y y', 'b'), iffElim('Shaves b b ↔ ¬Shaves b b'),
+                    emCases('Shaves b b', [forward('Shaves b b → ¬Shaves b b', 'Shaves b b'), contradiction('Shaves b b')], [forward('¬Shaves b b → Shaves b b', '¬Shaves b b'), contradiction('Shaves b b')])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [forallIntro, assume, andIntro(
+                    [forallElim('∀ x, Penguin x → Bird x', 'x'), forward('Penguin x → Bird x', 'Penguin x'), close],
+                    [forallElim('∀ x, Penguin x → Swims x', 'x'), forward('Penguin x → Swims x', 'Penguin x'), close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, orByNegation, replace('easylean_not_forall', 'FORWARD', '¬∀ x, Quiz x'), existsElim('∃ x, ¬Quiz x'), forallElim('∀ x, Quiz x ∨ Project x', 'x'),
+                    orCases('Quiz x ∨ Project x', [exfalso, contradiction('Quiz x')], [existsIntro('x'), close])],
+            }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, assume, forallElim('∀ x, Locked x', 'x'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, existsIntro('x'), forallElim('∀ x, Friend x x', 'x'), close] }],
+            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, ∀ y, Knows x y'), forallIntro, existsIntro('x'), forallElim('∀ y, Knows x y', 'y'), close] }],
+            [{ label: 'פתרון', steps: [forallIntro, assume, forallElim('∀ y, Trusts x y', 'x'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [forallIntro, emCases('Rain d',
+                    [forallElim('∀ d, Rain d → Bus d', 'd'), forward('Rain d → Bus d', 'Rain d'), orIntro('LEFT'), close],
+                    [forallElim('∀ d, ¬Rain d → Bike d', 'd'), forward('¬Rain d → Bike d', '¬Rain d'), orIntro('RIGHT'), close])],
+            }],
         ],
     },
 ];
