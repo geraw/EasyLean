@@ -1,10 +1,12 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Deploys the site to GitHub Pages: main at the root, and the course's
+# version (branch for-course) in the subfolder for-course/. Pages serves one
+# site, so every run builds both branches, whichever of them was pushed.
+# This file is the same on both branches.
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["main", "for-course"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,32 +30,39 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+      - name: Checkout for-course
+        uses: actions/checkout@v4
+        with:
+          ref: for-course
+          path: for-course
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+          cache-dependency-path: |
+            main/frontend/package-lock.json
+            for-course/frontend/package-lock.json
       - name: Build
-        # The public backend (the Hugging Face Space), set as a repository
-        # variable; without it the site expects a backend on localhost.
+        # The public backend, set as a repository variable; without it the
+        # site expects a backend on localhost. Both versions use it.
         env:
           VITE_BACKEND_URL: ${{ vars.BACKEND_URL }}
         run: |
-          cd frontend
-          npm run build
+          (cd main/frontend && npm install && npm run build)
+          (cd for-course/frontend && npm install && npm run build -- --base=/EasyLean/for-course/)
+          cp -r for-course/frontend/dist main/frontend/dist/for-course
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'frontend/dist'
+          path: 'main/frontend/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
