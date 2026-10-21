@@ -164,6 +164,16 @@ export const UNITS = [
             }],
             [{
                 label: 'פתרון',
+                steps: [assume, replace('easylean_not_imp', 'FORWARD', '¬(P ∧ Q → R ∨ ¬S)'), replace('easylean_not_or', 'FORWARD', '(P ∧ Q) ∧ ¬(R ∨ ¬S)'),
+                    replace('easylean_not_not', 'FORWARD', '(P ∧ Q) ∧ ¬R ∧ ¬¬S'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, replace('easylean_not_forall', 'FORWARD', '¬∀ x, ∃ y, R x y ∧ Q y'), replace('easylean_not_exists', 'FORWARD', '∃ x, ¬∃ y, R x y ∧ Q y'),
+                    replace('easylean_not_and', 'FORWARD', '∃ x, ∀ y, ¬(R x y ∧ Q y)'), close],
+            }],
+            [{
+                label: 'פתרון',
                 steps: [replace('easylean_or_as_imp', 'BACKWARD'), assume, forward('¬P → R', '¬P'), forward('R → Q', 'R'), close],
             }],
             [{

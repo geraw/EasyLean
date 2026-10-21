@@ -37,12 +37,13 @@ const doubleNegation = law('שלילה כפולה', '¬¬A ↔ A. בדקתם א�
 const notForall = law('שלילה של "לכל"', '¬∀x (P(x)) ↔ ∃x (¬P(x)). הכיוון → הוא יחידה 5, שלב 10, והכיוון ← הוא שלב 2 ביחידה הזאת. אותה אי אפשר לבדוק בטבלת אמת.');
 const notImplies = law('שלילה של גרירה', '¬(A → B) ↔ (A ∧ ¬B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 5.');
 const orAsImplication = law('"או" כגרירה', '(¬A → B) ↔ (A ∨ B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 3 (המטריה).');
+const deMorganAnd = law('דה מורגן ל"וגם"', '¬(A ∧ B) ↔ (¬A ∨ ¬B). בדקתם אותה בטבלת אמת ביחידה 1, שלב 5.');
 const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P(x)). הכיוון → הוא יחידה 5, שלב 8, והכיוון ← הוא שלב 1 ביחידה הזאת. אותה אי אפשר לבדוק בטבלת אמת.');
 
 const level = (number, fields) => ({
     id: `unit6-${number}`,
     levelNumber: number,
-    totalLevels: 11,
+    totalLevels: 13,
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
@@ -234,8 +235,63 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         startXml: goalXml('((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))'),
     }),
     level(9, {
+        title: 'שלילת טענה מורכבת',
+        name: 'unit6_l9_negate_compound',
+        variableLine: 'variable {P Q R S : Prop}',
+        proposition: '¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S))',
+        goalLabel: '(¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S)))',
+        laws: ['easylean_not_imp', 'easylean_not_or', 'easylean_not_not'],
+        toolboxBlocks: ['assume', 'replace', 'exact'],
+        introduction: `# שלילת טענה מורכבת
+
+התרגיל מההרצאה: נשלול את הטענה (P ∧ Q) → (R ∨ ¬S), עד שסימני השלילה יופיעו רק ליד טענות היסוד.
+בכל שלב שואלים: *מהי המילה הראשית?* היא קובעת איזה כלל שלילה מפעילים.
+
+- המילה הראשית של (P ∧ Q) → (R ∨ ¬S) היא →: לפי שלילת גרירה, השלילה היא (P ∧ Q) ∧ ¬(R ∨ ¬S).
+
+- בחלק השני המילה הראשית היא ∨: לפי דה מורגן, ¬(R ∨ ¬S) היא ¬R ∧ ¬¬S.
+
+- ולבסוף שלילה כפולה: ¬¬S היא S.`,
+        hints: [
+            'נניח ¬((P ∧ Q) → (R ∨ ¬S)).',
+            'המילה הראשית בתוך השלילה היא →: לפי השלילה של גרירה, החליפו בהנחה. עכשיו בידינו (P ∧ Q) ∧ ¬(R ∨ ¬S).',
+            'בחלק הימני המילה הראשית בתוך השלילה היא ∨: לפי דה מורגן ל"או", החליפו בהנחה החדשה את ¬(R ∨ ¬S) ב־(¬R ∧ ¬¬S).',
+            `לפי השלילה הכפולה, החליפו את ¬¬S ב־S, ואחר כך ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `השלילה של (P ∧ Q) → (R ∨ ¬S) היא (P ∧ Q) ∧ (¬R ∧ S): בדיוק כש־P, Q ו־S נכונות ו־R לא.
+בדיקת שפיות, כמו בהרצאה: הגרירה המקורית שקרית רק כשהתנאי נכון והמסקנה לא, כלומר בדיוק כש־P, Q ו־S אמת ו־R שקר.`,
+        startXml: goalXml('(¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S)))'),
+    }),
+    level(10, {
+        title: 'שלילת טענה עם כמתים',
+        name: 'unit6_l10_negate_quantified',
+        variableLine: 'variable {obj : Type} {R : obj → obj → Prop} {Q : obj → Prop}',
+        proposition: '(¬∀ x, ∃ y, R x y ∧ Q y) → (∃ x, ∀ y, ¬R x y ∨ ¬Q y)',
+        goalLabel: '((¬∀x (∃y (R(x,y) ∧ Q(y)))) → (∃x (∀y (¬R(x,y) ∨ ¬Q(y)))))',
+        laws: ['easylean_not_forall', 'easylean_not_exists', 'easylean_not_and'],
+        toolboxBlocks: ['assume', 'replace', 'exact'],
+        introduction: `# שלילת טענה עם כמתים
+
+התרגיל השני מההרצאה: "לכל n יש m כך ש־m > n ו־m ראשוני", בצורה כללית: ∀x (∃y (R(x,y) ∧ Q(y))).
+
+- המילה הראשית היא ∀, ובתוכה ∃. השלילה הופכת את שניהם: ∃x (∀y (¬(R(x,y) ∧ Q(y)))).
+
+- בפנים המילה הראשית היא ∧: לפי דה מורגן ל"וגם", ¬(R(x,y) ∧ Q(y)) היא ¬R(x,y) ∨ ¬Q(y).
+
+בהרצאה זה יוצא "יש n כך שאף מספר גדול ממנו אינו ראשוני", כלומר יש רק מספר סופי של ראשוניים.`,
+        newDefinitions: [deMorganAnd],
+        hints: [
+            'נניח ¬∀x (∃y (R(x,y) ∧ Q(y))).',
+            'לפי השלילה של "לכל", ואחר כך לפי השלילה של "קיים", החליפו בהנחה, כמו בשלב 7. עכשיו בידינו ∃x (∀y (¬(R(x,y) ∧ Q(y)))).',
+            'לפי דה מורגן ל"וגם", החליפו בהנחה החדשה את ¬(R(x,y) ∧ Q(y)) ב־(¬R(x,y) ∨ ¬Q(y)).',
+            `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `השלילה של ∀x (∃y (R(x,y) ∧ Q(y))) היא ∃x (∀y (¬R(x,y) ∨ ¬Q(y))): השלילה עברה דרך שני הכמתים, הפכה כל אחד מהם, ובסוף עברה דרך ה"וגם".`,
+        startXml: goalXml('((¬∀x (∃y (R(x,y) ∧ Q(y)))) → (∃x (∀y (¬R(x,y) ∨ ¬Q(y)))))'),
+    }),
+    level(11, {
         title: 'הוכחת "או": נניח את השלילה של צד אחד',
-        name: 'unit6_l9_or_by_assuming',
+        name: 'unit6_l11_or_by_assuming',
         variableLine: 'variable {P Q R : Prop}',
         params: '(h1 : ¬P → R) (h2 : R → Q)',
         proposition: 'P ∨ Q',
@@ -259,9 +315,9 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
         startXml: goalXml('(P ∨ Q)', '(¬P → R),  (R → Q)'),
     }),
-    level(10, {
+    level(12, {
         title: 'הוכחת "או", כשהצד הוא שלילה',
-        name: 'unit6_l10_or_by_double_negation',
+        name: 'unit6_l12_or_by_double_negation',
         params: '(h : P → Q)',
         proposition: '¬P ∨ Q',
         goalLabel: '(¬P ∨ Q)',
@@ -283,9 +339,9 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
         startXml: goalXml('(¬P ∨ Q)', 'P → Q'),
     }),
-    level(11, {
+    level(13, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
-        name: 'unit6_l11_de_morgan_and',
+        name: 'unit6_l13_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',
         goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         laws: ['easylean_or_as_imp', 'easylean_not_not', 'easylean_imp_or'],
