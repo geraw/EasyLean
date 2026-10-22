@@ -21,8 +21,15 @@ gcloud iam service-accounts describe "$SA" --project "$PROJECT" >/dev/null 2>&1 
 gcloud storage buckets describe "gs://$BUCKET" --project "$PROJECT" >/dev/null 2>&1 \
     || gcloud storage buckets create "gs://$BUCKET" --project "$PROJECT" --location "$REGION" \
         --uniform-bucket-level-access --public-access-prevention
-gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
-    --member "serviceAccount:$SA" --role roles/storage.objectCreator >/dev/null
+# A service account just created takes a few seconds to be known to Cloud
+# Storage, so the permission is retried for a while.
+for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
+        --member "serviceAccount:$SA" --role roles/storage.objectCreator >/dev/null && break
+    [ "$attempt" = 12 ] && exit 1
+    echo "Waiting for the service account to be known..."
+    sleep 5
+done
 
 gcloud run deploy easylean-feedback \
     --service-account "$SA" \
