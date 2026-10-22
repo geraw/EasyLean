@@ -26,6 +26,7 @@ Blockly (מהלכי הוכחה)
 | משוב | מצב ההוכחה לפני ואחרי מהלך, והסברי שגיאות במונחי הטענות | `frontend/src/game/GameWorkspace.jsx`, `moveExplanations.js`, `leanErrors.js` |
 | טבלאות אמת (יחידה 1) | הטבלה שממלאים, השאלות, והבדיקה וההסברים, בלי Lean | `frontend/src/game/TruthTableWorkspace.jsx`, `truthTable.js` |
 | שרת | מקבל קוד Lean, מריץ את Lean ומחזיר את הפלט | `backend/server.js` |
+| משוב מהסטודנטים | כפתור "משוב": ההערות, תמונות, פרטי קשר (רשות), ובאופן אוטומטי השלב, מצב ההוכחה או הטבלה וצילום מסך; שירות נפרד ששומר אותם, ודף שמציג אותם | `frontend/src/feedback/`, `feedback/` |
 | בדיקות | יחידה (Vitest), שרת (`node:test`), וקצה לקצה מול Lean אמיתי (Playwright) | `frontend/src/**/*.test.js`, `backend/test/`, `frontend/e2e/` |
 
 ## מנוע מצב ההוכחה
@@ -37,6 +38,7 @@ Blockly (מהלכי הוכחה)
 - **Blockly** (דרך `react-blockly`), עם React ו־**Vite**.
 - **Lean 4** דרך **elan**, בלי Mathlib.
 - **שרת** Node.js ו־Express (`backend/`), שמריץ את Lean על הקוד שהוא מקבל.
+- **שירות משוב** Node.js ו־Express (`feedback/`), נפרד מהשרת של Lean, ששומר את המשוב בתיקייה פרטית ב־Cloud Storage.
 - **בדיקות**: Vitest, `node:test`, ו־Playwright, שמריץ את האתר האמיתי בדפדפן מול Lean.
 
 ## שלב כהגדרה

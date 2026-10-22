@@ -1,6 +1,7 @@
 #!/bin/sh
-# Runs EasyLean locally: the backend (Lean, port 3001) and the frontend dev
-# server (http://localhost:5173/EasyLean/). Ctrl+C stops both.
+# Runs EasyLean locally: the backend (Lean, port 3001), the feedback service
+# (port 3002, keeping feedback in feedback/inbox/) and the frontend dev server
+# (http://localhost:5173/EasyLean/). Ctrl+C stops them all.
 #
 # The frontend reloads on its own; the backend restarts when server.js (or a
 # file it loads) changes. Only those are watched: the backend writes each
@@ -12,9 +13,10 @@ cd "$(dirname "$0")"
 # lean for each check, several times slower.
 backend/build-repl.sh || echo "Could not build the Lean REPL: the backend will run lean for each check."
 
-# Stop both servers when the script ends, however it ends.
+# Stop the servers when the script ends, however it ends.
 trap 'trap - INT TERM EXIT; kill 0' INT TERM EXIT
 
 (cd backend && node --watch server.js) &
+(cd feedback && node --watch server.js) &
 (cd frontend && npm run dev) &
 wait

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { isolateFormulas } from './bidi';
 import { renderMarkdownLite } from './markdownLite';
 import SuccessCelebration from './SuccessCelebration';
@@ -77,7 +77,7 @@ const Question = ({ level, question, index, answer, setAnswer }) => {
     );
 };
 
-const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onNextWorld }) => {
+const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onNextWorld, feedbackSnapshotRef }) => {
     const [cells, setCells] = useState({});
     const [answers, setAnswers] = useState([]);
     const [result, setResult] = useState(null);
@@ -91,6 +91,23 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
     const wrong = new Set((result?.wrong || []).map(({ column, row }) => `${column}#${row}`));
     const canContinue = hasNextLevel || Boolean(onNextWorld);
     const continueLabel = hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...';
+    // What feedback sends about this screen: the level, the table as filled
+    // in (T, F, or missing), the answers, and what the last check said.
+    useEffect(() => {
+        if (!feedbackSnapshotRef) return undefined;
+        feedbackSnapshotRef.current = () => ({
+            kind: 'truthTable',
+            level: { id: level.id, number: level.levelNumber, total: level.totalLevels, title: level.title },
+            table: rows.map((row, index) => ({
+                ...Object.fromEntries(level.variables.map((name) => [name, tf(row[name])])),
+                ...Object.fromEntries(columns.map((column) => [column, cells[column]?.[index] === undefined ? '' : tf(cells[column][index])])),
+            })),
+            answers,
+            result,
+            hintsShown,
+        });
+        return () => { feedbackSnapshotRef.current = null; };
+    });
     const check = () => {
         const checked = checkTable(level, cells, answers);
         setResult(checked);
@@ -213,7 +230,7 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
     );
 };
 
-const TruthTableWorkspace = ({ levels, worldName, nextWorldLabel = null, onNextWorld = null }) => {
+const TruthTableWorkspace = ({ levels, worldName, nextWorldLabel = null, onNextWorld = null, feedbackSnapshotRef = null }) => {
     const [levelIdx, setLevelIdx] = useState(0);
     const level = levels[levelIdx];
     return (
@@ -242,6 +259,7 @@ const TruthTableWorkspace = ({ levels, worldName, nextWorldLabel = null, onNextW
                 onNextLevel={() => setLevelIdx((index) => index + 1)}
                 nextWorldLabel={nextWorldLabel}
                 onNextWorld={onNextWorld}
+                feedbackSnapshotRef={feedbackSnapshotRef}
             />
         </div>
     );

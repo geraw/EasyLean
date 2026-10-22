@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import GameWorkspace from './game/GameWorkspace';
 import TruthTableWorkspace from './game/TruthTableWorkspace';
 import { unit1Levels, unit1WorldName } from './game/unit1World';
@@ -9,6 +9,7 @@ import { unit5Levels, unit5WorldName } from './game/unit5World';
 import { unit6Levels, unit6WorldName } from './game/unit6World';
 import { unit7Levels, unit7WorldName } from './game/unit7World';
 import { BACKEND_URL } from './backendUrl';
+import FeedbackButton from './feedback/FeedbackButton';
 import './App.css';
 
 // The course: units of levels, each a proof built from moves that read like a
@@ -38,6 +39,28 @@ const UNITS = {
 
 function App() {
   const [mode, setMode] = useState('unit1');
+  // The open unit's workspace keeps here a function that describes where the
+  // student is and the state of their work, for feedback.
+  const feedbackSnapshotRef = useRef(null);
+  const feedbackContext = () => {
+    let snapshot = null;
+    try {
+      snapshot = feedbackSnapshotRef.current?.() || null;
+    } catch (error) {
+      snapshot = { error: String(error) };
+    }
+    const level = snapshot?.level;
+    return {
+      where: level ? `${UNITS[mode].worldName}, שלב ${level.number}/${level.total}` : UNITS[mode].worldName,
+      unit: { mode, name: UNITS[mode].worldName },
+      ...snapshot,
+      site: import.meta.env.BASE_URL,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      window: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio },
+      time: new Date().toISOString(),
+    };
+  };
 
   return (
     <div className="App">
@@ -45,6 +68,7 @@ function App() {
         {Object.entries(UNITS).map(([unitMode, unit]) => (
           <button key={unitMode} style={modeButtonStyle(mode === unitMode)} onClick={() => setMode(unitMode)}>{unit.worldName}</button>
         ))}
+        <FeedbackButton getContext={feedbackContext} />
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
         {UNITS[mode].truthTables ? (
@@ -54,6 +78,7 @@ function App() {
             worldName={UNITS[mode].worldName}
             nextWorldLabel={UNITS[mode].next?.label}
             onNextWorld={UNITS[mode].next && (() => setMode(UNITS[mode].next.mode))}
+            feedbackSnapshotRef={feedbackSnapshotRef}
           />
         ) : (
           <GameWorkspace
@@ -67,6 +92,7 @@ function App() {
             proofStateEndpoint={`${BACKEND_URL}/proof-state`}
             nextWorldLabel={UNITS[mode].next?.label}
             onNextWorld={UNITS[mode].next && (() => setMode(UNITS[mode].next.mode))}
+            feedbackSnapshotRef={feedbackSnapshotRef}
           />
         )}
       </div>

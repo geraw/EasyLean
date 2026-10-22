@@ -8,9 +8,10 @@ By bridging visual block-based programming and formal logic, EasyLean makes the 
 
 ## Repository Structure
 
-The project is split into two main components:
+The project is split into three components:
 - **`backend/`**: A Node.js & Express server that receives generated Lean 4 code from the client, saves it temporarily, runs the local Lean compiler to verify the proof, and returns the compiler's output and exit status.
 - **`frontend/`**: A modern React + Vite application leveraging `react-blockly` to provide a visual interface for constructing proofs.
+- **`feedback/`**: A small Node.js & Express service that keeps the feedback students send with the site's feedback button: their remarks and images, the contact details they chose to give, where they were in the course, the state of their proof or truth table, and a screenshot. `feedback/inbox.js` shows it all on one page.
 
 The curriculum design (in Hebrew) lives in **[`docs/curriculum/`](docs/curriculum/README.md)**: one document per unit, plus the design principles, architecture and open decisions. When a change affects a unit, update its document in the same pull request.
 
@@ -65,13 +66,13 @@ Follow the on-screen instructions to complete the installation.
 
 ## Installation & Running
 
-After installing the dependencies (`npm install` in `backend/` and in `frontend/`, as below), one command runs both sides locally:
+After installing the dependencies (`npm install` in `backend/`, `feedback/` and `frontend/`, as below), one command runs everything locally:
 
 ```bash
 ./dev.sh
 ```
 
-It starts the backend on port 3001 and the frontend at http://localhost:5173/EasyLean/; Ctrl+C stops both. The frontend reloads on its own, and the backend restarts when `server.js` changes. Locally the site always uses this backend, never the public one. The steps below run each side separately.
+It starts the backend on port 3001, the feedback service on port 3002 and the frontend at http://localhost:5173/EasyLean/; Ctrl+C stops them all. Feedback sent locally is kept in `feedback/inbox/`; `cd feedback && npm run inbox` writes `feedback/inbox/index.html`, which shows it. The frontend reloads on its own, and the backend restarts when `server.js` changes. Locally the site always uses this backend, never the public one. The steps below run each side separately.
 
 ### 1. Backend Setup
 
@@ -121,6 +122,7 @@ There are three layers of tests. CI (`.github/workflows/test.yml`) runs all of t
 | Layer | Where | Run with | Needs |
 |---|---|---|---|
 | Frontend unit tests (Vitest): Lean code generation, goal formatting, level data | `frontend/src/**/*.test.js` | `cd frontend && npm test` | Node |
+| Feedback service tests (`node:test`): what is kept, what is refused, the inbox page | `feedback/test/` | `cd feedback && npm test` | Node |
 | Backend tests (`node:test`): proof-state parser, the Lean REPL pool, `/verify` and `/proof-state` (with the REPL, and with `lean` for each check) | `backend/test/` | `cd backend && npm test` | Node, Lean (the Lean-backed tests are skipped when `lean` is missing), the REPL (`backend/build-repl.sh`) |
 | End-to-end tests (Playwright): the real app in Chromium | `frontend/e2e/` | `cd frontend && npm run test:e2e` | Node, Lean, `npx playwright install chromium` once |
 
@@ -132,6 +134,7 @@ The end-to-end tests start the backend and the Vite dev server themselves, or re
 
 - **Frontend:** GitHub Pages, at https://geraw.github.io/EasyLean/, and the course's version (branch `for-course`) at https://geraw.github.io/EasyLean/for-course/. Every push to `main` or to `for-course` builds both and deploys them together, since Pages serves one site (`.github/workflows/deploy.yml`, the same file on both branches). The repository variable `BACKEND_URL` tells it where the backend is; without it the site expects a backend on `localhost:3001`.
 - **Backend:** Google Cloud Run, project `easylean-pilot-1003`, region `europe-west1`, built from `backend/Dockerfile`. Deploy with `ops/deploy-backend.sh` (needs `gcloud`, signed in to the owning account). `.github/workflows/backend.yml` builds the image and checks it with a real proof on every change to `backend/`.
+- **Feedback:** the service `easylean-feedback` on Cloud Run, in the same project, built from `feedback/Dockerfile`; it keeps each feedback in its own folder in the private bucket `gs://easylean-pilot-1003-feedback`, as a service account that can only create objects there. Deploy with `ops/deploy-feedback.sh`; read the feedback with `ops/feedback-inbox.sh`, which downloads it to `~/EasyLeanFeedback` and opens a page that shows it all, newest first. The site sends feedback to the service's address, set in `frontend/src/feedback/feedbackUrl.js`.
 - **Cost:** at most one instance, scaling to zero when idle, keeps the pilot within the free tier (expected: cents a month, for storing the image). The project has a hard cap: an 18 ILS (about $5) budget, with email alerts at 50%, 90% and 100%, whose notifications trigger the function in `ops/billing-cap/`; when the budget is reached it unlinks the project from billing, which stops everything in it. Budget reports lag by a few hours. To restart after that: `gcloud billing projects link easylean-pilot-1003 --billing-account=<account>`.
 
 > [!CAUTION]

@@ -1,0 +1,19 @@
+{
+  "name": "easylean-feedback",
+  "version": "1.0.0",
+  "description": "Keeps the feedback students send from EasyLean",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "inbox": "node inbox.js inbox"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

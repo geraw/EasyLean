@@ -13,6 +13,7 @@ import { isolateFormulas } from './bidi';
 import { renderMarkdownLite } from './markdownLite';
 import SuccessCelebration from './SuccessCelebration';
 import { BACKEND_URL } from '../backendUrl';
+import { proofOutline } from '../feedback/proofOutline';
 
 // Compatibility patch for Blockly variables (safe to re-apply).
 Blockly.Workspace.prototype.getAllVariables = function () {
@@ -47,6 +48,8 @@ const GameWorkspace = ({
     // After the last level, offers moving on to the next unit (e.g. "ליחידה 2").
     nextWorldLabel = null,
     onNextWorld = null,
+    // Set to a function that describes this screen, for feedback (see App.jsx).
+    feedbackSnapshotRef = null,
 }) => {
     const incompleteMessage = INCOMPLETE_MOVE;
     const [levelIdx, setLevelIdx] = useState(0);
@@ -342,6 +345,38 @@ const GameWorkspace = ({
             setOutput(hideCompilerDetails ? 'לא הצלחנו לבדוק כרגע. נסו שוב בעוד רגע.' : 'שגיאה בהתחברות לשרת: ' + error.message);
         }
     };
+
+    // What feedback sends about this screen: the level, the proof as its
+    // blocks read (and the blocks themselves, to load them again), its Lean,
+    // and the proof state and message the student sees.
+    useEffect(() => {
+        if (!feedbackSnapshotRef) return undefined;
+        feedbackSnapshotRef.current = () => {
+            const blocks = workspace?.getTopBlocks(true) || [];
+            let leanCode = null;
+            try {
+                leanCode = workspace ? generateLeanSource().code : null;
+            } catch (error) {
+                leanCode = `(${error})`;
+            }
+            return {
+                kind: 'proof',
+                level: { id: level.id, number: level.levelNumber, total: level.totalLevels, title: level.title, goal: level.goalLabel },
+                proof: blocks.filter((block) => block.type === 'game_goal').flatMap((block) => proofOutline(block)).join('\n') || null,
+                looseBlocks: blocks.filter((block) => block.type !== 'game_goal').map((block) => proofOutline(block).join('\n')),
+                // Its first row, which says which move it is.
+                selectedMove: (evaluatedBlockId && workspace?.getBlockById(evaluatedBlockId) && proofOutline(workspace.getBlockById(evaluatedBlockId))[0]) || null,
+                proofView,
+                proofState: proofStates,
+                status,
+                message: output,
+                hintsShown,
+                blocksXml: workspace ? Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace)) : null,
+                leanCode,
+            };
+        };
+        return () => { feedbackSnapshotRef.current = null; };
+    });
 
     const closeCelebration = useCallback(() => setCelebrating(false), []);
     const hasNextLevel = levelIdx + 1 < levels.length;
