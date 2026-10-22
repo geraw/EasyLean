@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { isolateFormulas } from './bidi';
 import { renderMarkdownLite } from './markdownLite';
+import SuccessCelebration from './SuccessCelebration';
 import { checkTable, formulaKey, kindName, showRow, tableColumns, tf, truthRows } from './truthTable';
 
 // A level of unit 1: the student fills in a truth table, T or F in each cell,
@@ -80,6 +81,8 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
     const [cells, setCells] = useState({});
     const [answers, setAnswers] = useState([]);
     const [result, setResult] = useState(null);
+    const [celebrating, setCelebrating] = useState(false);
+    const closeCelebration = useCallback(() => setCelebrating(false), []);
     const [hintsShown, setHintsShown] = useState(0);
     const rows = truthRows(level.variables);
     const columns = tableColumns(level.variables, level.statements);
@@ -87,6 +90,12 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
     const asked = new Set((level.questions || []).flatMap((q) => (q.kind === 'equivalent' ? [q.left, q.right] : [q.formula])).map(formulaKey));
     const wrong = new Set((result?.wrong || []).map(({ column, row }) => `${column}#${row}`));
     const canContinue = hasNextLevel || Boolean(onNextWorld);
+    const continueLabel = hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...';
+    const check = () => {
+        const checked = checkTable(level, cells, answers);
+        setResult(checked);
+        setCelebrating(checked.ok);
+    };
 
     // A change after a check starts a new attempt.
     const toggle = (column, row) => {
@@ -167,7 +176,7 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
                     )}
                 </div>
                 <button
-                    onClick={() => setResult(checkTable(level, cells, answers))}
+                    onClick={check}
                     style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
                 >
                     בדוק טבלה
@@ -177,7 +186,7 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
                         {isolateFormulas(result.message)}
                     </div>
                 )}
-                {result?.ok && (
+                {result?.ok && !celebrating && (
                     <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
                         <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>הצלחה!</p>
                         {renderMarkdownLite(level.conclusion)}
@@ -186,11 +195,20 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
                             disabled={!canContinue}
                             style={{ marginTop: '10px', padding: '10px 20px', fontSize: '16px', backgroundColor: canContinue ? '#2196F3' : '#bbb', color: 'white', border: 'none', borderRadius: '5px', cursor: canContinue ? 'pointer' : 'default' }}
                         >
-                            {hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...'}
+                            {continueLabel}
                         </button>
                     </div>
                 )}
             </div>
+            {result?.ok && celebrating && (
+                <SuccessCelebration
+                    message="הטבלה והתשובות נכונות. כל הכבוד!"
+                    conclusion={level.conclusion}
+                    nextLabel={continueLabel}
+                    onNext={canContinue ? (hasNextLevel ? onNextLevel : onNextWorld) : null}
+                    onClose={closeCelebration}
+                />
+            )}
         </div>
     );
 };

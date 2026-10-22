@@ -23,6 +23,8 @@ for (const { unit, world, levels } of UNITS) {
                 await buildProof(page, steps);
                 await page.getByRole('button', { name: 'בדוק הוכחה' }).click();
                 await expect(page.getByText('הצלחה!').first()).toBeVisible({ timeout: 20000 });
+                // The celebration covers the proof.
+                await page.keyboard.press('Escape');
                 // The goal block with the whole proof inside it, nothing selected.
                 const goalId = await page.evaluate(() => {
                     window.__easyleanWorkspace.getAllBlocks(false).forEach((b) => b.unselect?.());
@@ -50,6 +52,7 @@ unit1Levels.forEach((level, index) => {
         await answerQuestions(page, level);
         await page.getByRole('button', { name: 'בדוק טבלה' }).click();
         await expect(page.getByText('הצלחה!')).toBeVisible();
+        await page.keyboard.press('Escape');
         await page.mouse.move(0, 0);
         const table = await page.getByRole('table', { name: 'טבלת אמת' }).boundingBox();
         const questions = level.questions.length ? await page.getByRole('heading', { name: /^שאלו?ת?ה?$/ }).locator('..').boundingBox() : table;

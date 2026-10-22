@@ -11,6 +11,7 @@ import { findLeanProblem, GENERIC_PROBLEM, INCOMPLETE_MOVE } from './leanErrors'
 import { goalLabel, openGoals } from './proofState';
 import { isolateFormulas } from './bidi';
 import { renderMarkdownLite } from './markdownLite';
+import SuccessCelebration from './SuccessCelebration';
 import { BACKEND_URL } from '../backendUrl';
 
 // Compatibility patch for Blockly variables (safe to re-apply).
@@ -53,6 +54,8 @@ const GameWorkspace = ({
     const [workspaceRevision, setWorkspaceRevision] = useState(0);
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, running, success, error
+    // A proof that was just checked and found correct is celebrated in the middle of the screen.
+    const [celebrating, setCelebrating] = useState(false);
     const [hintsShown, setHintsShown] = useState(0);
     const [proofStates, setProofStates] = useState({ before: null, after: null });
     const [proofView, setProofView] = useState('before');
@@ -169,6 +172,7 @@ const GameWorkspace = ({
             console.error('Error loading level XML', e);
         }
         setStatus('idle');
+        setCelebrating(false);
         setOutput('');
         setHintsShown(0);
         setProofStates({ before: null, after: null });
@@ -324,6 +328,7 @@ const GameWorkspace = ({
             if (response.data.exitCode === 0 && !usesSorry) {
                 clearBlockError();
                 setStatus('success');
+                setCelebrating(true);
                 setOutput(response.data.output || 'הצלחה!');
             } else {
                 const problem = locateProblem(response.data.output, source, { includeUnsolvedGoals: true });
@@ -338,8 +343,11 @@ const GameWorkspace = ({
         }
     };
 
+    const closeCelebration = useCallback(() => setCelebrating(false), []);
     const hasNextLevel = levelIdx + 1 < levels.length;
     const canContinue = hasNextLevel || Boolean(nextWorldLabel && onNextWorld);
+    const continueProof = hasNextLevel ? () => setLevelIdx(i => i + 1) : onNextWorld;
+    const continueLabel = hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...';
     const displayedProofState = proofView === 'after'
         ? (proofStates.after || proofStates.before)
         : proofStates.before;
@@ -640,11 +648,11 @@ const GameWorkspace = ({
                         <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: hideCompilerDetails ? 'inherit' : undefined }}>{output}</pre>
                     </div>
 
-                    {status === 'success' && (
+                    {status === 'success' && !celebrating && (
                         <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
                             {renderMarkdownLite(level.conclusion)}
                             <button
-                                onClick={hasNextLevel ? () => setLevelIdx(i => i + 1) : onNextWorld}
+                                onClick={continueProof}
                                 disabled={!canContinue}
                                 style={{
                                     marginTop: '10px',
@@ -657,12 +665,21 @@ const GameWorkspace = ({
                                     cursor: canContinue ? 'pointer' : 'default',
                                 }}
                             >
-                                {hasNextLevel ? 'לשלב הבא' : nextWorldLabel && onNextWorld ? nextWorldLabel : 'שלבים נוספים בקרוב...'}
+                                {continueLabel}
                             </button>
                         </div>
                     )}
                 </div>
             </div>
+            {status === 'success' && celebrating && (
+                <SuccessCelebration
+                    message={canContinue ? 'ההוכחה נכונה. כל הכבוד!' : 'ההוכחה נכונה, וסיימתם את כל השלבים. כל הכבוד!'}
+                    conclusion={level.conclusion}
+                    nextLabel={continueLabel}
+                    onNext={canContinue ? continueProof : null}
+                    onClose={closeCelebration}
+                />
+            )}
         </div>
     );
 };
