@@ -127,7 +127,9 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
     return (
         <div style={{ display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0 }}>
             <div style={{ flex: 1, minWidth: '520px', minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <table aria-label="טבלת אמת" style={{ borderCollapse: 'collapse', direction: 'ltr', alignSelf: 'center', fontFamily: FORMULA_FONT, fontSize: '18px', marginTop: '10px' }}>
+                {/* Centered by its margins, not by alignSelf: a table wider than the
+                    panel would then overflow on both sides, and one side could not be scrolled to. */}
+                <table aria-label="טבלת אמת" style={{ borderCollapse: 'collapse', direction: 'ltr', margin: '10px auto 0', fontFamily: FORMULA_FONT, fontSize: '18px' }}>
                     <thead>
                         <tr>
                             <th style={{ ...headStyle, minWidth: 0, color: '#777', fontWeight: 'normal' }}>#</th>

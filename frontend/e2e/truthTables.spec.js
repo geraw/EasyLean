@@ -38,3 +38,14 @@ test('after the last level, the button leads to the proofs of unit 2', async ({ 
     await page.getByRole('button', { name: 'ליחידה 2' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('יחידה 2');
 });
+
+test('on a narrow screen, every column of a wide table can be scrolled to and filled in', async ({ page }) => {
+    // A student's laptop: the table of level 7 is wider than its panel.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const index = unit1Levels.findIndex((level) => level.levelNumber === 7);
+    await openTruthTable(page, index);
+    await fillTable(page, unit1Levels[index]);
+    await answerQuestions(page, unit1Levels[index]);
+    await page.getByRole('button', { name: 'בדוק טבלה' }).click();
+    await expect(page.getByText('הצלחה!')).toBeVisible();
+});
