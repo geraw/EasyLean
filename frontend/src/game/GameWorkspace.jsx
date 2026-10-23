@@ -20,6 +20,33 @@ Blockly.Workspace.prototype.getAllVariables = function () {
     return this.getVariableMap().getAllVariables();
 };
 
+// On a touch screen (an iPad), a mostly vertical swipe in a toolbox longer than
+// its height scrolls it, as the mouse wheel does: Blockly would take the block
+// under the finger out, and the blocks leave little room to swipe between them.
+const updateIsDragging = Blockly.Gesture.prototype.updateIsDragging;
+Blockly.Gesture.prototype.updateIsDragging = function (event) {
+    const delta = this.currentDragDeltaXY;
+    if (event.pointerType === 'touch' && this.flyout?.isScrollable() && Math.abs(delta.y) > Math.abs(delta.x)) {
+        this.calledUpdateIsDragging = true;
+        this.updateIsDraggingWorkspace();
+        return;
+    }
+    updateIsDragging.call(this, event);
+};
+
+// A touch on a block in the open drawer focuses the toolbox, and Blockly then
+// opens the drawer again when it counts another one as selected (the same
+// drawer, from before a level change rebuilt the toolbox): the drawer is
+// redrawn, the block under the finger replaced, and the touch neither takes it
+// out nor scrolls. A drawer already open with the same blocks is kept.
+const updateFlyout = Blockly.Toolbox.prototype.updateFlyout_;
+Blockly.Toolbox.prototype.updateFlyout_ = function (oldItem, newItem) {
+    const contents = newItem?.getContents && JSON.stringify(newItem.getContents().map((entry) => entry.type ?? entry.kind));
+    if (newItem !== oldItem && contents && contents === this.easyleanShownContents && this.getFlyout()?.isVisible()) return;
+    updateFlyout.call(this, oldItem, newItem);
+    this.easyleanShownContents = this.getFlyout()?.isVisible() ? contents : null;
+};
+
 defineGameBlocks();
 defineMoveBlocks();
 
@@ -624,86 +651,91 @@ const GameWorkspace = ({
                     {proofStatePanel}
                 </div>
 
-                <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
-
-                    <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '5px' }}>
-                        {renderMarkdownLite(level.introduction)}
-                    </div>
-
-                    <div style={{ padding: '10px', background: '#eef4ff', borderRadius: '5px' }}>
-                        <h4 style={{ margin: '0 0 6px 0' }}>עצמים</h4>
-                        {level.objects.map(o => (
-                            <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{o.name}</div>
-                        ))}
-                        <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
-                        {cardAssumptions(level).map((prop) => (
-                            <div key={prop} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{prop}</div>
-                        ))}
-                        <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
-                        <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace", fontWeight: 'bold' }}>{level.goalLabel}</div>
-                    </div>
-
-                    {(level.newTacticsInfo?.length > 0 || level.newDefinitions?.length > 0) && (
-                        <div style={{ padding: '10px', background: '#fff8e1', borderRadius: '5px' }}>
-                            {level.newTacticsInfo?.map(t => (
-                                <div key={t.name} style={{ marginBottom: '6px' }}>
-                                    <strong>{newTacticsLabel}: {t.name}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{isolateFormulas(t.doc)}</div>
-                                </div>
-                            ))}
-                            {level.newDefinitions?.map(d => (
-                                <div key={d.symbol} style={{ marginBottom: '6px' }}>
-                                    <strong>{d.label || 'הגדרה חדשה'}: {d.symbol}</strong>
-                                    <div style={{ fontSize: '0.9em' }}>{isolateFormulas(d.doc)}</div>
-                                </div>
-                            ))}
+                <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '10px', minHeight: 0 }}>
+                    {/* The level's text scrolls when the screen is too short for it (an
+                        iPad), and the check button stays in view below it. */}
+                    <div style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '5px' }}>
+                            {renderMarkdownLite(level.introduction)}
                         </div>
-                    )}
 
-                    <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
-                        {hintsShown > 0 && level.hints.slice(0, hintsShown).map((h, i) => (
-                            <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {isolateFormulas(h)}</p>
-                        ))}
-                        {hintsShown < level.hints.length && (
-                            <button onClick={() => setHintsShown(h => h + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
-                                הצג רמז
-                            </button>
+                        <div style={{ padding: '10px', background: '#eef4ff', borderRadius: '5px' }}>
+                            <h4 style={{ margin: '0 0 6px 0' }}>עצמים</h4>
+                            {level.objects.map(o => (
+                                <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{o.name}</div>
+                            ))}
+                            <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
+                            {cardAssumptions(level).map((prop) => (
+                                <div key={prop} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{prop}</div>
+                            ))}
+                            <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>
+                            <div style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace", fontWeight: 'bold' }}>{level.goalLabel}</div>
+                        </div>
+
+                        {(level.newTacticsInfo?.length > 0 || level.newDefinitions?.length > 0) && (
+                            <div style={{ padding: '10px', background: '#fff8e1', borderRadius: '5px' }}>
+                                {level.newTacticsInfo?.map(t => (
+                                    <div key={t.name} style={{ marginBottom: '6px' }}>
+                                        <strong>{newTacticsLabel}: {t.name}</strong>
+                                        <div style={{ fontSize: '0.9em' }}>{isolateFormulas(t.doc)}</div>
+                                    </div>
+                                ))}
+                                {level.newDefinitions?.map(d => (
+                                    <div key={d.symbol} style={{ marginBottom: '6px' }}>
+                                        <strong>{d.label || 'הגדרה חדשה'}: {d.symbol}</strong>
+                                        <div style={{ fontSize: '0.9em' }}>{isolateFormulas(d.doc)}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
+                            {hintsShown > 0 && level.hints.slice(0, hintsShown).map((h, i) => (
+                                <p key={i} style={{ margin: '0 0 6px 0' }}>💡 {isolateFormulas(h)}</p>
+                            ))}
+                            {hintsShown < level.hints.length && (
+                                <button onClick={() => setHintsShown(h => h + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
+                                    הצג רמז
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={{ flexShrink: 0, maxHeight: '50%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <button
+                            onClick={runProof}
+                            style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                        >
+                            בדוק הוכחה
+                        </button>
+
+                        {/* Lean's raw output reads left to right; the explanations shown instead of it are Hebrew. */}
+                        <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: hideCompilerDetails ? 'right' : 'left', direction: hideCompilerDetails ? 'rtl' : 'ltr', maxHeight: '150px' }}>
+                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: hideCompilerDetails ? 'inherit' : undefined }}>{output}</pre>
+                        </div>
+
+                        {status === 'success' && !celebrating && (
+                            <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
+                                {renderMarkdownLite(level.conclusion)}
+                                <button
+                                    onClick={continueProof}
+                                    disabled={!canContinue}
+                                    style={{
+                                        marginTop: '10px',
+                                        padding: '10px 20px',
+                                        fontSize: '16px',
+                                        backgroundColor: canContinue ? '#2196F3' : '#bbb',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '5px',
+                                        cursor: canContinue ? 'pointer' : 'default',
+                                    }}
+                                >
+                                    {continueLabel}
+                                </button>
+                            </div>
                         )}
                     </div>
-
-                    <button
-                        onClick={runProof}
-                        style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-                    >
-                        בדוק הוכחה
-                    </button>
-
-                    {/* Lean's raw output reads left to right; the explanations shown instead of it are Hebrew. */}
-                    <div style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', overflow: 'auto', textAlign: hideCompilerDetails ? 'right' : 'left', direction: hideCompilerDetails ? 'rtl' : 'ltr', maxHeight: '150px' }}>
-                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: hideCompilerDetails ? 'inherit' : undefined }}>{output}</pre>
-                    </div>
-
-                    {status === 'success' && !celebrating && (
-                        <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
-                            {renderMarkdownLite(level.conclusion)}
-                            <button
-                                onClick={continueProof}
-                                disabled={!canContinue}
-                                style={{
-                                    marginTop: '10px',
-                                    padding: '10px 20px',
-                                    fontSize: '16px',
-                                    backgroundColor: canContinue ? '#2196F3' : '#bbb',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: canContinue ? 'pointer' : 'default',
-                                }}
-                            >
-                                {continueLabel}
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
             {status === 'success' && celebrating && (

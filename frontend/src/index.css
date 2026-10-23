@@ -28,6 +28,9 @@ body {
   padding: 0;
   width: 100vw;
   height: 100vh;
+  /* What is visible: on an iPad, Safari's bars cover the bottom of 100vh, and
+     the page does not scroll. */
+  height: 100dvh;
   overflow: hidden;
   /* Prevent scrollbars if not needed */
 }

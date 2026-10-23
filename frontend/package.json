@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "docs:screenshots": "DOCS_SCREENSHOTS=1 playwright test e2e/docs-screenshots.spec.js"
+    "docs:screenshots": "DOCS_SCREENSHOTS=1 playwright test e2e/docs-screenshots.spec.js --project chromium"
   },
   "dependencies": {
     "axios": "^1.13.2",

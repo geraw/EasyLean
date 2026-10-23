@@ -12,7 +12,14 @@ export default defineConfig({
         viewport: { width: 1440, height: 800 },
         trace: 'retain-on-failure',
     },
-    projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 800 } } }],
+    projects: [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 800 } } },
+        // Safari on an iPad, with touch: upright, at the size of a student's
+        // (they reported what screens.spec.js checks), and on its side. The
+        // walks drag with a mouse on a large screen, which an iPad has not.
+        { name: 'ipad', use: { ...devices['iPad (gen 7)'], viewport: { width: 820, height: 1048 } }, testIgnore: 'walk.spec.js' },
+        { name: 'ipad-landscape', use: { ...devices['iPad (gen 7) landscape'] }, testMatch: 'screens.spec.js' },
+    ],
     webServer: [
         {
             command: 'npm start',

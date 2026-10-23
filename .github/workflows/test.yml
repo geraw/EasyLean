@@ -46,9 +46,9 @@ jobs:
       - name: Frontend unit tests
         run: npm test --prefix frontend
 
-      - name: Install Playwright browser
+      - name: Install Playwright browsers (Chrome, and Safari's WebKit for the iPad)
         working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: End-to-end tests
         run: npm run test:e2e --prefix frontend

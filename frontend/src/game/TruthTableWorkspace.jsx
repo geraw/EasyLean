@@ -180,44 +180,50 @@ const TruthTableLevel = ({ level, hasNextLevel, onNextLevel, nextWorldLabel, onN
                 )}
             </div>
 
-            <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
-                <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '5px' }}>
-                    {renderMarkdownLite(level.introduction)}
+            <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '10px', minHeight: 0 }}>
+                {/* The level's text scrolls when the screen is too short for it (an
+                    iPad), and the check button stays in view below it. */}
+                <div style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '5px' }}>
+                        {renderMarkdownLite(level.introduction)}
+                    </div>
+                    <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
+                        {level.hints.slice(0, hintsShown).map((hint, index) => (
+                            <p key={index} style={{ margin: '0 0 6px 0' }}>💡 {isolateFormulas(hint)}</p>
+                        ))}
+                        {hintsShown < level.hints.length && (
+                            <button onClick={() => setHintsShown((shown) => shown + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
+                                הצג רמז
+                            </button>
+                        )}
+                    </div>
                 </div>
-                <div style={{ padding: '10px', background: '#f0e6ff', borderRadius: '5px' }}>
-                    {level.hints.slice(0, hintsShown).map((hint, index) => (
-                        <p key={index} style={{ margin: '0 0 6px 0' }}>💡 {isolateFormulas(hint)}</p>
-                    ))}
-                    {hintsShown < level.hints.length && (
-                        <button onClick={() => setHintsShown((shown) => shown + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #999', cursor: 'pointer', background: 'white' }}>
-                            הצג רמז
-                        </button>
+                <div style={{ flexShrink: 0, maxHeight: '50%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <button
+                        onClick={check}
+                        style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                    >
+                        בדוק טבלה
+                    </button>
+                    {result && !result.ok && (
+                        <div role="alert" style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', lineHeight: 1.6 }}>
+                            {isolateFormulas(result.message)}
+                        </div>
+                    )}
+                    {result?.ok && !celebrating && (
+                        <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
+                            <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>הצלחה!</p>
+                            {renderMarkdownLite(level.conclusion)}
+                            <button
+                                onClick={hasNextLevel ? onNextLevel : onNextWorld}
+                                disabled={!canContinue}
+                                style={{ marginTop: '10px', padding: '10px 20px', fontSize: '16px', backgroundColor: canContinue ? '#2196F3' : '#bbb', color: 'white', border: 'none', borderRadius: '5px', cursor: canContinue ? 'pointer' : 'default' }}
+                            >
+                                {continueLabel}
+                            </button>
+                        </div>
                     )}
                 </div>
-                <button
-                    onClick={check}
-                    style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-                >
-                    בדוק טבלה
-                </button>
-                {result && !result.ok && (
-                    <div role="alert" style={{ padding: '10px', background: '#333', color: 'white', borderRadius: '5px', lineHeight: 1.6 }}>
-                        {isolateFormulas(result.message)}
-                    </div>
-                )}
-                {result?.ok && !celebrating && (
-                    <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #4CAF50', borderRadius: '5px' }}>
-                        <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>הצלחה!</p>
-                        {renderMarkdownLite(level.conclusion)}
-                        <button
-                            onClick={hasNextLevel ? onNextLevel : onNextWorld}
-                            disabled={!canContinue}
-                            style={{ marginTop: '10px', padding: '10px 20px', fontSize: '16px', backgroundColor: canContinue ? '#2196F3' : '#bbb', color: 'white', border: 'none', borderRadius: '5px', cursor: canContinue ? 'pointer' : 'default' }}
-                        >
-                            {continueLabel}
-                        </button>
-                    </div>
-                )}
             </div>
             {result?.ok && celebrating && (
                 <SuccessCelebration

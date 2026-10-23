@@ -86,6 +86,27 @@ export const editField = async (page, blockId) => {
     await expect(page.locator('.blocklyHtmlInput')).toBeFocused();
 };
 
+// A finger swiped from (x, y) by (dx, dy), as an iPad reports it: pointer
+// events of a touch, which is what Blockly listens to. (Playwright can tap,
+// but not swipe.)
+export const swipe = (page, x, y, dx, dy) => page.evaluate(([x, y, dx, dy]) => new Promise((resolve) => {
+    const target = document.elementFromPoint(x, y);
+    const fire = (type, px, py) => target.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, cancelable: true, composed: true, pointerId: 2, pointerType: 'touch', isPrimary: true,
+        clientX: px, clientY: py, button: 0, buttons: type === 'pointerup' ? 0 : 1,
+    }));
+    fire('pointerdown', x, y);
+    const steps = 15;
+    let step = 0;
+    const move = () => {
+        step += 1;
+        fire('pointermove', x + (dx * step) / steps, y + (dy * step) / steps);
+        if (step < steps) setTimeout(move, 16);
+        else { fire('pointerup', x + dx, y + dy); setTimeout(resolve, 200); }
+    };
+    setTimeout(move, 16);
+}), [x, y, dx, dy]);
+
 export const proofStatePanel = (page) => page.getByRole('region', { name: 'מצב ההוכחה' });
 
 const LOADING = 'Lean בודק';
