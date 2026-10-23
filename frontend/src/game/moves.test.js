@@ -13,11 +13,14 @@ import { unit4Levels } from './unit4World';
 import { unit5Levels } from './unit5World';
 import { unit6Levels } from './unit6World';
 import { unit7Levels } from './unit7World';
+import { unit8Levels } from './unit8World';
+import { unit9Levels } from './unit9World';
+import { unit10Levels } from './unit10World';
 import { UNITS, unitSolutions } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = { 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels, 7: unit7Levels };
+const worlds = { 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels, 7: unit7Levels, 8: unit8Levels, 9: unit9Levels, 10: unit10Levels };
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})
@@ -248,6 +251,50 @@ describe('the moves of unit 5', () => {
         // A name already taken gets the next subscript.
         existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
         expect(phraseOf(existsElim)).toBe('נסמן ב־ x₁ עצם כזה, כלומר P(x₁).');
+    });
+});
+
+describe('the moves of lesson 2, on sets', () => {
+    it('read like a written proof, and name the definition they use', () => {
+        const { blocks: [subsetIntro, subsetElim, setEq, unfoldHyp, unfoldGoal] } = solved(unit9Levels[4], [
+            ['subset_intro'], ['subset_elim', { SUBSET: 'A ⊆ B', MEMBER: 'x ∈ A' }], ['set_eq'],
+            ['unfold', { STATEMENT: 'x ∈ A ∩ (B ∪ C)' }], ['unfold', { STATEMENT: 'x ∈ A ∆ B' }],
+        ]);
+        // An element keeps the variable's name, as in the lecture ("יהי x ∈ A").
+        subsetIntro.setStateBefore({ assumptions: [], objects: [], sets: ['A', 'B', 'C'], goal: 'A ∩ (B ∪ C) ⊆ A ∩ B ∪ A ∩ C' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C) יהי x ∈ (A ∩ (B ∪ C)) ונוכיח x ∈ ((A ∩ B) ∪ (A ∩ C))');
+        expect(phraseOf(subsetElim)).toBe('נובע x ∈ B');
+        setEq.setStateBefore({ assumptions: [], objects: [], sets: [], goal: 'A ∩ B = B ∩ A' });
+        expect([phraseOf(setEq, 'FIRST_TEXT'), phraseOf(setEq, 'SECOND_TEXT')]).toEqual(['נוכיח A ∩ B ⊆ B ∩ A', 'נוכיח B ∩ A ⊆ A ∩ B']);
+        expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x ∈ A ∧ x ∈ (B ∪ C))']);
+        // The symmetric difference, as the lecture defines it.
+        unfoldGoal.setStateBefore({ assumptions: [], objects: ['x'], sets: [], goal: 'x ∈ A ∆ B' });
+        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת ההפרש הסימטרי, כדי להוכיח', 'די להוכיח ((x ∈ A ∧ ¬x ∈ B) ∨ (¬x ∈ A ∧ x ∈ B))']);
+        // The menu offers only membership statements with a definition to use, the goal first.
+        unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x ∈ A', 'x ∈ A ∪ B'], objects: ['x'], sets: [], goal: 'x ∈ B ∩ A' });
+        expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x ∈ A ∆ B', 'x ∈ B ∩ A', 'x ∈ A ∪ B', '__write_own__']);
+    });
+
+    it('use a definition on the goal or on an assumption without waiting for the proof state', () => {
+        const level = unit9Levels[1];
+        const { workspace } = solved(level, unitSolutions(9).levels[1][0].steps);
+        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
+            '  first',
+            '  | refine easylean_subset_intro_pair (fun x y _ => ?_)',
+            '  | refine easylean_subset_intro (fun x _ => ?_)',
+            '  first',
+            '  | (guard_target =ₛ x ∈ A ∩ B; apply easylean_mem_inter.mpr)',
+            '  | (have := easylean_mem_inter.mp ‹x ∈ A ∩ B›)',
+            '  have := And.left ‹x ∈ A ∧ x ∈ B›',
+        ].join('\n'));
+    });
+
+    it('name an element of a power set as a set, and a second element x₀', () => {
+        const { blocks: [subsetIntro, inner] } = solved(unit10Levels[2], [['subset_intro'], ['subset_intro']]);
+        subsetIntro.setStateBefore({ assumptions: ['A ⊆ B'], objects: [], sets: ['A', 'B'], goal: '𝒫 A ⊆ 𝒫 B' });
+        expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X ∈ 𝒫(A) ונוכיח X ∈ 𝒫(B)');
+        inner.setStateBefore({ assumptions: ['x ∈ A'], objects: ['x'], sets: ['A'], goal: 'A ⊆ A' });
+        expect(phraseOf(inner)).toBe('כדי להוכיח A ⊆ A יהי x₀ ∈ A ונוכיח x₀ ∈ A');
     });
 });
 

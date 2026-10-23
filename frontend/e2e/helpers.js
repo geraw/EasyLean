@@ -16,9 +16,22 @@ export const test = base.extend({
 
 export { expect };
 
+// Clicks a unit's tab, first opening its lesson: the tabs shown are those of
+// the open lesson.
+export const showUnit = async (page, worldName) => {
+    const unit = page.getByRole('button', { name: worldName, exact: true });
+    if (!(await unit.isVisible())) {
+        for (const lesson of await page.getByRole('button', { name: /^שיעור \d/ }).all()) {
+            await lesson.click();
+            if (await unit.isVisible()) break;
+        }
+    }
+    await unit.click();
+};
+
 export const openWorld = async (page, worldName) => {
     await page.goto('');
-    await page.getByRole('button', { name: worldName }).click();
+    await showUnit(page, worldName);
     await page.waitForSelector(`${MAIN_CANVAS} > g.game_goal`);
 };
 
@@ -130,7 +143,7 @@ export const selectMove = async (page, blockId) => {
 // two for F), and its questions answered.
 export const openTruthTable = async (page, index) => {
     await page.goto('');
-    await page.getByRole('button', { name: unit1WorldName }).click();
+    await showUnit(page, unit1WorldName);
     await page.getByRole('combobox', { name: 'מעבר ישיר לשלב' }).selectOption(String(index));
     await expect(page.getByRole('table', { name: 'טבלת אמת' })).toBeVisible();
 };

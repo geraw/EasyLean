@@ -1556,10 +1556,11 @@ leanGenerator.forBlock['or_by_negation'] = () => '  refine easylean_or_by_negati
 
 leanGenerator.forBlock['em_cases'] = (block) => `  cases Classical.em (${block.getFieldValue('STATEMENT')}) with\n`;
 
-// Units 7 and 8. The rules and definitions of SET_PRELUDE.
+// Units 8-10. The rules and definitions of SET_PRELUDE.
 leanGenerator.forBlock['subset_intro'] = (block) => {
     const sets = splitRelation(block.stateBefore?.goal, '⊆');
-    const element = sets ? elementName(block, sets[0], sets[1]) : 'x₀';
+    // Before the state is known, the element is named as it will be: x.
+    const element = sets ? elementName(block, sets[0], sets[1]) : newObjectName(block, 'x');
     // An element of a relation is a pair, taken apart: (x₀, y₀). Lean tries
     // that first, so that the move is right also before its state is known
     // (when the sets are not relations, it does not apply).

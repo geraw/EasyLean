@@ -366,12 +366,13 @@ const SET_OPERATIONS = {
     '∪': { lemma: 'easylean_mem_union', name: 'האיחוד', means: (t, [a, b]) => `${t} ∈ ${a} ∨ ${t} ∈ ${b}` },
     '∩': { lemma: 'easylean_mem_inter', name: 'החיתוך', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ${t} ∈ ${b}` },
     '\\': { lemma: 'easylean_mem_diff', name: 'ההפרש', means: (t, [a, b]) => `${t} ∈ ${a} ∧ ¬${t} ∈ ${b}` },
-    '∆': { lemma: 'easylean_mem_symmDiff', name: 'ההפרש הסימטרי', means: (t, [a, b]) => `${t} ∈ ${a} \\ ${b} ∨ ${t} ∈ ${b} \\ ${a}` },
+    // As in the lecture: in exactly one of the two sets.
+    '∆': { lemma: 'easylean_mem_symmDiff', name: 'ההפרש הסימטרי', means: (t, [a, b]) => `(${t} ∈ ${a} ∧ ¬${t} ∈ ${b}) ∨ (¬${t} ∈ ${a} ∧ ${t} ∈ ${b})` },
     'ᶜ': { lemma: 'easylean_mem_compl', name: 'המשלים', means: (t, [a]) => `¬${t} ∈ ${a}` },
     '∅': { lemma: 'easylean_mem_empty', name: 'הקבוצה הריקה', means: () => 'False' },
     '𝒫': { lemma: 'easylean_mem_powerset', name: 'קבוצת החזקה', means: (t, [a]) => `${t} ⊆ ${stripOuterParentheses(a)}` },
-    '⋃': { lemma: 'easylean_mem_sUnion', name: 'איחוד המשפחה', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
-    '⋂': { lemma: 'easylean_mem_sInter', name: 'חיתוך המשפחה', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
+    '⋃': { lemma: 'easylean_mem_sUnion', name: 'האיחוד האונרי', means: (t, [f]) => `∃ S, S ∈ ${f} ∧ ${t} ∈ S` },
+    '⋂': { lemma: 'easylean_mem_sInter', name: 'החיתוך האונרי', means: (t, [f]) => `∀ S, S ∈ ${f} → ${t} ∈ S` },
     // Relations (unit 9): a member is a pair (x, y).
     '⁻¹': { lemma: 'easylean_mem_inv', name: 'היחס ההפוך', means: (t, [r]) => { const [x, y] = pairOf(t); return `(${y}, ${x}) ∈ ${r}`; } },
     // The middle of a composition is y, as in the textbooks: (x, z) ∈ R ∘ S.

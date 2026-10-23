@@ -1,4 +1,5 @@
-import { test, expect } from './helpers';
+import { test, expect, showUnit } from './helpers';
+import { unitSolutions } from './solutions';
 
 // A student's walk through units 4-7, as their hints describe each level:
 // blocks dragged from the toolbox with the mouse, and fields chosen only
@@ -514,11 +515,45 @@ const UNIT7 = [
     },
 ];
 
+// Chooses a value only if the field's menu offers it (by its value: the
+// statement as Lean writes it, as a solution gives it).
+const chooseValue = async (page, id, field, value) => {
+    const same = (a, b) => String(a).replace(/\s+/g, ' ') === String(b).replace(/\s+/g, ' ');
+    let options = [];
+    for (let tries = 0; tries < 6; tries += 1) {
+        if (tries) await page.waitForTimeout(2000);
+        options = await page.evaluate(([id, field]) => window.__easyleanWorkspace.getBlockById(id).getField(field)
+            .getOptions(false).map(([, optionValue]) => optionValue), [id, field]);
+        const option = options.find((optionValue) => same(optionValue, value));
+        if (option !== undefined) {
+            await page.evaluate(([id, field, chosen]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue(chosen), [id, field, option]);
+            await page.waitForTimeout(3500);
+            return;
+        }
+    }
+    throw new Error(`menu of ${field} offers ${options.join(' | ')}, not ${value}`);
+};
+
+// Lesson 2: a walk that follows a level's (first) solution, dragging each
+// move with the mouse to its place and choosing its fields from their menus.
+const followSolution = async (page, steps, where, log) => {
+    let place = where;
+    for (const [type, fields = {}, parts = {}] of steps) {
+        const id = await drag(page, type, place);
+        for (const [field, value] of Object.entries(fields)) await chooseValue(page, id, field, value);
+        log(await phrase(page, id));
+        for (const [input, partSteps] of Object.entries(parts)) await followSolution(page, partSteps, { into: id, input }, log);
+        place = { after: id };
+    }
+};
+const walksOf = (unit) => unitSolutions(unit).levels.map((solutions) => (page, log) => followSolution(page, solutions[0].steps, { goal: true }, log));
+
 const UNITS = [
     { unit: 4, world: 'יחידה 4 - שלילה והוכחה בשלילה', walks: UNIT4 },
     { unit: 5, world: 'יחידה 5 - כמתים', walks: UNIT5 },
     { unit: 6, world: 'יחידה 6 - שקילויות לוגיות', walks: UNIT6 },
     { unit: 7, world: 'יחידה 7 - מבני הוכחה', walks: UNIT7 },
+    ...[8, 9, 10].map((unit) => ({ unit, world: unitSolutions(unit).world, walks: walksOf(unit) })),
 ];
 
 // The walks of a unit: a list, for every level, or by level number, for some.
@@ -529,7 +564,7 @@ for (const { unit, world, walks } of UNITS) {
             test.setTimeout(900000);
             await page.setViewportSize({ width: 1500, height: 1000 });
             await page.goto('');
-            await page.getByRole('button', { name: world }).click();
+            await showUnit(page, world);
             await page.waitForSelector('svg.blocklySvg g.game_goal');
             await page.getByRole('combobox').selectOption(String(index));
             await page.waitForTimeout(1500);

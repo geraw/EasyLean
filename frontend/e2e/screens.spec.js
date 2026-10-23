@@ -1,4 +1,4 @@
-import { test, expect, swipe } from './helpers';
+import { test, expect, swipe, showUnit } from './helpers';
 import { unit1Levels, unit1WorldName } from '../src/game/unit1World';
 import { unit2Levels, unit2WorldName } from '../src/game/unit2World';
 import { unit3Levels, unit3WorldName } from '../src/game/unit3World';
@@ -6,6 +6,9 @@ import { unit4Levels, unit4WorldName } from '../src/game/unit4World';
 import { unit5Levels, unit5WorldName } from '../src/game/unit5World';
 import { unit6Levels, unit6WorldName } from '../src/game/unit6World';
 import { unit7Levels, unit7WorldName } from '../src/game/unit7World';
+import { unit8Levels, unit8WorldName } from '../src/game/unit8World';
+import { unit9Levels, unit9WorldName } from '../src/game/unit9World';
+import { unit10Levels, unit10WorldName } from '../src/game/unit10World';
 
 // Every level fits the screen of each project (a laptop, and an iPad upright
 // and on its side): what a student needs is on it, or can be scrolled to with
@@ -15,11 +18,12 @@ import { unit7Levels, unit7WorldName } from '../src/game/unit7World';
 const PROOF_UNITS = [
     [unit2WorldName, unit2Levels], [unit3WorldName, unit3Levels], [unit4WorldName, unit4Levels],
     [unit5WorldName, unit5Levels], [unit6WorldName, unit6Levels], [unit7WorldName, unit7Levels],
+    [unit8WorldName, unit8Levels], [unit9WorldName, unit9Levels], [unit10WorldName, unit10Levels],
 ];
 
 const openUnit = async (page, worldName) => {
     await page.goto('');
-    await page.getByRole('button', { name: worldName }).click();
+    await showUnit(page, worldName);
 };
 
 const goToLevel = (page, index) => page.getByRole('combobox', { name: 'מעבר ישיר לשלב' }).selectOption(String(index));

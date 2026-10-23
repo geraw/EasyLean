@@ -1,4 +1,4 @@
-import { test, expect, buildProof, clearProof } from './helpers';
+import { test, expect, buildProof, clearProof, showUnit } from './helpers';
 import { UNITS, unitSolutions } from './solutions';
 
 // Every solution of every level is accepted, and the moves read like a
@@ -6,7 +6,7 @@ import { UNITS, unitSolutions } from './solutions';
 
 const openLevel = async (page, worldName, levelIndex = 0) => {
     await page.goto('');
-    await page.getByRole('button', { name: worldName }).click();
+    await showUnit(page, worldName);
     await page.waitForSelector('svg.blocklySvg g.game_goal');
     await page.getByRole('combobox').selectOption(String(levelIndex));
 };

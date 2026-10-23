@@ -28,7 +28,7 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
     return code + nextCode;
 };
 
-// Units 7 and 8: a small set theory, placed before the proofs of the levels
+// Units 8-10: a small set theory, placed before the proofs of the levels
 // that use sets (level.usesSets). A set is a property of objects, and each
 // operation is defined through membership, so that using its definition (the
 // easylean_mem_* lemmas, see the definition move in blocks/moves.js) leaves a
@@ -41,7 +41,7 @@ instance : Inter (Set α) := ⟨fun A B => fun x => x ∈ A ∧ x ∈ B⟩
 instance : Union (Set α) := ⟨fun A B => fun x => x ∈ A ∨ x ∈ B⟩
 instance : SDiff (Set α) := ⟨fun A B => fun x => x ∈ A ∧ ¬ x ∈ B⟩
 instance : EmptyCollection (Set α) := ⟨fun _ => False⟩
-def Set.symmDiff (A B : Set α) : Set α := fun x => x ∈ A \\ B ∨ x ∈ B \\ A
+def Set.symmDiff (A B : Set α) : Set α := fun x => (x ∈ A ∧ ¬ x ∈ B) ∨ (¬ x ∈ A ∧ x ∈ B)
 infixl:65 " ∆ " => Set.symmDiff
 def Set.compl (A : Set α) : Set α := fun x => ¬ x ∈ A
 postfix:max "ᶜ" => Set.compl
@@ -54,7 +54,7 @@ prefix:110 "⋂ " => Set.sInter
 theorem easylean_mem_inter {α : Type u} {A B : Set α} {x : α} : x ∈ A ∩ B ↔ x ∈ A ∧ x ∈ B := Iff.rfl
 theorem easylean_mem_union {α : Type u} {A B : Set α} {x : α} : x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B := Iff.rfl
 theorem easylean_mem_diff {α : Type u} {A B : Set α} {x : α} : x ∈ A \\ B ↔ x ∈ A ∧ ¬ x ∈ B := Iff.rfl
-theorem easylean_mem_symmDiff {α : Type u} {A B : Set α} {x : α} : x ∈ A ∆ B ↔ x ∈ A \\ B ∨ x ∈ B \\ A := Iff.rfl
+theorem easylean_mem_symmDiff {α : Type u} {A B : Set α} {x : α} : x ∈ A ∆ B ↔ (x ∈ A ∧ ¬ x ∈ B) ∨ (¬ x ∈ A ∧ x ∈ B) := Iff.rfl
 theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ ¬ x ∈ A := Iff.rfl
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl

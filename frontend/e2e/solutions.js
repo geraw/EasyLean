@@ -27,6 +27,13 @@ const contrapositive = ['contrapositive'];
 const orByNegation = ['or_by_negation'];
 const emCases = (statement, left, right) => ['em_cases', { STATEMENT: statement }, { LEFT: left, RIGHT: right }];
 const replace = (law, direction, target = '__goal__') => ['replace', { LAW: law, DIRECTION: direction, TARGET: target }];
+const iffIntro = (forwardPart, backwardPart) => ['iff_intro', {}, { FORWARD: forwardPart, BACKWARD: backwardPart }];
+// Lesson 2: sets.
+const subsetIntro = ['subset_intro'];
+const subsetElim = (subset, member) => ['subset_elim', { SUBSET: subset, MEMBER: member }];
+const setEq = (first, second) => ['set_eq', {}, { FIRST: first, SECOND: second }];
+const unfold = (statement) => ['unfold', { STATEMENT: statement }];
+const claim = (statement, proof) => ['claim', { CLAIM: statement }, { PROOF: proof }];
 
 // Unit 3: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
@@ -237,6 +244,134 @@ export const UNITS = [
                 steps: [forallIntro, emCases('Rain d₀',
                     [forallElim('∀ d, Rain d → Bus d', 'd₀'), forward('Rain d₀ → Bus d₀', 'Rain d₀'), orIntro('LEFT'), close],
                     [forallElim('∀ d, ¬Rain d → Bike d', 'd₀'), forward('¬Rain d₀ → Bike d₀', '¬Rain d₀'), orIntro('RIGHT'), close])],
+            }],
+        ],
+    },
+    {
+        unit: 8,
+        world: 'יחידה 8 - קבוצות והכלה',
+        levels: [
+            [{ label: 'פתרון', steps: [subsetIntro, close] }],
+            [{ label: 'פתרון', steps: [subsetElim('A ⊆ B', 'x ∈ A'), close] }],
+            [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ C'), subsetIntro, subsetElim('A ⊆ B', 'x ∈ A'), subsetElim('B ⊆ C', 'x ∈ B'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [assume, byContradiction, notElim('¬A ⊆ B'), subsetIntro, byContradiction, notElim('¬∃ x, x ∈ A ∧ ¬x ∈ B'), existsIntro('x'), andIntro([close], [close])],
+            }],
+            [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ A'), setEq([close], [close])] }],
+            [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ∅'), exfalso, close] }],
+        ],
+    },
+    {
+        unit: 9,
+        world: 'יחידה 9 - פעולות על קבוצות',
+        levels: [
+            [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ A ∪ B'), orIntro('LEFT'), close] }],
+            [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), close] }],
+            [{
+                label: 'פתרון',
+                steps: [iffIntro(
+                    [assume, andIntro(
+                        [subsetIntro, subsetElim('X ⊆ A ∩ B', 'x ∈ X'), unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), close],
+                        [subsetIntro, subsetElim('X ⊆ A ∩ B', 'x ∈ X'), unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), close])],
+                    [assume, andElim('X ⊆ A ∧ X ⊆ B'), subsetIntro, unfold('x ∈ A ∩ B'), andIntro(
+                        [subsetElim('X ⊆ A', 'x ∈ X'), close],
+                        [subsetElim('X ⊆ B', 'x ∈ X'), close])])],
+            }],
+            [
+                {
+                    label: 'בשני חלקים',
+                    steps: [setEq(
+                        [subsetIntro, unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), unfold('x ∈ B ∩ A'), andIntro([close], [close])],
+                        [subsetIntro, unfold('x ∈ B ∩ A'), andElim('x ∈ B ∧ x ∈ A'), unfold('x ∈ A ∩ B'), andIntro([close], [close])])],
+                },
+                {
+                    label: 'קדימה',
+                    steps: [setEq(
+                        [subsetIntro, unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), unfold('x ∈ B ∩ A'), combine('x ∈ B', 'x ∈ A'), close],
+                        [subsetIntro, unfold('x ∈ B ∩ A'), andElim('x ∈ B ∧ x ∈ A'), unfold('x ∈ A ∩ B'), combine('x ∈ A', 'x ∈ B'), close])],
+                },
+            ],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x ∈ A ∩ (B ∪ C)'), andElim('x ∈ A ∧ x ∈ B ∪ C'), unfold('x ∈ B ∪ C'), unfold('x ∈ A ∩ B ∪ A ∩ C'),
+                    orCases('x ∈ B ∨ x ∈ C',
+                        [orIntro('LEFT'), unfold('x ∈ A ∩ B'), andIntro([close], [close])],
+                        [orIntro('RIGHT'), unfold('x ∈ A ∩ C'), andIntro([close], [close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, setEq(
+                    [subsetIntro, unfold('x ∈ A \\ B'), andElim('x ∈ A ∧ ¬x ∈ B'), exfalso, subsetElim('A ⊆ B', 'x ∈ A'), contradiction('x ∈ B')],
+                    [subsetIntro, unfold('x ∈ ∅'), exfalso, close])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x ∈ A \\ C'), andElim('x ∈ A ∧ ¬x ∈ C'), unfold('x ∈ A \\ B ∪ B \\ C'), emCases('x ∈ B',
+                    [orIntro('RIGHT'), unfold('x ∈ B \\ C'), andIntro([close], [close])],
+                    [orIntro('LEFT'), unfold('x ∈ A \\ B'), andIntro([close], [close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x ∈ A ∆ B'), unfold('x ∈ A \\ B ∪ B \\ A'), orCases('x ∈ A ∧ ¬x ∈ B ∨ ¬x ∈ A ∧ x ∈ B',
+                        [orIntro('LEFT'), unfold('x ∈ A \\ B'), close],
+                        [andElim('¬x ∈ A ∧ x ∈ B'), orIntro('RIGHT'), unfold('x ∈ B \\ A'), combine('x ∈ B', '¬x ∈ A'), close])],
+                    [subsetIntro, unfold('x ∈ A \\ B ∪ B \\ A'), unfold('x ∈ A ∆ B'), orCases('x ∈ A \\ B ∨ x ∈ B \\ A',
+                        [unfold('x ∈ A \\ B'), orIntro('LEFT'), close],
+                        [unfold('x ∈ B \\ A'), andElim('x ∈ B ∧ ¬x ∈ A'), orIntro('RIGHT'), combine('¬x ∈ A', 'x ∈ B'), close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x ∈ A \\ (B ∩ C)'), andElim('x ∈ A ∧ ¬x ∈ B ∩ C'), unfold('x ∈ A \\ B ∪ A \\ C'), emCases('x ∈ B',
+                        [orIntro('RIGHT'), unfold('x ∈ A \\ C'), andIntro([close], [notIntro, notElim('¬x ∈ B ∩ C'), unfold('x ∈ B ∩ C'), andIntro([close], [close])])],
+                        [orIntro('LEFT'), unfold('x ∈ A \\ B'), andIntro([close], [close])])],
+                    [subsetIntro, unfold('x ∈ A \\ B ∪ A \\ C'), unfold('x ∈ A \\ (B ∩ C)'), orCases('x ∈ A \\ B ∨ x ∈ A \\ C',
+                        [unfold('x ∈ A \\ B'), andElim('x ∈ A ∧ ¬x ∈ B'), andIntro([close], [notIntro, unfold('x ∈ B ∩ C'), andElim('x ∈ B ∧ x ∈ C'), contradiction('x ∈ B')])],
+                        [unfold('x ∈ A \\ C'), andElim('x ∈ A ∧ ¬x ∈ C'), andIntro([close], [notIntro, unfold('x ∈ B ∩ C'), andElim('x ∈ B ∧ x ∈ C'), contradiction('x ∈ C')])])])],
+            }],
+        ],
+    },
+    {
+        unit: 10,
+        world: 'יחידה 10 - קבוצת החזקה ופעולות אונריות',
+        levels: [
+            [{ label: 'פתרון', steps: [unfold('A ∈ 𝒫 A'), subsetIntro, close] }],
+            [{ label: 'פתרון', steps: [unfold('∅ ∈ 𝒫 A'), subsetIntro, unfold('x ∈ ∅'), exfalso, close] }],
+            [{
+                label: 'פתרון',
+                steps: [assume, subsetIntro, unfold('X ∈ 𝒫 A'), unfold('X ∈ 𝒫 B'), subsetIntro, subsetElim('X ⊆ A', 'x ∈ X'), subsetElim('A ⊆ B', 'x ∈ A'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [assume, claim('A ∈ 𝒫 A', [unfold('A ∈ 𝒫 A'), subsetIntro, close]), subsetElim('𝒫 A ⊆ 𝒫 B', 'A ∈ 𝒫 A'), unfold('A ∈ 𝒫 B'), close],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('X ∈ 𝒫 (A ∩ B)'), unfold('X ∈ 𝒫 A ∩ 𝒫 B'), andIntro(
+                        [unfold('X ∈ 𝒫 A'), subsetIntro, subsetElim('X ⊆ A ∩ B', 'x ∈ X'), unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), close],
+                        [unfold('X ∈ 𝒫 B'), subsetIntro, subsetElim('X ⊆ A ∩ B', 'x ∈ X'), unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), close])],
+                    [subsetIntro, unfold('X ∈ 𝒫 A ∩ 𝒫 B'), andElim('X ∈ 𝒫 A ∧ X ∈ 𝒫 B'), unfold('X ∈ 𝒫 A'), unfold('X ∈ 𝒫 B'), unfold('X ∈ 𝒫 (A ∩ B)'),
+                        subsetIntro, unfold('x ∈ A ∩ B'), andIntro([subsetElim('X ⊆ A', 'x ∈ X'), close], [subsetElim('X ⊆ B', 'x ∈ X'), close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('X ∈ 𝒫 A ∪ 𝒫 B'), unfold('X ∈ 𝒫 (A ∪ B)'), orCases('X ∈ 𝒫 A ∨ X ∈ 𝒫 B',
+                    [unfold('X ∈ 𝒫 A'), subsetIntro, subsetElim('X ⊆ A', 'x ∈ X'), unfold('x ∈ A ∪ B'), orIntro('LEFT'), close],
+                    [unfold('X ∈ 𝒫 B'), subsetIntro, subsetElim('X ⊆ B', 'x ∈ X'), unfold('x ∈ A ∪ B'), orIntro('RIGHT'), close])],
+            }],
+            [
+                { label: 'קדימה', steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallElim('∀ (S : Set obj), S ∈ X → x ∈ S', 'A'), forward('A ∈ X → x ∈ A', 'A ∈ X'), close] },
+                { label: 'אחורה', steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallElim('∀ (S : Set obj), S ∈ X → x ∈ S', 'A'), backward('A ∈ X → x ∈ A'), close] },
+            ],
+            [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ⋃ X'), existsIntro('A'), andIntro([close], [close])] }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
+                    [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsElim('∃ S, S ∈ 𝒫 A ∧ x ∈ S'), andElim('S₀ ∈ 𝒫 A ∧ x ∈ S₀'), unfold('S₀ ∈ 𝒫 A'), subsetElim('S₀ ⊆ A', 'x ∈ S₀'), close],
+                    [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsIntro('A'), andIntro([unfold('A ∈ 𝒫 A'), subsetIntro, close], [close])])],
             }],
         ],
     },
