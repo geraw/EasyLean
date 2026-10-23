@@ -5,7 +5,7 @@ import { loadWorkspace, buildProof, buildInto } from '../test/blocklyWorkspace';
 import { generateGameLeanCode } from './gameLeanCode';
 import { explainLeanMessage } from './leanErrors';
 import { withoutIsolates } from './bidi';
-import { defineMoveBlocks, phraseOf, setLevelLaws } from '../blocks/moves';
+import { defineMoveBlocks, normalizeTyped, phraseOf, setLevelLaws } from '../blocks/moves';
 import { buildMoveStatesSource, readMoveStates } from './moveStates';
 import { unit2Levels } from './unit2World';
 import { unit3Levels } from './unit3World';
@@ -100,6 +100,11 @@ describe('the moves', () => {
         // A typed statement is kept even when it is not in hand: Lean will explain.
         field.setValue('R');
         expect(withoutIsolates(field.getText())).toBe('R');
+    });
+
+    it('read what is typed in Lean\'s notation, a subscript after an underscore', () => {
+        expect(normalizeTyped('  P x_0 -> Q  x_12 ')).toBe('P x₀ → Q x₁₂');
+        expect(normalizeTyped('⊥')).toBe('False');
     });
 });
 
@@ -217,28 +222,28 @@ describe('the moves of unit 4', () => {
 });
 
 describe('the moves of unit 5', () => {
-    it('name new objects after the quantified variable, as the course does, and find assumptions by statement', () => {
+    it('name a new object after the quantified variable with a subscript, apart from the bound one, and find assumptions by statement', () => {
         const level = unit5Levels[8];
         const { workspace, blocks: [, forallIntro, existsElim] } = solved(level, unitSolutions(5).levels[8][0].steps);
         forallIntro.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: [], goal: '∀ (y : obj), ∃ x, R x y' });
-        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y'], goal: '∃ x, R x y' });
+        existsElim.setStateBefore({ assumptions: ['∃ x, ∀ (y : obj), R x y'], objects: ['y₀'], goal: '∃ x, R x y₀' });
         expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
             '  easylean_assume',
             '  ·',
-            '    refine easylean_forall_intro (fun y => ?_)',
+            '    refine easylean_forall_intro (fun y₀ => ?_)',
             '    ·',
-            '      refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x _ => ?_)',
-            '      have := easylean_forall_elim ‹∀ y, R x y› (y)',
-            '      apply Exists.intro (x)',
+            '      refine Exists.elim ‹∃ x, ∀ y, R x y› (fun x₀ _ => ?_)',
+            '      have := easylean_forall_elim ‹∀ y, R x₀ y› (y₀)',
+            '      apply Exists.intro (x₀)',
             '      ·',
             '        assumption',
         ].join('\n'));
         expect([phraseOf(forallIntro), phraseOf(forallIntro, 'CLOSE')])
-            .toEqual(['יהי y שרירותי. עלינו להראות ∃x (R(x,y)).', 'מאחר ש־ y שרירותי, ∀y (∃x (R(x,y))).']);
-        expect(phraseOf(existsElim)).toBe('יהי x כזה, כלומר ∀y (R(x,y)).');
+            .toEqual(['יהי y₀ שרירותי. עלינו להראות ∃x (R(x,y₀)).', 'מאחר ש־ y₀ שרירותי, ∀y (∃x (R(x,y))).']);
+        expect(phraseOf(existsElim)).toBe('יהי x₀ כזה, כלומר ∀y (R(x₀,y)).');
     });
 
-    it('substitute the chosen object, and give a new object a subscript only when its name is taken', () => {
+    it('substitute the chosen object, and give a new object the next subscript when x₀ is taken', () => {
         const { blocks: [forallElim, existsElim, existsIntro] } = solved(unit5Levels[6], [
             ['forall_elim', { FORALL: '∀ (x : obj), P x → Q x', TERM: 'a' }], ['exists_elim', { EXISTS: '∃ x, P x' }], ['exists_intro', { TERM: 'a' }],
         ]);
@@ -248,9 +253,9 @@ describe('the moves of unit 5', () => {
         expect([phraseOf(existsIntro), phraseOf(existsIntro, 'AFTER'), phraseOf(existsIntro, 'CLOSE')])
             .toEqual(['נבחר x =', 'עלינו להראות Q(a).', 'לכן קיים x כזה: ∃x (Q(x)).']);
         expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
-        // A name already taken gets a subscript.
-        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x'], goal: '∃ x, Q x' });
-        expect(phraseOf(existsElim)).toBe('יהי x₀ כזה, כלומר P(x₀).');
+        // A name already taken gets the next subscript.
+        existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
+        expect(phraseOf(existsElim)).toBe('יהי x₁ כזה, כלומר P(x₁).');
     });
 });
 

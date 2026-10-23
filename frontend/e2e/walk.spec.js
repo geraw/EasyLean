@@ -236,17 +236,17 @@ const UNIT5 = [
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const i = await drag(page, 'forall_intro', { after: a }); log(await phrase(page, i));
-        const e = await drag(page, 'forall_elim', { after: i }); await choose(page, e, 'FORALL', '∀x (P(x) ∧ Q(x))'); await choose(page, e, 'TERM', 'x'); log(await phrase(page, e));
-        const d = await drag(page, 'and_elim', { after: e }); await choose(page, d, 'AND', '(P(x) ∧ Q(x))'); log(await phrase(page, d));
+        const e = await drag(page, 'forall_elim', { after: i }); await choose(page, e, 'FORALL', '∀x (P(x) ∧ Q(x))'); await choose(page, e, 'TERM', 'x₀'); log(await phrase(page, e));
+        const d = await drag(page, 'and_elim', { after: e }); await choose(page, d, 'AND', '(P(x₀) ∧ Q(x₀))'); log(await phrase(page, d));
         await drag(page, 'exact', { after: d });
     },
     async (page, log) => {
         const a1 = await drag(page, 'assume', { goal: true });
         const a2 = await drag(page, 'assume', { after: a1 }); log(await phrase(page, a2));
         const i = await drag(page, 'forall_intro', { after: a2 }); log(await phrase(page, i));
-        const e1 = await drag(page, 'forall_elim', { after: i }); await choose(page, e1, 'FORALL', '∀x (P(x) → Q(x))'); await choose(page, e1, 'TERM', 'x');
-        const e2 = await drag(page, 'forall_elim', { after: e1 }); await choose(page, e2, 'FORALL', '∀x (P(x))'); await choose(page, e2, 'TERM', 'x');
-        const f = await drag(page, 'forward', { after: e2 }); await choose(page, f, 'RULE', '(P(x) → Q(x))'); await choose(page, f, 'PREMISE', 'P(x)'); log(await phrase(page, f));
+        const e1 = await drag(page, 'forall_elim', { after: i }); await choose(page, e1, 'FORALL', '∀x (P(x) → Q(x))'); await choose(page, e1, 'TERM', 'x₀');
+        const e2 = await drag(page, 'forall_elim', { after: e1 }); await choose(page, e2, 'FORALL', '∀x (P(x))'); await choose(page, e2, 'TERM', 'x₀');
+        const f = await drag(page, 'forward', { after: e2 }); await choose(page, f, 'RULE', '(P(x₀) → Q(x₀))'); await choose(page, f, 'PREMISE', 'P(x₀)'); log(await phrase(page, f));
         await drag(page, 'exact', { after: f });
     },
     async (page, log) => {
@@ -257,15 +257,15 @@ const UNIT5 = [
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const x = await drag(page, 'exists_elim', { after: a }); await choose(page, x, 'EXISTS', '∃x (P(x) ∧ Q(x))'); log(await phrase(page, x));
-        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(P(x) ∧ Q(x))');
-        const w = await drag(page, 'exists_intro', { after: d }); await choose(page, w, 'TERM', 'x'); log(await phrase(page, w));
+        const d = await drag(page, 'and_elim', { after: x }); await choose(page, d, 'AND', '(P(x₀) ∧ Q(x₀))');
+        const w = await drag(page, 'exists_intro', { after: d }); await choose(page, w, 'TERM', 'x₀'); log(await phrase(page, w));
         await drag(page, 'exact', { after: w });
     },
     async (page, log) => {
         const x = await drag(page, 'exists_elim', { goal: true }); await choose(page, x, 'EXISTS', '∃x (P(x))'); log(await phrase(page, x));
-        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀x (P(x) → Q(x))'); await choose(page, e, 'TERM', 'x');
-        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(P(x) → Q(x))'); await choose(page, f, 'PREMISE', 'P(x)'); log(await phrase(page, f));
-        const w = await drag(page, 'exists_intro', { after: f }); await choose(page, w, 'TERM', 'x');
+        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀x (P(x) → Q(x))'); await choose(page, e, 'TERM', 'x₀');
+        const f = await drag(page, 'forward', { after: e }); await choose(page, f, 'RULE', '(P(x₀) → Q(x₀))'); await choose(page, f, 'PREMISE', 'P(x₀)'); log(await phrase(page, f));
+        const w = await drag(page, 'exists_intro', { after: f }); await choose(page, w, 'TERM', 'x₀');
         await drag(page, 'exact', { after: w });
     },
     async (page, log) => {
@@ -273,15 +273,15 @@ const UNIT5 = [
         const i = await drag(page, 'forall_intro', { after: a }); log(await phrase(page, i));
         const n = await drag(page, 'not_intro', { after: i }); log(await phrase(page, n));
         const e = await drag(page, 'not_elim', { after: n }); await choose(page, e, 'NEGATION', '¬∃x (P(x))'); log(await phrase(page, e));
-        const w = await drag(page, 'exists_intro', { after: e }); await choose(page, w, 'TERM', 'x');
+        const w = await drag(page, 'exists_intro', { after: e }); await choose(page, w, 'TERM', 'x₀');
         await drag(page, 'exact', { after: w });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const i = await drag(page, 'forall_intro', { after: a }); log(await phrase(page, i));
         const x = await drag(page, 'exists_elim', { after: i }); await choose(page, x, 'EXISTS', '∃x (∀y (R(x,y)))'); log(await phrase(page, x));
-        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀y (R(x,y))'); await choose(page, e, 'TERM', 'y'); log(await phrase(page, e));
-        const w = await drag(page, 'exists_intro', { after: e }); await choose(page, w, 'TERM', 'x');
+        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀y (R(x₀,y))'); await choose(page, e, 'TERM', 'y₀'); log(await phrase(page, e));
+        const w = await drag(page, 'exists_intro', { after: e }); await choose(page, w, 'TERM', 'x₀');
         await drag(page, 'exact', { after: w });
     },
     async (page, log) => {
@@ -291,7 +291,7 @@ const UNIT5 = [
         const i = await drag(page, 'forall_intro', { after: e1 }); log(await phrase(page, i));
         const b2 = await drag(page, 'by_contradiction', { after: i }); log(await phrase(page, b2));
         const e2 = await drag(page, 'not_elim', { after: b2 }); await choose(page, e2, 'NEGATION', '¬∃x (¬P(x))'); log(await phrase(page, e2));
-        const w = await drag(page, 'exists_intro', { after: e2 }); await choose(page, w, 'TERM', 'x'); log(await phrase(page, w));
+        const w = await drag(page, 'exists_intro', { after: e2 }); await choose(page, w, 'TERM', 'x₀'); log(await phrase(page, w));
         await drag(page, 'exact', { after: w });
     },
 ];
@@ -315,8 +315,8 @@ const UNIT6 = [
         const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
         const n = await drag(page, 'not_intro', { after: a }); log(await phrase(page, n));
         const e = await drag(page, 'exists_elim', { after: n }); await choose(page, e, 'EXISTS', exists); log(await phrase(page, e));
-        const f = await drag(page, 'forall_elim', { after: e }); await choose(page, f, 'FORALL', forall); await choose(page, f, 'TERM', 'x'); log(await phrase(page, f));
-        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'P(x)');
+        const f = await drag(page, 'forall_elim', { after: e }); await choose(page, f, 'FORALL', forall); await choose(page, f, 'TERM', 'x₀'); log(await phrase(page, f));
+        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'P(x₀)');
     }),
     async (page, log) => {
         const r = await replace(page, { goal: true }, IMP_OR, 'את (P → Q) ב־(¬P ∨ Q)', 'המטרה', log); log(await state(page));
@@ -395,11 +395,11 @@ const UNIT6 = [
 
 // Each level of unit 7, as its hints describe it.
 const H3 = '∀x ((P(x) → R(x)) ∧ (R(x) → Q(x)))';
-const BOTH3 = '((P(x) → R(x)) ∧ (R(x) → Q(x)))';
+const BOTH3 = '((P(x₀) → R(x₀)) ∧ (R(x₀) → Q(x₀)))';
 // "יהי x שרירותי", then the given, its "and", in hand: the start of the three ways.
 const threeWaysStart = async (page, log) => {
     const g = await drag(page, 'forall_intro', { goal: true }); log(await phrase(page, g));
-    const e = await drag(page, 'forall_elim', { after: g }); await choose(page, e, 'FORALL', H3); await choose(page, e, 'TERM', 'x'); log(await phrase(page, e));
+    const e = await drag(page, 'forall_elim', { after: g }); await choose(page, e, 'FORALL', H3); await choose(page, e, 'TERM', 'x₀'); log(await phrase(page, e));
     const a = await drag(page, 'and_elim', { after: e }); await choose(page, a, 'AND', BOTH3); log(await phrase(page, a));
     return a;
 };
@@ -413,8 +413,8 @@ const UNIT7 = [
         const s = await drag(page, 'and_intro', { after: a }); log(await phrase(page, s));
         for (const input of ['LEFT', 'RIGHT']) {
             const g = await drag(page, 'forall_intro', { into: s, input }); log(await phrase(page, g));
-            const e = await drag(page, 'forall_elim', { after: g }); await choose(page, e, 'FORALL', '∀x (P(x) ∧ Q(x))'); await choose(page, e, 'TERM', 'x');
-            const d = await drag(page, 'and_elim', { after: e }); await choose(page, d, 'AND', '(P(x) ∧ Q(x))');
+            const e = await drag(page, 'forall_elim', { after: g }); await choose(page, e, 'FORALL', '∀x (P(x) ∧ Q(x))'); await choose(page, e, 'TERM', 'x₀');
+            const d = await drag(page, 'and_elim', { after: e }); await choose(page, d, 'AND', '(P(x₀) ∧ Q(x₀))');
             await drag(page, 'exact', { after: d });
         }
     },
@@ -432,28 +432,28 @@ const UNIT7 = [
     async (page, log) => {
         const a = await threeWaysStart(page, log);
         const c = await drag(page, 'contrapositive', { after: a }); log(await phrase(page, c));
-        const m1 = await drag(page, 'modus_tollens', { after: c }); await choose(page, m1, 'RULE', '(R(x) → Q(x))'); await choose(page, m1, 'NEGATION', '¬Q(x)'); log(await phrase(page, m1));
-        const m2 = await drag(page, 'modus_tollens', { after: m1 }); await choose(page, m2, 'RULE', '(P(x) → R(x))'); await choose(page, m2, 'NEGATION', '¬R(x)'); log(await phrase(page, m2));
+        const m1 = await drag(page, 'modus_tollens', { after: c }); await choose(page, m1, 'RULE', '(R(x₀) → Q(x₀))'); await choose(page, m1, 'NEGATION', '¬Q(x₀)'); log(await phrase(page, m1));
+        const m2 = await drag(page, 'modus_tollens', { after: m1 }); await choose(page, m2, 'RULE', '(P(x₀) → R(x₀))'); await choose(page, m2, 'NEGATION', '¬R(x₀)'); log(await phrase(page, m2));
         await drag(page, 'exact', { after: m2 });
     },
     async (page, log) => {
         const n = await drag(page, 'not_intro', { goal: true }); log(await phrase(page, n));
         const x = await drag(page, 'exists_elim', { after: n }); await choose(page, x, 'EXISTS', '∃b (∀y (Shaves(b,y) ↔ ¬Shaves(y,y)))'); log(await phrase(page, x));
-        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀y (Shaves(b,y) ↔ ¬Shaves(y,y))'); await choose(page, e, 'TERM', 'b'); log(await phrase(page, e));
-        const i = await drag(page, 'iff_elim', { after: e }); await choose(page, i, 'IFF', '(Shaves(b,b) ↔ ¬Shaves(b,b))'); log(await phrase(page, i));
-        const k = await drag(page, 'em_cases', { after: i }); await choose(page, k, 'STATEMENT', 'Shaves(b,b)'); log(await phrase(page, k));
-        const f1 = await drag(page, 'forward', { into: k, input: 'LEFT' }); await choose(page, f1, 'RULE', '(Shaves(b,b) → ¬Shaves(b,b))'); await choose(page, f1, 'PREMISE', 'Shaves(b,b)');
-        const c1 = await drag(page, 'contradiction', { after: f1 }); await choose(page, c1, 'FACT', 'Shaves(b,b)');
-        const f2 = await drag(page, 'forward', { into: k, input: 'RIGHT' }); await choose(page, f2, 'RULE', '(¬Shaves(b,b) → Shaves(b,b))'); await choose(page, f2, 'PREMISE', '¬Shaves(b,b)');
-        const c2 = await drag(page, 'contradiction', { after: f2 }); await choose(page, c2, 'FACT', 'Shaves(b,b)');
+        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀y (Shaves(b₀,y) ↔ ¬Shaves(y,y))'); await choose(page, e, 'TERM', 'b₀'); log(await phrase(page, e));
+        const i = await drag(page, 'iff_elim', { after: e }); await choose(page, i, 'IFF', '(Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀))'); log(await phrase(page, i));
+        const k = await drag(page, 'em_cases', { after: i }); await choose(page, k, 'STATEMENT', 'Shaves(b₀,b₀)'); log(await phrase(page, k));
+        const f1 = await drag(page, 'forward', { into: k, input: 'LEFT' }); await choose(page, f1, 'RULE', '(Shaves(b₀,b₀) → ¬Shaves(b₀,b₀))'); await choose(page, f1, 'PREMISE', 'Shaves(b₀,b₀)');
+        const c1 = await drag(page, 'contradiction', { after: f1 }); await choose(page, c1, 'FACT', 'Shaves(b₀,b₀)');
+        const f2 = await drag(page, 'forward', { into: k, input: 'RIGHT' }); await choose(page, f2, 'RULE', '(¬Shaves(b₀,b₀) → Shaves(b₀,b₀))'); await choose(page, f2, 'PREMISE', '¬Shaves(b₀,b₀)');
+        const c2 = await drag(page, 'contradiction', { after: f2 }); await choose(page, c2, 'FACT', 'Shaves(b₀,b₀)');
     },
     async (page, log) => {
         const g = await drag(page, 'forall_intro', { goal: true }); log(await phrase(page, g));
         const a = await drag(page, 'assume', { after: g }); log(await phrase(page, a));
         const s = await drag(page, 'and_intro', { after: a }); log(await phrase(page, s));
-        for (const [input, given, rule] of [['LEFT', '∀x (Penguin(x) → Bird(x))', '(Penguin(x) → Bird(x))'], ['RIGHT', '∀x (Penguin(x) → Swims(x))', '(Penguin(x) → Swims(x))']]) {
-            const e = await drag(page, 'forall_elim', { into: s, input }); await choose(page, e, 'FORALL', given); await choose(page, e, 'TERM', 'x');
-            const f = await forward2(page, e, rule, 'Penguin(x)', log);
+        for (const [input, given, rule] of [['LEFT', '∀x (Penguin(x) → Bird(x))', '(Penguin(x₀) → Bird(x₀))'], ['RIGHT', '∀x (Penguin(x) → Swims(x))', '(Penguin(x₀) → Swims(x₀))']]) {
+            const e = await drag(page, 'forall_elim', { into: s, input }); await choose(page, e, 'FORALL', given); await choose(page, e, 'TERM', 'x₀');
+            const f = await forward2(page, e, rule, 'Penguin(x₀)', log);
             await drag(page, 'exact', { after: f });
         }
     },
@@ -462,48 +462,48 @@ const UNIT7 = [
         const o = await drag(page, 'or_by_negation', { after: a }); log(await phrase(page, o));
         const r = await replace(page, { after: o }, '¬∀x (P(x)) ↔ ∃x (¬P(x))', 'את ¬∀x (Quiz(x)) ב־∃x (¬Quiz(x))', '¬∀x (Quiz(x))', log);
         const x = await drag(page, 'exists_elim', { after: r }); await choose(page, x, 'EXISTS', '∃x (¬Quiz(x))'); log(await phrase(page, x));
-        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀x (Quiz(x) ∨ Project(x))'); await choose(page, e, 'TERM', 'x');
-        const k = await drag(page, 'or_elim', { after: e }); await choose(page, k, 'OR', '(Quiz(x) ∨ Project(x))'); log(await phrase(page, k));
+        const e = await drag(page, 'forall_elim', { after: x }); await choose(page, e, 'FORALL', '∀x (Quiz(x) ∨ Project(x))'); await choose(page, e, 'TERM', 'x₀');
+        const k = await drag(page, 'or_elim', { after: e }); await choose(page, k, 'OR', '(Quiz(x₀) ∨ Project(x₀))'); log(await phrase(page, k));
         const f = await drag(page, 'exfalso', { into: k, input: 'LEFT' });
-        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'Quiz(x)');
-        const w = await drag(page, 'exists_intro', { into: k, input: 'RIGHT' }); await choose(page, w, 'TERM', 'x'); log(await phrase(page, w));
+        const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'Quiz(x₀)');
+        const w = await drag(page, 'exists_intro', { into: k, input: 'RIGHT' }); await choose(page, w, 'TERM', 'x₀'); log(await phrase(page, w));
         await drag(page, 'exact', { after: w });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const g = await drag(page, 'forall_intro', { after: a });
         const b = await drag(page, 'assume', { after: g }); log(await phrase(page, b));
-        const e = await drag(page, 'forall_elim', { after: b }); await choose(page, e, 'FORALL', '∀x (Locked(x))'); await choose(page, e, 'TERM', 'x'); log(await phrase(page, e));
+        const e = await drag(page, 'forall_elim', { after: b }); await choose(page, e, 'FORALL', '∀x (Locked(x))'); await choose(page, e, 'TERM', 'x₀'); log(await phrase(page, e));
         await drag(page, 'exact', { after: e });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const g = await drag(page, 'forall_intro', { after: a });
-        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'x'); log(await phrase(page, w));
-        const e = await drag(page, 'forall_elim', { after: w }); await choose(page, e, 'FORALL', '∀x (Friend(x,x))'); await choose(page, e, 'TERM', 'x');
+        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'x₀'); log(await phrase(page, w));
+        const e = await drag(page, 'forall_elim', { after: w }); await choose(page, e, 'FORALL', '∀x (Friend(x,x))'); await choose(page, e, 'TERM', 'x₀');
         await drag(page, 'exact', { after: e });
     },
     async (page, log) => {
         const a = await drag(page, 'assume', { goal: true });
         const x = await drag(page, 'exists_elim', { after: a }); await choose(page, x, 'EXISTS', '∃x (∀y (Knows(x,y)))'); log(await phrase(page, x));
         const g = await drag(page, 'forall_intro', { after: x });
-        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'x');
-        const e = await drag(page, 'forall_elim', { after: w }); await choose(page, e, 'FORALL', '∀y (Knows(x,y))'); await choose(page, e, 'TERM', 'y');
+        const w = await drag(page, 'exists_intro', { after: g }); await choose(page, w, 'TERM', 'x₀');
+        const e = await drag(page, 'forall_elim', { after: w }); await choose(page, e, 'FORALL', '∀y (Knows(x₀,y))'); await choose(page, e, 'TERM', 'y₀');
         await drag(page, 'exact', { after: e });
     },
     async (page, log) => {
         const g = await drag(page, 'forall_intro', { goal: true });
         const a = await drag(page, 'assume', { after: g });
-        const e = await drag(page, 'forall_elim', { after: a }); await choose(page, e, 'FORALL', '∀y (Trusts(x,y))'); await choose(page, e, 'TERM', 'x'); log(await phrase(page, e));
+        const e = await drag(page, 'forall_elim', { after: a }); await choose(page, e, 'FORALL', '∀y (Trusts(x₀,y))'); await choose(page, e, 'TERM', 'x₀'); log(await phrase(page, e));
         await drag(page, 'exact', { after: e });
     },
     async (page, log) => {
         const g = await drag(page, 'forall_intro', { goal: true });
-        const k = await drag(page, 'em_cases', { after: g }); await choose(page, k, 'STATEMENT', 'Rain(d)'); log(await phrase(page, k));
+        const k = await drag(page, 'em_cases', { after: g }); await choose(page, k, 'STATEMENT', 'Rain(d₀)'); log(await phrase(page, k));
         for (const [input, given, rule, premise, side] of [
-            ['LEFT', '∀d (Rain(d) → Bus(d))', '(Rain(d) → Bus(d))', 'Rain(d)', 'Bus(d)'],
-            ['RIGHT', '∀d (¬Rain(d) → Bike(d))', '(¬Rain(d) → Bike(d))', '¬Rain(d)', 'Bike(d)']]) {
-            const e = await drag(page, 'forall_elim', { into: k, input }); await choose(page, e, 'FORALL', given); await choose(page, e, 'TERM', 'd');
+            ['LEFT', '∀d (Rain(d) → Bus(d))', '(Rain(d₀) → Bus(d₀))', 'Rain(d₀)', 'Bus(d₀)'],
+            ['RIGHT', '∀d (¬Rain(d) → Bike(d))', '(¬Rain(d₀) → Bike(d₀))', '¬Rain(d₀)', 'Bike(d₀)']]) {
+            const e = await drag(page, 'forall_elim', { into: k, input }); await choose(page, e, 'FORALL', given); await choose(page, e, 'TERM', 'd₀');
             const f = await forward2(page, e, rule, premise, log);
             const o = await drag(page, 'or_intro', { after: f }); await choose(page, o, 'SIDE', side);
             await drag(page, 'exact', { after: o });

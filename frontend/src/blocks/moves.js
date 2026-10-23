@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
 import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
-import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, substitute, unfoldMembership } from '../game/formatProofGoal';
+import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, subscriptedName, substitute, unfoldMembership } from '../game/formatProofGoal';
 import { isolateFormulas, isolateHebrew } from '../game/bidi';
 import { hasNoVariables, unfoldableParts } from '../game/terms';
 
@@ -16,8 +16,10 @@ const WRITE_OWN_LABEL = '✎ כתיבה ידנית...';
 // A formula as students see it: fully parenthesized, in left-to-right order.
 const shown = (formula) => isolateFormulas(formatProofGoal(formula));
 
-// What a student typed, in Lean's notation (the contradiction ⊥ is False).
-const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/g, 'False').replace(/\s+/g, ' ');
+// What a student typed, in Lean's notation (the contradiction ⊥ is False),
+// with a name's subscript typed after an underscore, x_0, as x₀.
+export const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/g, 'False').replace(/\s+/g, ' ')
+    .replace(/(?<=\p{L})_(\d+)/gu, (_, digits) => digits.replace(/\d/g, (digit) => '₀₁₂₃₄₅₆₇₈₉'[digit]));
 
 // The statement of an assumption: a menu of the assumptions in hand before the
 // move (block.stateBefore, from Lean), and a last item for typing one in.
@@ -49,7 +51,7 @@ class FieldAssumption extends Blockly.FieldDropdown {
             if (!inHand.includes(current)) options.unshift([optionLabel(current), current]);
             return [...options, [WRITE_OWN_LABEL, WRITE_OWN]];
         });
-        this.prompt = objects ? 'כתבו עצם, למשל a או n + 1' : 'כתבו את הטענה של ההנחה, למשל P → Q';
+        this.prompt = objects ? 'כתבו עצם, למשל a או n + 1 (ואת x₀ כ־x_0)' : 'כתבו את הטענה של ההנחה, למשל P → Q (ואת x₀ כ־x_0)';
     }
 
     // Any statement is a value: Lean checks that it is an assumption in hand.
@@ -511,10 +513,13 @@ const elementName = (block, smaller, larger = '') => {
 const isRelationSet = (block, text) => (text.replace(/\[[^\]]*\]_\S+/g, '').match(/\p{L}[\p{L}\p{N}₀-₉_']*/gu) || [])
     .some((name) => block.stateBefore?.relations?.includes(name));
 
-// The name of a new object (∀ introduction, ∃ elimination): the quantified
-// variable's with a subscript, x₀ (see freshName).
+// The name of a new object: an element a set's rule takes keeps its
+// variable's name, unless taken (see freshName); the object ∀ introduction
+// and ∃ elimination take is the quantified variable's with a subscript, x₀,
+// to read apart from the bound x (see subscriptedName).
 const thingsInHand = (block) => [...(block.stateBefore?.objects || []), ...(block.stateBefore?.sets || []), ...(block.stateBefore?.relations || []), ...(block.stateBefore?.functions || [])];
 const newObjectName = (block, variable) => freshName(variable, thingsInHand(block));
+const arbitraryObjectName = (block, variable) => subscriptedName(variable, thingsInHand(block));
 
 const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
 
@@ -1021,7 +1026,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['forall_intro'] = {
         init() {
             appendPhrase(this);
-            wrap(this, 'כדי להוכיח "לכל x מתקיים P(x)" לוקחים x שרירותי, שלא ידוע עליו דבר, ומוכיחים P(x).');
+            wrap(this, 'כדי להוכיח "לכל x מתקיים P(x)" לוקחים עצם שרירותי, x₀, שלא ידוע עליו דבר, ומוכיחים P(x₀).');
             this.updateText();
         },
         ...followState,
@@ -1033,7 +1038,7 @@ export const defineMoveBlocks = () => {
                 setClose(this, ['מאחר שהעצם שרירותי, הטענה נכונה לכל עצם.']);
                 return;
             }
-            const name = newObjectName(this, quantified.variable);
+            const name = arbitraryObjectName(this, quantified.variable);
             setPhrase(this, ['יהי', { formula: name }, 'שרירותי. עלינו להראות', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
             setClose(this, ['מאחר ש־', { formula: name }, 'שרירותי,', { formula: goal, end: '.' }]);
         },
@@ -1067,7 +1072,7 @@ export const defineMoveBlocks = () => {
                 .appendField('לפי')
                 .appendField(new FieldAssumption(), 'EXISTS');
             appendPhrase(this);
-            move(this, 'מ"קיים x כך ש־P(x)" לוקחים x כזה ונותנים לו שם: עליו ידוע רק ש־P(x). את הערך שלו לא בוחרים.');
+            move(this, 'מ"קיים x כך ש־P(x)" לוקחים עצם כזה ונותנים לו שם, x₀: עליו ידוע רק ש־P(x₀). את הערך שלו לא בוחרים.');
             this.updateText();
         },
         ...followState,
@@ -1078,7 +1083,7 @@ export const defineMoveBlocks = () => {
                 setPhrase(this, ['יהי עצם כזה.']);
                 return;
             }
-            const name = newObjectName(this, quantified.variable);
+            const name = arbitraryObjectName(this, quantified.variable);
             setPhrase(this, ['יהי', { formula: name }, 'כזה, כלומר', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
         },
     };
@@ -1521,13 +1526,13 @@ leanGenerator.forBlock['exfalso'] = () => '  apply False.elim\n';
 leanGenerator.forBlock['by_contradiction'] = () => '  apply Classical.byContradiction\n  intro _\n';
 
 // Unit 5. The rules of LEAN_PRELUDE (easylean_forall_…) and Exists.…, which
-// the explanations in leanErrors.js know; a new object is named by newObjectName.
+// the explanations in leanErrors.js know; a new object is named by arbitraryObjectName.
 leanGenerator.forBlock['forall_elim'] = (block) =>
     `  have := easylean_forall_elim ‹${block.getFieldValue('FORALL')}› (${block.getFieldValue('TERM')})\n`;
 
 leanGenerator.forBlock['forall_intro'] = (block) => {
     const quantified = splitQuantifier(block.stateBefore?.goal, '∀');
-    return `  refine easylean_forall_intro (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} => ?_)\n`;
+    return `  refine easylean_forall_intro (fun ${quantified ? arbitraryObjectName(block, quantified.variable) : 'x₀'} => ?_)\n`;
 };
 
 leanGenerator.forBlock['exists_intro'] = (block) => `  apply Exists.intro (${block.getFieldValue('TERM')})\n`;
@@ -1535,7 +1540,7 @@ leanGenerator.forBlock['exists_intro'] = (block) => `  apply Exists.intro (${blo
 leanGenerator.forBlock['exists_elim'] = (block) => {
     const exists = block.getFieldValue('EXISTS');
     const quantified = splitQuantifier(exists, '∃');
-    return `  refine Exists.elim ‹${exists}› (fun ${quantified ? newObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
+    return `  refine Exists.elim ‹${exists}› (fun ${quantified ? arbitraryObjectName(block, quantified.variable) : 'x₀'} _ => ?_)\n`;
 };
 
 // Unit 7. The derived rules of STRATEGY_PRELUDE; a negation is refused as

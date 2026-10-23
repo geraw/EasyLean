@@ -316,11 +316,14 @@ export const substitute = (body, variable, term) => {
     return body.replace(new RegExp(`(?<![\\p{L}\\p{N}_'])${name}(?![\\p{L}\\p{N}_'₀-₉])`, 'gu'), /\s/.test(term) ? `(${term})` : term);
 };
 
-// The name of a new object for a quantified variable: the variable's own
-// name, as the course writes it ("יהי x שרירותי"), or, when an object in hand
-// already has it, the first subscript none has (x₀, x₁, ...).
-export const freshName = (variable, taken = []) => {
-    if (!taken.includes(variable)) return variable;
+// The name of a new object: the variable's own name, or, when an object in
+// hand already has it, the first subscript none has (x₀, x₁, ...).
+export const freshName = (variable, taken = []) => (taken.includes(variable) ? subscriptedName(variable, taken) : variable);
+
+// The name of the object a quantifier's rule takes ("יהי x₀ שרירותי", "יהי x₀
+// כזה"): the variable's name with the first subscript no object in hand has,
+// so that it reads apart from the bound variable of ∀x or ∃x.
+export const subscriptedName = (variable, taken = []) => {
     const subscript = (n) => String(n).replace(/\d/g, (digit) => '₀₁₂₃₄₅₆₇₈₉'[digit]);
     for (let n = 0; ; n += 1) if (!taken.includes(`${variable}${subscript(n)}`)) return `${variable}${subscript(n)}`;
 };
