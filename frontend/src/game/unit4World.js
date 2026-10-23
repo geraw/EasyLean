@@ -9,8 +9,11 @@ import { goalXml } from './levelXml';
 //   explosion: from a contradiction anything follows;
 //   proof by contradiction: to prove A, assume ¬A and reach a contradiction.
 // The derived rules of those courses are the levels: ¬¬-introduction, modus
-// tollens, De Morgan, ruling out a possibility, ¬¬-elimination, the
-// contrapositive and P ∨ ¬P. Each level offers only the moves of its solution.
+// tollens, De Morgan, ruling out a possibility, ¬¬-elimination and the
+// contrapositive. The last two levels prove an "or" as the lecture does
+// (assume the negation of one side, prove the other), where choosing a side,
+// as in unit 3, cannot work: P ∨ ¬P and (P → Q) → (¬P ∨ Q). Each level offers
+// only the moves of its solution.
 
 export const unit4WorldName = 'יחידה 4 - שלילה והוכחה בשלילה';
 
@@ -28,6 +31,8 @@ const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להרא
 const ASSUME_BLOCK = '"נניח את התנאי של הגרירה..."';
 const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרירה."';
 const OR_INTRO_BLOCK = '"כדי להוכיח את ה"או" נוכיח את ?"';
+const OR_BY_NEGATION_BLOCK = '"נניח את השלילה של הצד הראשון של ה"או"..."';
+const APPLY_RULE_BLOCK = '"לפי ? כדי להוכיח את המסקנה של הגרירה, די להוכיח את התנאי שלה."';
 
 const contradictionInfo = {
     name: 'סתירה',
@@ -49,6 +54,11 @@ const exfalsoInfo = {
     doc: 'מסתירה אפשר להסיק כל טענה. לכן כדי להוכיח מטרה Q כלשהי, די להגיע לסתירה. בהוכחה כתובה: "מסתירה נובע הכול: כדי להוכיח Q די להגיע לסתירה."',
 };
 
+const orByNegationInfo = {
+    name: 'הוכחת "או" כמו בהרצאה',
+    doc: 'כדי להוכיח α ∨ β מניחים ¬α ומוכיחים β: אם α נכונה, ה"או" נכון, ואם לא, β נכונה. זו השקילות ¬α → β ≡ α ∨ β (יחידה 1, שלב 3). בהוכחה כתובה: "נניח ¬P. עלינו להראות Q. … הוכחנו ¬P → Q, ולכן P ∨ Q." כשכבר יודעים איזה צד נכון, אפשר גם לבחור אותו, כמו ביחידה 3.',
+};
+
 const byContradictionInfo = {
     name: 'הוכחה בשלילה',
     doc: 'כדי להוכיח A מניחים בשלילה ש־A לא נכונה (¬A) ומגיעים לסתירה. אם ¬A מובילה לסתירה, היא לא נכונה, ולכן A נכונה. בהוכחה כתובה: "נניח בשלילה ¬A. עלינו להגיע לסתירה. … קיבלנו סתירה, ולכן A." הבלוק מתאים לכל מטרה.',
@@ -58,7 +68,7 @@ export const unit4Levels = [
     {
         id: 'unit4-1',
         levelNumber: 1,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'טענה ושלילתה',
         name: 'unit4_l1_contradiction',
         variableLine: 'variable {P : Prop}',
@@ -92,7 +102,7 @@ export const unit4Levels = [
     {
         id: 'unit4-2',
         levelNumber: 2,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'מוכיחים שלילה',
         name: 'unit4_l2_not_intro',
         variableLine: 'variable {P : Prop}',
@@ -124,7 +134,7 @@ export const unit4Levels = [
     {
         id: 'unit4-3',
         levelNumber: 3,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'שלילה של המסקנה',
         name: 'unit4_l3_modus_tollens',
         variableLine: 'variable {P Q : Prop}',
@@ -158,7 +168,7 @@ export const unit4Levels = [
     {
         id: 'unit4-4',
         levelNumber: 4,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'משתמשים בשלילה',
         name: 'unit4_l4_not_elim',
         variableLine: 'variable {P Q : Prop}',
@@ -193,7 +203,7 @@ export const unit4Levels = [
     {
         id: 'unit4-5',
         levelNumber: 5,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'שלילה של "או"',
         name: 'unit4_l5_de_morgan_or',
         variableLine: 'variable {P Q : Prop}',
@@ -224,7 +234,7 @@ export const unit4Levels = [
     {
         id: 'unit4-6',
         levelNumber: 6,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'מסתירה נובע הכול',
         name: 'unit4_l6_exfalso',
         variableLine: 'variable {P Q : Prop}',
@@ -257,7 +267,7 @@ export const unit4Levels = [
     {
         id: 'unit4-7',
         levelNumber: 7,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'מוציאים אפשרות',
         name: 'unit4_l7_disjunctive_syllogism',
         variableLine: 'variable {P Q : Prop}',
@@ -291,7 +301,7 @@ export const unit4Levels = [
     {
         id: 'unit4-8',
         levelNumber: 8,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'הוכחה בשלילה',
         name: 'unit4_l8_by_contradiction',
         variableLine: 'variable {P : Prop}',
@@ -325,7 +335,7 @@ export const unit4Levels = [
     {
         id: 'unit4-9',
         levelNumber: 9,
-        totalLevels: 10,
+        totalLevels: 11,
         title: 'קונטרה־פוזיציה',
         name: 'unit4_l9_contrapositive',
         variableLine: 'variable {P Q : Prop}',
@@ -356,8 +366,8 @@ export const unit4Levels = [
     {
         id: 'unit4-10',
         levelNumber: 10,
-        totalLevels: 10,
-        title: 'שלב בונוס: P או לא P',
+        totalLevels: 11,
+        title: 'מוכיחים "או" כמו בהרצאה',
         name: 'unit4_l10_excluded_middle',
         variableLine: 'variable {P : Prop}',
         params: '',
@@ -365,25 +375,55 @@ export const unit4Levels = [
         goalLabel: '(P ∨ ¬P)',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['by_contradiction', 'not_elim', 'or_intro', 'not_intro', 'exact'],
-        introduction: `# בונוס: P או לא P
+        toolboxBlocks: ['or_by_negation', 'exact'],
+        introduction: `# מוכיחים "או" כמו בהרצאה
 
 כל טענה נכונה או לא נכונה: \`P ∨ ¬P\`. לטענה הזאת קוראים *חוק השלישי מן הנמנע*. נוכיח אותה בלי שום הנחה.
 
-אי אפשר לבחור צד מיד: לא ידוע אם P נכונה. לכן נוכיח אותה בשלילה: נניח \`¬(P ∨ ¬P)\` ונגיע לסתירה.
-כדי להגיע לסתירה, השתמשו בשלילה הזאת כמו בשלב 4: די להוכיח \`P ∨ ¬P\`. עכשיו כבר אפשר לבחור צד, כי יש בידינו הנחה חדשה.
-שימו לב: בהוכחה משתמשים בשלילה \`¬(P ∨ ¬P)\` פעמיים.`,
+ביחידה 3 הוכחתם "או" בבחירת צד. כאן זה לא עובד: לא ידוע אם P נכונה או ¬P נכונה, ולכן אף צד לא ניתן להוכחה לבדו.
+
+בהרצאה מוכיחים "או" אחרת: כדי להוכיח \`α ∨ β\` *מניחים \`¬α\` ומוכיחים β*. אם α נכונה, ה"או" נכון; ואם לא, הוכחנו ש־β נכונה. זו השקילות של \`¬α → β\` ו־\`α ∨ β\` מיחידה 1, שלב 3. הבלוק ${OR_BY_NEGATION_BLOCK} עושה זאת.`,
+        newTacticsBlocks: ['or_by_negation'],
+        newTacticsInfo: [orByNegationInfo],
+        newDefinitions: [],
+        hints: [
+            `גררו את הבלוק ${OR_BY_NEGATION_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ¬P. עלינו להראות ¬P.`,
+            `¬P בידינו: גררו לתוכו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ¬P. עלינו להראות ¬P, וזה בידינו. הוכחנו ¬P → ¬P, ולכן P ∨ ¬P."
+בחירת צד היא מקרה פרטי של הדרך הזאת: כשאפשר להוכיח את β בלי שום הנחה, אין צורך בהנחה ¬α. הדרך של ההרצאה מתאימה לכל "או".`,
+        startXml: goalXml('(P ∨ ¬P)'),
+    },
+    {
+        id: 'unit4-11',
+        levelNumber: 11,
+        totalLevels: 11,
+        title: 'שלב בונוס: גרירה כ"או"',
+        name: 'unit4_l11_implication_as_or',
+        variableLine: 'variable {P Q : Prop}',
+        params: '',
+        proposition: '((P → Q) → (¬P ∨ Q))',
+        goalLabel: '((P → Q) → (¬P ∨ Q))',
+        objects: [],
+        assumptions: [],
+        toolboxBlocks: ['assume', 'or_by_negation', 'apply_rule', 'by_contradiction', 'not_elim', 'exact'],
+        introduction: `# בונוס: גרירה כ"או"
+
+אם P → Q, אז P לא נכונה, או ש־Q נכונה: \`¬P ∨ Q\`.
+
+גם כאן אי אפשר לבחור צד: לא ידוע אם P נכונה. לכן נוכיח את ה"או" כמו בהרצאה: נניח את השלילה של הצד הראשון, \`¬¬P\`, ונוכיח Q.
+כדי להוכיח Q נשתמש בגרירה P → Q: די להוכיח P. ואת P נוכיח בשלילה מתוך \`¬¬P\`, כמו בשלב 8.`,
         newTacticsBlocks: [],
         newTacticsInfo: [],
         newDefinitions: [],
         hints: [
-            `גררו את הבלוק ${BY_CONTRADICTION_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח בשלילה ¬(P ∨ ¬P). עלינו להגיע לסתירה.`,
-            `גררו לתוכו את הבלוק ${NOT_ELIM_BLOCK} עם ¬(P ∨ ¬P): די להוכיח (P ∨ ¬P). הוסיפו אחריו את הבלוק ${OR_INTRO_BLOCK}, ובחרו בו ¬P.`,
-            'כדי להוכיח ¬P, בתוך בלוק ה"או" נניח בשלילה P ונגיע לסתירה. שוב לפי ¬(P ∨ ¬P), די להוכיח (P ∨ ¬P).',
-            `הפעם בחרו להוכיח P. P בידינו: גררו לתוך בלוק ה"או" הפנימי את הבלוק ${CLOSE_BLOCK}.`,
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ולתוכו את הבלוק ${OR_BY_NEGATION_BLOCK}. עכשיו כתוב בו: נניח ¬¬P. עלינו להראות Q.`,
+            `גררו לתוכו את הבלוק ${APPLY_RULE_BLOCK}, ובחרו בו P → Q. עכשיו כתוב בו: לפי (P → Q) כדי להוכיח Q די להוכיח P.`,
+            `הוסיפו אחריו את הבלוק ${BY_CONTRADICTION_BLOCK}. עכשיו כתוב בו: נניח בשלילה ¬P. עלינו להגיע לסתירה.`,
+            `גררו לתוכו את הבלוק ${NOT_ELIM_BLOCK} עם ¬¬P: די להוכיח ¬P. ¬P בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
-        conclusion: `סיימתם את יחידה 4, כולל שלב הבונוס! הוכחתם את חוק השלישי מן הנמנע בעזרת הוכחה בשלילה.
-אתם יודעים להגיע לסתירה, להוכיח שלילה ולהשתמש בה, להסיק מסתירה כל טענה, ולהוכיח בשלילה.`,
-        startXml: goalXml('(P ∨ ¬P)'),
+        conclusion: `סיימתם את יחידה 4, כולל שלב הבונוס! ההוכחה, כמו שכותבים אותה ביד: "נניח P → Q. עלינו להראות ¬P ∨ Q. נניח ¬¬P. עלינו להראות Q. לפי P → Q די להוכיח P. נניח בשלילה ¬P. לפי ¬¬P די להוכיח ¬P, וזה בידינו. קיבלנו סתירה, ולכן P. הוכחנו ¬¬P → Q, ולכן ¬P ∨ Q."
+אתם יודעים להגיע לסתירה, להוכיח שלילה ולהשתמש בה, להסיק מסתירה כל טענה, להוכיח בשלילה, ולהוכיח "או" כמו בהרצאה.`,
+        startXml: goalXml('((P → Q) → (¬P ∨ Q))'),
     },
 ];

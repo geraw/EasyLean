@@ -112,10 +112,8 @@ export const UNITS = [
             [{ label: 'פתרון', steps: [orCases('P ∨ Q', [exfalso, contradiction('P')], [close])] }],
             [{ label: 'פתרון', steps: [byContradiction, contradiction('¬P')] }],
             [{ label: 'פתרון', steps: [assume, assume, byContradiction, forward('¬Q → ¬P', '¬Q'), contradiction('P')] }],
-            [{
-                label: 'פתרון',
-                steps: [byContradiction, notElim('¬(P ∨ ¬P)'), orIntro('RIGHT'), notIntro, notElim('¬(P ∨ ¬P)'), orIntro('LEFT'), close],
-            }],
+            [{ label: 'כמו בהרצאה', steps: [orByNegation, close] }],
+            [{ label: 'פתרון', steps: [assume, orByNegation, backward('P → Q'), byContradiction, notElim('¬¬P'), close] }],
         ],
     },
     {

@@ -172,23 +172,15 @@ describe('the moves of unit 3', () => {
 });
 
 describe('the moves of unit 4', () => {
-    it('are the rules for negation, and find assumptions by statement', () => {
-        const level = unit4Levels[9];
-        const { workspace } = solved(level, unitSolutions(4).levels[9][0].steps);
-        expect(generateGameLeanCode(workspace, level, '', { includeFallback: false })).toContain([
-            '  apply Classical.byContradiction',
-            '  intro _',
-            '  ·',
-            '    refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
-            '    apply Or.inr',
-            '    ·',
-            '      refine Not.intro (fun _ => ?_)',
-            '      ·',
-            '        refine (absurd ?_ ‹¬(P ∨ ¬P)› : False)',
-            '        apply Or.inl',
-            '        ·',
-            '          assumption',
-        ].join('\n'));
+    it('are the rules for negation, prove an "or" as the lecture does, and find assumptions by statement', () => {
+        const level = unit4Levels[10];
+        const { workspace } = solved(level, unitSolutions(4).levels[10][0].steps);
+        const lean = generateGameLeanCode(workspace, level, '', { includeFallback: false });
+        // Assume the negation of the first side, ¬¬P, and prove the second, Q.
+        expect(lean).toContain(['    refine easylean_or_by_negation (fun _ => ?_)', '    ·'].join('\n'));
+        // Q by P → Q, and P by contradiction with ¬¬P.
+        expect(lean).toContain(['refine easylean_mp ‹P → Q› ?_', '      apply Classical.byContradiction', '      intro _', '      ·',
+            '        refine (absurd ?_ ‹¬¬P› : False)', '        assumption'].join('\n'));
     });
 
     it('read like a written proof', () => {

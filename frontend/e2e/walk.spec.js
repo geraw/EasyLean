@@ -210,13 +210,16 @@ const UNIT4 = [
         const c = await drag(page, 'contradiction', { after: f }); await choose(page, c, 'FACT', 'P'); log(await phrase(page, c));
     },
     async (page, log) => {
-        const b = await drag(page, 'by_contradiction', { goal: true }); log(await phrase(page, b));
-        const e1 = await drag(page, 'not_elim', { after: b }); await choose(page, e1, 'NEGATION', '¬(P ∨ ¬P)'); log(await phrase(page, e1));
-        const o1 = await drag(page, 'or_intro', { after: e1 }); await choose(page, o1, 'SIDE', '¬P'); log(await phrase(page, o1));
-        const n = await drag(page, 'not_intro', { after: o1 }); log(await phrase(page, n));
-        const e2 = await drag(page, 'not_elim', { after: n }); await choose(page, e2, 'NEGATION', '¬(P ∨ ¬P)'); log(await phrase(page, e2));
-        const o2 = await drag(page, 'or_intro', { after: e2 }); await choose(page, o2, 'SIDE', 'P'); log(await phrase(page, o2));
-        await drag(page, 'exact', { after: o2 });
+        const o = await drag(page, 'or_by_negation', { goal: true }); log(await phrase(page, o));
+        await drag(page, 'exact', { after: o });
+    },
+    async (page, log) => {
+        const a = await drag(page, 'assume', { goal: true }); log(await phrase(page, a));
+        const o = await drag(page, 'or_by_negation', { after: a }); log(await phrase(page, o));
+        const r = await drag(page, 'apply_rule', { after: o }); await choose(page, r, 'RULE', '(P → Q)'); log(await phrase(page, r));
+        const b = await drag(page, 'by_contradiction', { after: r }); log(await phrase(page, b));
+        const e = await drag(page, 'not_elim', { after: b }); await choose(page, e, 'NEGATION', '¬¬P'); log(await phrase(page, e));
+        await drag(page, 'exact', { after: e });
     },
 ];
 

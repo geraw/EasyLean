@@ -35,10 +35,6 @@ const contrapositiveInfo = {
     name: 'הוכחה בקונטרפוזיציה',
     doc: 'כדי להוכיח α → β מוכיחים את הקונטרפוזיציה ¬β → ¬α: מניחים ¬β ומוכיחים ¬α. בהוכחה כתובה: "נוכיח את הקונטרפוזיציה: נניח ¬Q. עלינו להראות ¬P. … הוכחנו ¬Q → ¬P, ולכן P → Q."',
 };
-const orByNegationInfo = {
-    name: 'הוכחת "או"',
-    doc: 'כדי להוכיח α ∨ β מניחים ¬α ומוכיחים β, לפי השקילות ¬α → β ≡ α ∨ β (יחידה 1, שלב 3). בהוכחה כתובה: "נניח ¬P. עלינו להראות Q. … הוכחנו ¬P → Q, ולכן P ∨ Q."',
-};
 const casesInfo = {
     name: 'חלוקה למקרים: טענה ושלילתה',
     doc: 'כל טענה נכונה או לא נכונה (α ∨ ¬α, טאוטולוגיה), ולכן אפשר תמיד לחלק למקרים: מקרה 1, α; מקרה 2, ¬α. בהוכחה כתובה: "נחלק למקרים: P או ¬P. מקרה 1: P. … מקרה 2: ¬P. … המקרים מכסים את כל האפשרויות, ובשניהם R."',
@@ -210,13 +206,11 @@ export const unit7Levels = [
         goalLabel: '((∀x (Quiz(x) ∨ Project(x))) → ((∀x (Quiz(x))) ∨ (∃x (Project(x)))))',
         laws: ['easylean_not_forall'],
         toolboxBlocks: ['assume', 'or_by_negation', 'replace', 'exists_elim', 'forall_elim', 'or_elim', 'exfalso', 'contradiction', 'exists_intro', 'exact'],
-        newTacticsBlocks: ['or_by_negation'],
-        newTacticsInfo: [orByNegationInfo],
         introduction: `# הוכחת "או"
 
 **טענה:** אם כל סטודנט עבר את הבוחן או הגיש עבודה, אז כולם עברו את הבוחן, *או* שמישהו הגיש עבודה.
 
-המילה הראשית היא →, ובמסקנה ∨. כמו בהרצאה, להוכחת α ∨ β נוכיח את הגרירה השקולה ¬α → β: נניח ¬∀x (Quiz(x)), ונוכיח ∃x (Project(x)). לזה יש מהלך חדש, ${OR_BY_NEGATION_BLOCK}
+המילה הראשית היא →, ובמסקנה ∨. כמו בהרצאה, להוכחת α ∨ β נוכיח את הגרירה השקולה ¬α → β: נניח ¬∀x (Quiz(x)), ונוכיח ∃x (Project(x)). זה המהלך מיחידה 4, ${OR_BY_NEGATION_BLOCK}
 
 אחר כך, כמו בהרצאה: ¬∀x (Quiz(x)) פירושו (שלילת כמת) ∃x (¬Quiz(x)). נסמן ב־x₀ סטודנט כזה. נציב אותו בהנחה הראשונה ונקבל Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ו־x₀ הוא עד ל־∃x (Project(x)).`,
         hints: [
