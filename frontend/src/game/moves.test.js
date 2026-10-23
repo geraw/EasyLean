@@ -240,7 +240,7 @@ describe('the moves of unit 5', () => {
         ].join('\n'));
         expect([phraseOf(forallIntro), phraseOf(forallIntro, 'CLOSE')])
             .toEqual(['יהי y₀ שרירותי. עלינו להראות ∃x (R(x,y₀)).', 'מאחר ש־ y₀ שרירותי, ∀y (∃x (R(x,y))).']);
-        expect(phraseOf(existsElim)).toBe('יהי x₀ כזה, כלומר ∀y (R(x₀,y)).');
+        expect(phraseOf(existsElim)).toBe('נסמן ב־ x₀ עצם כזה, כלומר ∀y (R(x₀,y)).');
     });
 
     it('substitute the chosen object, and give a new object the next subscript when x₀ is taken', () => {
@@ -255,7 +255,7 @@ describe('the moves of unit 5', () => {
         expect(existsIntro.getField('TERM').getOptions(false).map(([, value]) => value)).toEqual(['a', '__write_own__']);
         // A name already taken gets the next subscript.
         existsElim.setStateBefore({ assumptions: ['∃ x, P x'], objects: ['x₀'], goal: '∃ x, Q x' });
-        expect(phraseOf(existsElim)).toBe('יהי x₁ כזה, כלומר P(x₁).');
+        expect(phraseOf(existsElim)).toBe('נסמן ב־ x₁ עצם כזה, כלומר P(x₁).');
     });
 });
 

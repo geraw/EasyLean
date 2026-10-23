@@ -1080,11 +1080,11 @@ export const defineMoveBlocks = () => {
             const exists = this.getFieldValue('EXISTS');
             const quantified = filled(exists) && splitQuantifier(exists, '∃');
             if (!quantified) {
-                setPhrase(this, ['יהי עצם כזה.']);
+                setPhrase(this, ['ניתן שם לעצם כזה.']);
                 return;
             }
             const name = arbitraryObjectName(this, quantified.variable);
-            setPhrase(this, ['יהי', { formula: name }, 'כזה, כלומר', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
+            setPhrase(this, ['נסמן ב־', { formula: name }, 'עצם כזה, כלומר', { formula: substitute(quantified.body, quantified.variable, name), end: '.' }]);
         },
     };
 
