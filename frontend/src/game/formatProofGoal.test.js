@@ -45,6 +45,14 @@ describe('formatProofGoal with and, or, iff, not', () => {
         expect(formatProofGoal('¬(P ∧ Q)')).toBe('¬(P ∧ Q)');
     });
 
+    it('puts a negated relation in parentheses, but not a negated membership', () => {
+        // Lean's ¬A ⊆ B is ¬(A ⊆ B); written so, it would read as (¬A) ⊆ B.
+        expect(formatProofGoal('¬A ⊆ B → ∃ x, x ∈ A ∧ ¬x ∈ B')).toBe('(¬(A ⊆ B) → (∃x (x ∈ A ∧ ¬x ∈ B)))');
+        expect(formatProofGoal('¬A = B')).toBe('¬(A = B)');
+        expect(formatProofGoal('¬(A ⊆ B)')).toBe('¬(A ⊆ B)');
+        expect(formatProofGoal('¬x ∈ A')).toBe('¬x ∈ A');
+    });
+
     it('does not read the ASCII iff as an implication', () => {
         expect(formatProofGoal('P <-> Q')).toBe('(P ↔ Q)');
     });

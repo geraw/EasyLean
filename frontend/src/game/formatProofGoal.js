@@ -168,6 +168,7 @@ const writeApplications = (text) => {
 // a membership is about is in parentheses when it is an operation:
 // `¬x ∈ A \ B` is `¬x ∈ (A \ B)`, which cannot be read as `(¬x ∈ A) \ B`.
 const RELATIONS = new Set(['=', '≠', '≤', '<', '≥', '>']);
+const NEGATED_RELATIONS = ['⊆', '⊂', '=', '≠', '≤', '<', '≥', '>'];
 const INFIX = { '++': [65, 'left'], '::': [67, 'right'], '∪': [65, 'left'], '∆': [65, 'left'], '∩': [70, 'left'], '\\': [70, 'left'], '∘': [90, 'right'] };
 const isInfix = (word) => Object.prototype.hasOwnProperty.call(INFIX, word);
 // The words of a text at its top level: groups in parentheses or brackets are
@@ -263,7 +264,12 @@ export const formatProofGoal = (text) => {
         const right = formatProofGoal(normalized.slice(found.index + found.length));
         return `(${operand(left)} ${symbol} ${operand(right)})`;
     }
-    if (normalized.startsWith('¬')) return `¬${formatProofGoal(normalized.slice(1))}`;
+    if (normalized.startsWith('¬')) {
+        // Lean's `¬A ⊆ B` is ¬(A ⊆ B), but reads as (¬A) ⊆ B: a negated
+        // relation is in parentheses. A membership needs none: `¬x ∈ A`.
+        const negated = formatProofGoal(normalized.slice(1));
+        return NEGATED_RELATIONS.some((relation) => findTopLevel(negated, [` ${relation} `])) ? `¬(${negated})` : `¬${negated}`;
+    }
     const quantifier = parseQuantifier(normalized);
     if (quantifier) {
         // The body of every quantifier is in parentheses, so it is clear where
