@@ -310,22 +310,22 @@ describe('the moves of unit 6', () => {
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('theorem easylean_imp_or ');
         expect(code).toContain('  (first | rewrite (occs := .pos [1]) [easylean_imp_or] | simp only [easylean_imp_or] | fail "easylean: no part of the form (A → B)")\n');
-        const inHand = solved(unit6Levels[3], unitSolutions(6).levels[3][0].steps).workspace;
-        expect(generateGameLeanCode(inHand, unit6Levels[3], '', { includeFallback: false }))
+        const inHand = solved(unit6Levels[4], unitSolutions(6).levels[4][0].steps).workspace;
+        expect(generateGameLeanCode(inHand, unit6Levels[4], '', { includeFallback: false }))
             .toContain('  have := ‹¬(P ∨ Q)›; (first | rewrite (occs := .pos [1]) [easylean_not_or] at this | simp only [easylean_not_or] at this | fail "easylean: no part of the form ¬(A ∨ B)")\n');
     });
 
     it('keep the bound variables of the formula when a law is about a quantifier', () => {
-        const level = unit6Levels[6];
-        const { workspace } = solved(level, unitSolutions(6).levels[6][0].steps);
+        const level = unit6Levels[7];
+        const { workspace } = solved(level, unitSolutions(6).levels[7][0].steps);
         const code = generateGameLeanCode(workspace, level, '', { includeFallback: false });
         expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∀ x, p x) ↔ ∃ x, ¬p x := fun _ _ => easylean_not_forall;');
         expect(code).toContain('have easylean_law : ∀ (α : Type) (p : α → Prop), (¬∃ y, p y) ↔ ∀ y, ¬p y := fun _ _ => easylean_not_exists;');
     });
 
     it("offer the level's laws, and what the chosen one replaces in the chosen place", () => {
-        setLevelLaws(unit6Levels[5].laws);
-        const { blocks: [, first, second] } = solved(unit6Levels[5], unitSolutions(6).levels[5][0].steps);
+        setLevelLaws(unit6Levels[6].laws);
+        const { blocks: [, first, second] } = solved(unit6Levels[6], unitSolutions(6).levels[6][0].steps);
         expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ↔ A', 'easylean_not_not']]);
         // The place has no part of the other side's form: that direction shows the law.
         expect(options(first, 'DIRECTION')).toEqual([['את ¬(P ∨ ¬Q) ב־(¬P ∧ ¬¬Q)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);

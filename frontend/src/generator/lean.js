@@ -37,6 +37,7 @@ leanGenerator.scrub_ = function (block, code, opt_thisOnly) {
 export const SET_PRELUDE = `def Set (α : Type u) := α → Prop
 instance : Membership α (Set α) := ⟨fun A x => A x⟩
 instance : HasSubset (Set α) := ⟨fun A B => ∀ x, x ∈ A → x ∈ B⟩
+theorem easylean_subset_def {α : Type u} {A B : Set α} : A ⊆ B ↔ ∀ x, x ∈ A → x ∈ B := Iff.rfl
 instance : Inter (Set α) := ⟨fun A B => fun x => x ∈ A ∧ x ∈ B⟩
 instance : Union (Set α) := ⟨fun A B => fun x => x ∈ A ∨ x ∈ B⟩
 instance : SDiff (Set α) := ⟨fun A B => fun x => x ∈ A ∧ ¬ x ∈ B⟩

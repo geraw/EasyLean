@@ -22,6 +22,7 @@ const REPLACE_BLOCK = '"לפי השקילות ? נחליף ..."';
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
 const NOT_INTRO_BLOCK = '"נניח בשלילה את הטענה שהמטרה שוללת..."';
 const CONTRADICTION_BLOCK = '"קיבלנו ? וגם את השלילה שלה, בסתירה."';
+const FORALL_ELIM_BLOCK = '"ב־ ? נציב ? ונקבל מה שהוא אומר על העצם."';
 
 const replaceInfo = {
     name: 'החלפה לפי שקילות',
@@ -43,7 +44,7 @@ const notExists = law('שלילה של "קיים"', '¬∃x (P(x)) ↔ ∀x (¬P
 const level = (number, fields) => ({
     id: `unit6-${number}`,
     levelNumber: number,
-    totalLevels: 13,
+    totalLevels: 14,
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
@@ -116,6 +117,29 @@ export const unit6Levels = prepareLevels([
 גרירה שהתנאי שלה לא נכון היא נכונה, מה שלא תהיה המסקנה. זו *אמת ריקה*.`,
     }),
     level(4, {
+        title: 'נתון "לא קיים": לכל ... לא',
+        name: 'unit6_l4_given_not_exists',
+        variableLine: DOMAIN,
+        params: '(a : obj) (h : ¬∃ x, P x)',
+        proposition: '¬P a',
+        objects: ['a'],
+        laws: ['easylean_not_exists'],
+        toolboxBlocks: ['replace', 'forall_elim', 'exact'],
+        introduction: `# נתון "לא קיים"
+
+אף סטודנט לא נכשל בבוחן: \`¬∃x (P(x))\`. a הוא סטודנט. לכן a לא נכשל: \`¬P(a)\`.
+
+עכשיו, כש־\`¬∃x (P(x))\` ו־\`∀x (¬P(x))\` שקולות (שלב 1), אפשר להשתמש בהנחה "לא קיים" כמו בהנחה "לכל ... לא": *לא קיים x כך ש־P(x)* פירושו *לכל x, לא P(x)*. מחליפים את ההנחה בטענה השקולה לה, ומציבים בה, כמו בכל הנחת "לכל".`,
+        newDefinitions: [notExists],
+        hints: [
+            `גררו את הבלוק ${REPLACE_BLOCK} אל תוך בלוק המטרה. בחרו בו את השלילה של "קיים", והחליפו בהנחה ¬∃x (P(x)): "נחליף את ¬∃x (P(x)) ב־∀x (¬P(x))".`,
+            `הוסיפו אחריו את הבלוק ${FORALL_ELIM_BLOCK}, ובחרו בו ∀x (¬P(x)) ואת העצם a. עכשיו כתוב בו: ב־ ∀x (¬P(x)) נציב x = a ונקבל ¬P(a).`,
+            `¬P(a) בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `ההוכחה, כמו שכותבים אותה ביד: "לפי השקילות ¬∃x (P(x)) ↔ ∀x (¬P(x)), ההנחה אומרת ∀x (¬P(x)). נציב x = a ונקבל ¬P(a)."
+מעכשיו, כשנתון "לא קיים", מתייחסים אליו כמו ל"לכל ... לא", ומציבים בו.`,
+    }),
+    level(5, {
         title: 'מחליפים בהנחה',
         name: 'unit6_l4_replace_assumption',
         params: '(h : ¬(P ∨ Q))',
@@ -136,7 +160,7 @@ export const unit6Levels = prepareLevels([
         conclusion: `ההוכחה: "לפי דה מורגן, ¬(P ∨ Q) פירושו ¬P ∧ ¬Q. מ־¬P ∧ ¬Q נקבל ¬P וגם ¬Q, ו־¬Q הוא מה שעלינו להראות."
 ביחידה 4 בניתם הוכחה כזאת מהכללים. שקילות שהוכחה פעם אחת חוסכת את העבודה בכל פעם שצריך אותה.`,
     }),
-    level(5, {
+    level(6, {
         title: 'קונטרה־פוזיציה כשיטת הוכחה',
         name: 'unit6_l5_contrapositive',
         proposition: '(¬Q → ¬P) → (P → Q)',
@@ -155,7 +179,7 @@ export const unit6Levels = prepareLevels([
         ],
         conclusion: `ביחידה 4 ההוכחה הזאת דרשה הוכחה בשלילה. כאן היא החלפה אחת: "נניח ¬Q → ¬P. עלינו להראות P → Q. לפי הקונטרה־פוזיציה, להוכיח P → Q זה כמו להוכיח ¬Q → ¬P, ו־¬Q → ¬P בידינו. לכן (¬Q → ¬P) → (P → Q)."`,
     }),
-    level(6, {
+    level(7, {
         title: 'שרשרת של החלפות',
         name: 'unit6_l6_chain',
         proposition: '¬(P ∨ ¬Q) → (¬P ∧ Q)',
@@ -175,7 +199,7 @@ export const unit6Levels = prepareLevels([
         conclusion: `ההוכחה היא שרשרת של שקילויות: ¬(P ∨ ¬Q) שקולה ל־¬P ∧ ¬¬Q, וזו שקולה ל־¬P ∧ Q.
 כך מוכיחים זהויות באלגברה, וכך מוכיחים גם שקילויות בלוגיקה.`,
     }),
-    level(7, {
+    level(8, {
         title: 'דוחפים את השלילה פנימה',
         name: 'unit6_l7_push_negation',
         variableLine: RELATION,
@@ -197,7 +221,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         ],
         conclusion: `"לא כל אחד מכיר מישהו" פירושו "יש מישהו שלא מכיר אף אחד". כך מוצאים את השלילה של כל טענה עם כמתים: מעבירים את השלילה פנימה, ומחליפים כל כמת שהיא עוברת.`,
     }),
-    level(8, {
+    level(9, {
         title: 'דוגמה נגדית',
         name: 'unit6_l8_counterexample',
         variableLine: TWO_PROPERTIES,
@@ -217,7 +241,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         ],
         conclusion: `"לא כל P הוא Q" פירושו "יש P שאינו Q". כך מפריכים טענה כללית: מראים דוגמה נגדית.`,
     }),
-    level(9, {
+    level(10, {
         title: 'שלילת טענה מורכבת',
         name: 'unit6_l9_negate_compound',
         variableLine: 'variable {P Q R S : Prop}',
@@ -243,7 +267,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         conclusion: `השלילה של (P ∧ Q) → (R ∨ ¬S) היא (P ∧ Q) ∧ (¬R ∧ S): בדיוק כש־P, Q ו־S נכונות ו־R לא.
 בדיקת שפיות, כמו בהרצאה: הגרירה המקורית שקרית רק כשהתנאי נכון והמסקנה לא, כלומר בדיוק כש־P, Q ו־S אמת ו־R שקר.`,
     }),
-    level(10, {
+    level(11, {
         title: 'שלילת טענה עם כמתים',
         name: 'unit6_l10_negate_quantified',
         variableLine: 'variable {obj : Type} {R : obj → obj → Prop} {Q : obj → Prop}',
@@ -262,13 +286,13 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         newDefinitions: [deMorganAnd],
         hints: [
             'נניח ¬∀x (∃y (R(x,y) ∧ Q(y))). עלינו להראות ∃x (∀y (¬R(x,y) ∨ ¬Q(y))).',
-            'בתוך הבלוק "נניח", לפי השלילה של "לכל", ואחר כך לפי השלילה של "קיים", החליפו בהנחה, כמו בשלב 7. עכשיו בידינו ∃x (∀y (¬(R(x,y) ∧ Q(y)))).',
+            'בתוך הבלוק "נניח", לפי השלילה של "לכל", ואחר כך לפי השלילה של "קיים", החליפו בהנחה, כמו בשלב 8. עכשיו בידינו ∃x (∀y (¬(R(x,y) ∧ Q(y)))).',
             'לפי דה מורגן ל"וגם", החליפו בהנחה החדשה את ¬(R(x,y) ∧ Q(y)) ב־(¬R(x,y) ∨ ¬Q(y)).',
             `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `השלילה של ∀x (∃y (R(x,y) ∧ Q(y))) היא ∃x (∀y (¬R(x,y) ∨ ¬Q(y))): השלילה עברה דרך שני הכמתים, הפכה כל אחד מהם, ובסוף עברה דרך ה"וגם".`,
     }),
-    level(11, {
+    level(12, {
         title: 'הוכחת "או": נניח את השלילה של צד אחד',
         name: 'unit6_l11_or_by_assuming',
         variableLine: 'variable {P Q R : Prop}',
@@ -292,7 +316,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         conclusion: `ההוכחה, כמו בהרצאה: "נוכיח P ∨ Q. לפי השקילות, די להוכיח ¬P → Q. נניח ¬P. עלינו להראות Q. מ־¬P → R ומ־¬P נקבל R, ומ־R → Q ומ־R נקבל Q. לכן ¬P → Q."
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
     }),
-    level(12, {
+    level(13, {
         title: 'הוכחת "או", כשהצד הוא שלילה',
         name: 'unit6_l12_or_by_double_negation',
         params: '(h : P → Q)',
@@ -314,7 +338,7 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         conclusion: `ההוכחה, כמו בהרצאה: "נוכיח ¬P ∨ Q. לפי השקילות, די להוכיח ¬¬P → Q. נניח ¬¬P. עלינו להראות Q. לפי השלילה הכפולה, ¬¬P פירושו P, ומ־P → Q ומ־P נקבל Q. לכן ¬¬P → Q."
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
     }),
-    level(13, {
+    level(14, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
         name: 'unit6_l13_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',

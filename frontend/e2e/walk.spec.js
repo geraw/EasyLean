@@ -328,6 +328,11 @@ const UNIT6 = [
         await drag(page, 'exact', { after: o });
     },
     async (page, log) => {
+        const r = await replace(page, { goal: true }, '¬∃x (P(x)) ↔ ∀x (¬P(x))', 'את ¬∃x (P(x)) ב־∀x (¬P(x))', '¬∃x (P(x))', log);
+        const f = await drag(page, 'forall_elim', { after: r }); await choose(page, f, 'FORALL', '∀x (¬P(x))'); await choose(page, f, 'TERM', 'a'); log(await phrase(page, f));
+        await drag(page, 'exact', { after: f });
+    },
+    async (page, log) => {
         const r = await replace(page, { goal: true }, NOT_OR, 'את ¬(P ∨ Q) ב־(¬P ∧ ¬Q)', '¬(P ∨ Q)', log);
         const d = await drag(page, 'and_elim', { after: r }); await choose(page, d, 'AND', '(¬P ∧ ¬Q)'); log(await phrase(page, d));
         await drag(page, 'exact', { after: d });

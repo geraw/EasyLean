@@ -200,6 +200,24 @@ const negatedTwice = {
     text: ({ a }) => `¬¬(${a})`,
 };
 const any = { match: (formula) => ({ a: formula }), text: ({ a }) => a };
+// The definition of inclusion (unit 8): A ⊆ B, and ∀x (x ∈ A → x ∈ B).
+const subset = {
+    match: (formula) => {
+        const sets = splitRelation(formula, '⊆');
+        return sets ? { a: sets[0], b: sets[1] } : null;
+    },
+    text: ({ a, b }) => `${a} ⊆ ${b}`,
+};
+const everyMember = {
+    match: (formula) => {
+        const quantifier = splitQuantifier(formula, '∀');
+        const sides = quantifier && splitConnective(quantifier.body, '→');
+        const from = sides && splitRelation(sides[0], '∈');
+        const to = sides && splitRelation(sides[1], '∈');
+        return from && to && from[0] === quantifier.variable && to[0] === quantifier.variable ? { a: from[1], b: to[1], x: quantifier.variable } : null;
+    },
+    text: ({ a, b, x = 'x' }) => `∀ ${x}, ${x} ∈ ${a} → ${x} ∈ ${b}`,
+};
 // Contraposition: ¬B → ¬A has the parts in the other order.
 const contraposed = {
     match: (formula) => {
@@ -235,6 +253,7 @@ export const LAWS = [
         statement: (x) => `(¬∀ ${x}, p ${x}) ↔ ∃ ${x}, ¬p ${x}`,
         variable: [/¬\s*∀\s*\(?\s*([^\s,:()]+)/, /∃\s*\(?\s*([^\s,:()]+)[^,]*,\s*¬/],
     },
+    { value: 'easylean_subset_def', left: 'A ⊆ B', right: '∀x (x ∈ A → x ∈ B)', sides: [subset, everyMember] },
 ];
 
 // The parts of a formula, in the order Lean's rewrite looks at them: a

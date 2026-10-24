@@ -158,6 +158,7 @@ const COURSE = [
             [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, P x'), forallElim('∀ x, ¬P x', 'x₀'), contradiction('P x₀')] }],
             [{ label: 'פתרון', steps: [assume, notIntro, existsElim('∃ x, ¬P x'), forallElim('∀ x, P x', 'x₀'), contradiction('P x₀')] }],
             [{ label: 'פתרון', steps: [replace('easylean_imp_or', 'FORWARD'), orIntro('LEFT'), close] }],
+            [{ label: 'פתרון', steps: [replace('easylean_not_exists', 'FORWARD', '¬∃ x, P x'), forallElim('∀ x, ¬P x', 'a'), close] }],
             [{ label: 'פתרון', steps: [replace('easylean_not_or', 'FORWARD', '¬(P ∨ Q)'), andElim('¬P ∧ ¬Q'), close] }],
             [
                 { label: 'במטרה', steps: [assume, replace('easylean_contrapositive', 'FORWARD'), close] },
@@ -256,7 +257,7 @@ const COURSE = [
             [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ C'), subsetIntro, subsetElim('A ⊆ B', 'x ∈ A'), subsetElim('B ⊆ C', 'x ∈ B'), close] }],
             [{
                 label: 'פתרון',
-                steps: [assume, byContradiction, notElim('¬A ⊆ B'), subsetIntro, byContradiction, notElim('¬∃ x, x ∈ A ∧ ¬x ∈ B'), existsIntro('x₀'), andIntro([close], [close])],
+                steps: [assume, replace('easylean_subset_def', 'FORWARD', '¬A ⊆ B'), replace('easylean_not_forall', 'FORWARD', '¬∀ (x : obj), x ∈ A → x ∈ B'), replace('easylean_not_imp', 'FORWARD', '∃ x, ¬(x ∈ A → x ∈ B)'), close],
             }],
             [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ A'), setEq([close], [close])] }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ∅'), exfalso, close] }],
