@@ -115,6 +115,27 @@ class FieldSide extends Blockly.FieldDropdown {
     }
 }
 
+// The side of an "or" whose negation is assumed, shown as that negation, by
+// the goal before the move (¬P or ¬Q in P ∨ Q); see or_by_negation. The
+// first side by default, as the lecture writes it ("נניח ¬α").
+class FieldNegatedSide extends Blockly.FieldDropdown {
+    constructor() {
+        super(function () {
+            const sides = splitConnective(this.getSourceBlock()?.stateBefore?.goal, '∨');
+            return [[sides ? shown(negation(sides[0])) : 'השלילה של צד שמאל', 'LEFT'], [sides ? shown(negation(sides[1])) : 'השלילה של צד ימין', 'RIGHT']];
+        }, undefined);
+        this.setValue('LEFT');
+    }
+
+    // Shows the chosen negation by the goal before the move, as it is now.
+    refreshText() {
+        const option = this.getOptions(false).find(([, value]) => value === this.getValue());
+        if (!option) return;
+        this.selectedOption = option;
+        this.forceRerender();
+    }
+}
+
 // The direction of a substitution by an equality, shown as the replacement
 // it makes once the equality is chosen ("את y ב־x + 7"); see rewrite.
 class FieldDirection extends Blockly.FieldDropdown {
@@ -1135,24 +1156,29 @@ export const defineMoveBlocks = () => {
     };
 
     // Proving an "or" as the lecture does: assume the negation of one side,
-    // and prove the other (¬α → β ≡ α ∨ β).
+    // and prove the other (¬α → β ≡ α ∨ β). The side to negate is chosen; when
+    // the other side can be proved outright, the assumption is not needed.
     Blockly.Blocks['or_by_negation'] = {
         init() {
-            appendPhrase(this);
-            wrap(this, 'כדי להוכיח P ∨ Q מניחים ¬P ומוכיחים Q.');
+            appendPhrase(this).appendField(new FieldNegatedSide(), 'SIDE');
+            appendPhrase(this, this.appendDummyInput('AFTER'), 'AFTER');
+            wrap(this, 'כדי להוכיח P ∨ Q מניחים את השלילה של צד אחד, ומוכיחים את הצד השני: ¬P ואז Q, או ¬Q ואז P.');
             this.updateText();
         },
         ...followState,
         updateText() {
             const goal = this.stateBefore?.goal;
             const sides = splitConnective(goal, '∨');
+            setPhrase(this, ['נניח']);
             if (sides) {
-                setPhrase(this, ['נניח', { formula: negation(sides[0]), end: '.' }, 'עלינו להראות', { formula: sides[1], end: '.' }]);
-                setClose(this, ['הוכחנו', { formula: `(${negation(sides[0])}) → (${sides[1]})`, end: ',' }, 'ולכן', { formula: goal, end: '.' }]);
+                const [negated, other] = this.getFieldValue('SIDE') === 'RIGHT' ? [sides[1], sides[0]] : sides;
+                setPhrase(this, ['עלינו להראות', { formula: other, end: '.' }], 'AFTER');
+                setClose(this, ['הוכחנו', { formula: `(${negation(negated)}) → (${other})`, end: ',' }, 'ולכן', { formula: goal, end: '.' }]);
             } else {
-                setPhrase(this, ['נניח את השלילה של הצד הראשון של ה"או". עלינו להראות את הצד השני.']);
+                setPhrase(this, ['עלינו להראות את הצד השני.'], 'AFTER');
                 setClose(this, ['לכן ה"או" נכון.']);
             }
+            this.getField('SIDE')?.refreshText();
         },
     };
 
@@ -1554,7 +1580,8 @@ leanGenerator.forBlock['modus_tollens'] = (block) => {
 
 leanGenerator.forBlock['contrapositive'] = () => '  (first | fail_if_success show ¬ _ | fail "easylean: the goal is a negation"); refine easylean_by_contrapositive (fun _ => ?_)\n';
 
-leanGenerator.forBlock['or_by_negation'] = () => '  refine easylean_or_by_negation (fun _ => ?_)\n';
+leanGenerator.forBlock['or_by_negation'] = (block) =>
+    `  refine ${block.getFieldValue('SIDE') === 'RIGHT' ? 'easylean_or_by_negation_right' : 'easylean_or_by_negation'} (fun _ => ?_)\n`;
 
 leanGenerator.forBlock['em_cases'] = (block) => `  cases Classical.em (${block.getFieldValue('STATEMENT')}) with\n`;
 

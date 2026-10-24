@@ -59,7 +59,7 @@ export const unit9Levels = [
         name: 'unit9_l1_subset_union',
         proposition: 'A ⊆ A ∪ B',
         goalLabel: 'A ⊆ A ∪ B',
-        toolboxBlocks: ['subset_intro', 'unfold', 'or_intro', 'exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# פעולות על קבוצות: איחוד
 
 \`A ∪ B\` הוא *האיחוד* של A ו־B: \`A ∪ B = {x | x ∈ A ∨ x ∈ B}\`, האיברים השייכים לפחות לאחת מהקבוצות. לכן \`x ∈ (A ∪ B)\` פירושו \`x ∈ A ∨ x ∈ B\`.
@@ -144,7 +144,7 @@ export const unit9Levels = [
         name: 'unit9_l5_distrib',
         proposition: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
         goalLabel: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
-        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'or_elim', 'or_intro', 'and_intro', 'exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'or_elim', 'or_by_negation', 'or_intro', 'and_intro', 'exact'],
         introduction: `# חוק הפילוג
 
 מ"תכונות של פעולות על קבוצות": \`A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)\`. כאן נוכיח את ההכלה ⊆: איבר של A ∩ (B ∪ C) שייך ל־A ∩ B או ל־A ∩ C.
@@ -188,7 +188,7 @@ export const unit9Levels = [
         proposition: 'A \\ C ⊆ (A \\ B) ∪ (B \\ C)',
         goalLabel: 'A \\ C ⊆ (A \\ B) ∪ (B \\ C)',
         claims: ['x ∈ B'],
-        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'em_cases', 'or_intro', 'and_intro', 'exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'em_cases', 'or_by_negation', 'or_intro', 'and_intro', 'exact'],
         introduction: `# טבלת המצבים
 
 בהרצאה בדקנו את הטענה \`A \\ C ⊆ (A \\ B) ∪ (B \\ C)\` בטבלה של כל המצבים: לכל שילוב של x ∈ A, x ∈ B, x ∈ C, אין שורה שבה x שייך לאגף שמאל ולא לאגף ימין.
@@ -208,7 +208,7 @@ export const unit9Levels = [
         name: 'unit9_l8_symmetric_difference',
         proposition: 'A ∆ B = (A \\ B) ∪ (B \\ A)',
         goalLabel: 'A ∆ B = (A \\ B) ∪ (B \\ A)',
-        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'or_elim', 'or_intro', 'and_elim', 'and_combine', 'exact'],
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'or_elim', 'or_by_negation', 'or_intro', 'and_elim', 'and_combine', 'exact'],
         introduction: `# הפרש סימטרי
 
 \`A ∆ B\` הוא *ההפרש הסימטרי*: \`A ∆ B = {x | (x ∈ A ∧ x ∉ B) ∨ (x ∉ A ∧ x ∈ B)}\`, האיברים השייכים בדיוק לאחת מהקבוצות.
@@ -232,7 +232,7 @@ export const unit9Levels = [
         proposition: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',
         goalLabel: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',
         claims: ['x ∈ B'],
-        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'em_cases', 'or_intro', 'or_elim', 'not_intro', 'not_elim', 'contradiction', 'exact'],
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'em_cases', 'or_by_negation', 'or_intro', 'or_elim', 'not_intro', 'not_elim', 'contradiction', 'exact'],
         introduction: `# בונוס: כלל דה מורגן
 
 כלל דה מורגן הראשון מההרצאה: \`A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)\`. מה שב־A ולא בשתיהן הוא מה שב־A ולא ב־B, או ב־A ולא ב־C.

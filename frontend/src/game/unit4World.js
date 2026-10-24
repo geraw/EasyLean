@@ -31,7 +31,7 @@ const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להרא
 const ASSUME_BLOCK = '"נניח את התנאי של הגרירה..."';
 const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרירה."';
 const OR_INTRO_BLOCK = '"כדי להוכיח את ה"או" נוכיח את ?"';
-const OR_BY_NEGATION_BLOCK = '"נניח את השלילה של הצד הראשון של ה"או"..."';
+const OR_BY_NEGATION_BLOCK = '"נניח ... עלינו להראות את הצד השני."';
 const APPLY_RULE_BLOCK = '"לפי ? כדי להוכיח את המסקנה של הגרירה, די להוכיח את התנאי שלה."';
 
 const contradictionInfo = {
@@ -52,11 +52,6 @@ const notElimInfo = {
 const exfalsoInfo = {
     name: 'מסתירה נובע הכול',
     doc: 'מסתירה אפשר להסיק כל טענה. לכן כדי להוכיח מטרה Q כלשהי, די להגיע לסתירה. בהוכחה כתובה: "מסתירה נובע הכול: כדי להוכיח Q די להגיע לסתירה."',
-};
-
-const orByNegationInfo = {
-    name: 'הוכחת "או" כמו בהרצאה',
-    doc: 'כדי להוכיח α ∨ β מניחים ¬α ומוכיחים β: אם α נכונה, ה"או" נכון, ואם לא, β נכונה. זו השקילות ¬α → β ≡ α ∨ β (יחידה 1, שלב 3). בהוכחה כתובה: "נניח ¬P. עלינו להראות Q. … הוכחנו ¬P → Q, ולכן P ∨ Q." כשכבר יודעים איזה צד נכון, אפשר גם לבחור אותו, כמו ביחידה 3.',
 };
 
 const byContradictionInfo = {
@@ -177,7 +172,7 @@ export const unit4Levels = [
         goalLabel: '¬P',
         objects: [],
         assumptions: [{ name: 'h', prop: '¬(P ∨ Q)' }],
-        toolboxBlocks: ['not_intro', 'not_elim', 'or_intro', 'exact'],
+        toolboxBlocks: ['not_intro', 'not_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# משתמשים בשלילה
 
 נתון שלא נכון ש"P או Q". מכאן נובע ש־P לא נכונה. נוכיח את זה.
@@ -212,7 +207,7 @@ export const unit4Levels = [
         goalLabel: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
         objects: [],
         assumptions: [],
-        toolboxBlocks: ['assume', 'and_intro', 'not_intro', 'not_elim', 'or_intro', 'exact'],
+        toolboxBlocks: ['assume', 'and_intro', 'not_intro', 'not_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# שלילה של "או"
 
 אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מ*חוקי דה מורגן*.
@@ -380,11 +375,11 @@ export const unit4Levels = [
 
 כל טענה נכונה או לא נכונה: \`P ∨ ¬P\`. לטענה הזאת קוראים *חוק השלישי מן הנמנע*. נוכיח אותה בלי שום הנחה.
 
-ביחידה 3 הוכחתם "או" בבחירת צד. כאן זה לא עובד: לא ידוע אם P נכונה או ¬P נכונה, ולכן אף צד לא ניתן להוכחה לבדו.
+ביחידה 3 הכרתם את שתי הדרכים להוכיח "או": בבחירת צד, ובדרך של ההרצאה. כאן בחירת צד לא עובדת: לא ידוע אם P נכונה או ¬P נכונה, ולכן אף צד לא ניתן להוכחה לבדו.
 
-בהרצאה מוכיחים "או" אחרת: כדי להוכיח \`α ∨ β\` *מניחים \`¬α\` ומוכיחים β*. אם α נכונה, ה"או" נכון; ואם לא, הוכחנו ש־β נכונה. זו השקילות של \`¬α → β\` ו־\`α ∨ β\` מיחידה 1, שלב 3. הבלוק ${OR_BY_NEGATION_BLOCK} עושה זאת.`,
-        newTacticsBlocks: ['or_by_negation'],
-        newTacticsInfo: [orByNegationInfo],
+הדרך של ההרצאה עובדת: *מניחים \`¬α\` ומוכיחים β*, בבלוק ${OR_BY_NEGATION_BLOCK}. ביחידה 3 ההנחה לא הייתה נחוצה; כאן היא כל ההוכחה.`,
+        newTacticsBlocks: [],
+        newTacticsInfo: [],
         newDefinitions: [],
         hints: [
             `גררו את הבלוק ${OR_BY_NEGATION_BLOCK} אל תוך בלוק המטרה. עכשיו כתוב בו: נניח ¬P. עלינו להראות ¬P.`,

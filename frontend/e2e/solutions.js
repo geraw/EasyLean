@@ -39,7 +39,7 @@ const claim = (statement, proof) => ['claim', { CLAIM: statement }, { PROOF: pro
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
 const swapAndForward = (and, left, right) => [assume, andElim(and), combine(left, right), close];
 
-export const UNITS = [
+const COURSE = [
     {
         unit: 2,
         world: 'יחידה 2 - מהנחה למסקנה',
@@ -376,6 +376,23 @@ export const UNITS = [
         ],
     },
 ];
+
+// The lecture proves an "or" by assuming the negation of one side and proving
+// the other. Every level that proves one by choosing a side can also be solved
+// so: the negation of the other side assumed, and not needed.
+const asLecture = (steps) => steps.map(([type, fields = {}, parts = {}]) => [
+    type === 'or_intro' ? 'or_by_negation' : type,
+    type === 'or_intro' ? { SIDE: fields.SIDE === 'LEFT' ? 'RIGHT' : 'LEFT' } : fields,
+    Object.fromEntries(Object.entries(parts).map(([part, partSteps]) => [part, asLecture(partSteps)])),
+]);
+const choosesSide = (steps) => steps.some(([type, , parts = {}]) => type === 'or_intro' || Object.values(parts).some(choosesSide));
+
+export const UNITS = COURSE.map((unit) => ({
+    ...unit,
+    levels: unit.levels.map((solutions) => (solutions.some(({ label }) => label === 'כמו בהרצאה') || !solutions.some(({ steps }) => choosesSide(steps))
+        ? solutions
+        : [...solutions, { label: 'כמו בהרצאה', steps: asLecture(solutions.find(({ steps }) => choosesSide(steps)).steps) }])),
+}));
 
 // The solutions of a unit, by its number.
 export const unitSolutions = (number) => UNITS.find(({ unit }) => unit === number);

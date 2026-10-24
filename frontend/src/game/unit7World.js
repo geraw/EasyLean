@@ -23,7 +23,7 @@ const AND_ELIM_BLOCK = '"מ־ ? נקבל את שני החלקים של ה"וגם
 const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרירה."';
 const MT_BLOCK = '"מ־ ? ומ־ ? נקבל את השלילה של התנאי של הגרירה."';
 const CONTRAPOSITIVE_BLOCK = '"נוכיח את הקונטרפוזיציה..."';
-const OR_BY_NEGATION_BLOCK = '"נניח את השלילה של הצד הראשון של ה"או"..."';
+const OR_BY_NEGATION_BLOCK = '"נניח ... עלינו להראות את הצד השני."';
 const CASES_BLOCK = '"נחלק למקרים: ? או השלילה שלה"';
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
 
@@ -318,7 +318,7 @@ export const unit7Levels = [
         proposition: '∀ d, Bus d ∨ Bike d',
         goalLabel: '∀d (Bus(d) ∨ Bike(d))',
         claims: ['Rain d₀'],
-        toolboxBlocks: ['forall_intro', 'em_cases', 'forall_elim', 'forward', 'or_intro', 'exact'],
+        toolboxBlocks: ['forall_intro', 'em_cases', 'forall_elim', 'forward', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# חלוקה למקרים
 
 נתון: בימים גשומים נוסעים באוטובוס, ובימים לא גשומים רוכבים על אופניים. נוכיח: בכל יום נוסעים באוטובוס או רוכבים.

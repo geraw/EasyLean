@@ -122,6 +122,7 @@ theorem easylean_mem_setOf {α : Type u} {p : α → Prop} {a : α} : a ∈ setO
 export const STRATEGY_PRELUDE = `theorem easylean_mt {a b : Prop} (h : a → b) (nb : ¬b) : ¬a := fun x => nb (h x)
 theorem easylean_by_contrapositive {a b : Prop} (h : ¬b → ¬a) : a → b := fun x => Classical.byContradiction fun nb => h nb x
 theorem easylean_or_by_negation {a b : Prop} (h : ¬a → b) : a ∨ b := (Classical.em a).elim Or.inl fun n => Or.inr (h n)
+theorem easylean_or_by_negation_right {a b : Prop} (h : ¬b → a) : a ∨ b := (Classical.em b).elim Or.inr fun n => Or.inl (h n)
 `;
 
 export const EQUIV_PRELUDE = `theorem easylean_not_not {a : Prop} : ¬¬a ↔ a := ⟨fun h => Classical.byContradiction h, fun h n => n h⟩

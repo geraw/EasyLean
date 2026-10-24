@@ -173,7 +173,7 @@ export const unit10Levels = [
         name: 'unit10_l6_powerset_union',
         proposition: '𝒫 A ∪ 𝒫 B ⊆ 𝒫 (A ∪ B)',
         goalLabel: '𝒫(A) ∪ 𝒫(B) ⊆ 𝒫(A ∪ B)',
-        toolboxBlocks: ['subset_intro', 'unfold', 'or_elim', 'subset_elim', 'or_intro', 'exact'],
+        toolboxBlocks: ['subset_intro', 'unfold', 'or_elim', 'subset_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# ומה עם האיחוד?
 
 בהרצאה ראינו ש־\`𝒫(A ∪ B) = 𝒫(A) ∪ 𝒫(B)\` *לא* נכון תמיד: עבור A = {1} ו־B = {2}, {1,2} ∈ 𝒫(A ∪ B) אבל {1,2} ∉ 𝒫(A) ∪ 𝒫(B). השוויון נכון אם ורק אם A ⊆ B או B ⊆ A.

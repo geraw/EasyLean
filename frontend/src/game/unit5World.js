@@ -198,7 +198,7 @@ export const unit5Levels = [
         goalLabel: '∃x (P(x) ∨ Q(x))',
         objects: [{ name: 'a', type: 'obj' }],
         assumptions: [{ name: 'hp', prop: 'P(a)' }],
-        toolboxBlocks: ['exists_intro', 'or_intro', 'exact'],
+        toolboxBlocks: ['exists_intro', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# "קיים"
 
 הטענה \`∃x (P(x))\` נקראת "קיים x כך ש־P(x)": לפחות עצם אחד בתחום מקיים את P. למשל, "יש סטודנט שעבר את הבוחן".

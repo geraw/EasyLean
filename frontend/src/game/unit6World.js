@@ -103,7 +103,7 @@ export const unit6Levels = [
         proposition: 'P → Q',
         goalLabel: '(P → Q)',
         laws: ['easylean_imp_or'],
-        toolboxBlocks: ['replace', 'or_intro', 'exact'],
+        toolboxBlocks: ['replace', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# במקום גרירה, "או"
 
 לפי השקילות \`(A → B) ↔ (¬A ∨ B)\`, שבדקתם בטבלת אמת ביחידה 1, שלב 4, להוכיח את P → Q זה כמו להוכיח את ¬P ∨ Q. מותר להחליף את המטרה בטענה ששקולה לה.
