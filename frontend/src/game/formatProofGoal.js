@@ -55,6 +55,17 @@ const parseQuantifier = (text) => {
     return null;
 };
 
+// The variables bound by the quantifiers of a statement, as Lean writes it:
+// `∃ x, ∀ (y : obj), R x y` binds x and y (and `∃ x ∈ A, …` binds x).
+export const boundNames = (text = '') => {
+    const names = [];
+    for (let index = 0; index < text.length; index += 1) {
+        const quantifier = QUANTIFIERS.includes(text[index]) && parseQuantifier(text.slice(index));
+        if (quantifier) names.push(...quantifier.names.join(' ').split('∈')[0].trim().split(/\s+/).filter(Boolean));
+    }
+    return names;
+};
+
 // A quantified formula (possibly negated) inside a connective is written in
 // parentheses, so it is clear where its body ends: `(∀x P(x)) → Q`.
 const isQuantified = (formula) => QUANTIFIERS.includes(formula.replace(/^¬+/, '')[0]);

@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly/core';
 import { leanBranches, leanGenerator } from '../generator/lean';
 import { PLACEHOLDER } from '../blocks/gameBlocks';
-import { formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, subscriptedName, substitute, unfoldMembership } from '../game/formatProofGoal';
+import { boundNames, formatProofGoal, freshName, negatedStatement, splitConnective, splitImplication, splitQuantifier, splitRelation, substitute, unfoldMembership } from '../game/formatProofGoal';
 import { isolateFormulas, isolateHebrew } from '../game/bidi';
 import { hasNoVariables, unfoldableParts } from '../game/terms';
 
@@ -513,13 +513,15 @@ const elementName = (block, smaller, larger = '') => {
 const isRelationSet = (block, text) => (text.replace(/\[[^\]]*\]_\S+/g, '').match(/\p{L}[\p{L}\p{N}₀-₉_']*/gu) || [])
     .some((name) => block.stateBefore?.relations?.includes(name));
 
-// The name of a new object: an element a set's rule takes keeps its
-// variable's name, unless taken (see freshName); the object ∀ introduction
-// and ∃ elimination take is the quantified variable's with a subscript, x₀,
-// to read apart from the bound x (see subscriptedName).
+// The name of a new object: its variable's, unless an object in hand has it,
+// or a variable bound in a statement in hand or in the goal does, so that an
+// object never reads as a bound variable; then the first subscript free, x₀
+// (see freshName). The object ∀ introduction and ∃ elimination take is named
+// apart from the variable of the statement they take apart: "יהי x₀ שרירותי".
 const thingsInHand = (block) => [...(block.stateBefore?.objects || []), ...(block.stateBefore?.sets || []), ...(block.stateBefore?.relations || []), ...(block.stateBefore?.functions || [])];
-const newObjectName = (block, variable) => freshName(variable, thingsInHand(block));
-const arbitraryObjectName = (block, variable) => subscriptedName(variable, thingsInHand(block));
+const takenNames = (block) => [...thingsInHand(block), ...[...(block.stateBefore?.assumptions || []), block.stateBefore?.goal || ''].flatMap(boundNames)];
+const newObjectName = (block, variable) => freshName(variable, takenNames(block));
+const arbitraryObjectName = (block, variable) => freshName(variable, [...takenNames(block), variable]);
 
 const sameStatement = (a, b) => formatProofGoal(a) === formatProofGoal(b);
 

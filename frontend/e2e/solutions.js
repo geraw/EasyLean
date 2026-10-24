@@ -256,7 +256,7 @@ export const UNITS = [
             [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ C'), subsetIntro, subsetElim('A ⊆ B', 'x ∈ A'), subsetElim('B ⊆ C', 'x ∈ B'), close] }],
             [{
                 label: 'פתרון',
-                steps: [assume, byContradiction, notElim('¬A ⊆ B'), subsetIntro, byContradiction, notElim('¬∃ x, x ∈ A ∧ ¬x ∈ B'), existsIntro('x'), andIntro([close], [close])],
+                steps: [assume, byContradiction, notElim('¬A ⊆ B'), subsetIntro, byContradiction, notElim('¬∃ x, x ∈ A ∧ ¬x ∈ B'), existsIntro('x₀'), andIntro([close], [close])],
             }],
             [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ A'), setEq([close], [close])] }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ∅'), exfalso, close] }],

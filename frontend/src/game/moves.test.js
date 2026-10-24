@@ -295,6 +295,9 @@ describe('the moves of lesson 2, on sets', () => {
         expect(phraseOf(subsetIntro)).toBe('כדי להוכיח 𝒫(A) ⊆ 𝒫(B) יהי X ∈ 𝒫(A) ונוכיח X ∈ 𝒫(B)');
         inner.setStateBefore({ assumptions: ['x ∈ A'], objects: ['x'], sets: ['A'], goal: 'A ⊆ A' });
         expect(phraseOf(inner)).toBe('כדי להוכיח A ⊆ A יהי x₀ ∈ A ונוכיח x₀ ∈ A');
+        // Nor the name of a variable bound in a statement in hand.
+        inner.setStateBefore({ assumptions: ['¬∃ x, x ∈ A ∧ ¬x ∈ B'], objects: [], sets: ['A', 'B'], goal: 'A ⊆ B' });
+        expect(phraseOf(inner)).toBe('כדי להוכיח A ⊆ B יהי x₀ ∈ A ונוכיח x₀ ∈ B');
     });
 });
 

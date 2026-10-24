@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatProofGoal, splitImplication } from './formatProofGoal';
+import { boundNames, formatProofGoal, splitImplication } from './formatProofGoal';
 
 describe('formatProofGoal', () => {
     it('leaves an atomic goal alone', () => {
@@ -43,6 +43,13 @@ describe('formatProofGoal with and, or, iff, not', () => {
     it('keeps negation tight', () => {
         expect(formatProofGoal('¬P ∨ Q')).toBe('(¬P ∨ Q)');
         expect(formatProofGoal('¬(P ∧ Q)')).toBe('¬(P ∧ Q)');
+    });
+
+    it('finds the variables a statement binds', () => {
+        expect(boundNames('∃ x, ∀ (y : obj), R x y')).toEqual(['x', 'y']);
+        expect(boundNames('¬∃ x, x ∈ A ∧ ¬x ∈ B')).toEqual(['x']);
+        expect(boundNames('∀ x y, P x → Q y')).toEqual(['x', 'y']);
+        expect(boundNames('x ∈ A')).toEqual([]);
     });
 
     it('puts a negated relation in parentheses, but not a negated membership', () => {
