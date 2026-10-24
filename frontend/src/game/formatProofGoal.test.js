@@ -45,6 +45,12 @@ describe('formatProofGoal with and, or, iff, not', () => {
         expect(formatProofGoal('¬(P ∧ Q)')).toBe('¬(P ∧ Q)');
     });
 
+    it('leaves a formula already written as the course writes it as it is', () => {
+        for (const formula of ['∀x (P(x))', '¬∃x (P(x))', '((¬∃x (P(x))) → (∀x (¬P(x))))', '∀x (∃y (R(x,y)))', '¬(A ⊆ B)']) {
+            expect(formatProofGoal(formula)).toBe(formula);
+        }
+    });
+
     it('finds the variables a statement binds', () => {
         expect(boundNames('∃ x, ∀ (y : obj), R x y')).toEqual(['x', 'y']);
         expect(boundNames('¬∃ x, x ∈ A ∧ ¬x ∈ B')).toEqual(['x']);

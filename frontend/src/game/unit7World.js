@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 7 (see blocks/moves.js): the structures of proof, as the part of the
 // first lecture on proofs teaches them, with its examples, in its order: proof
@@ -49,20 +49,18 @@ const level = (number, fields) => ({
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
-    assumptions: [],
     newTacticsBlocks: [],
     newTacticsInfo: [],
     newDefinitions: [],
     ...fields,
 });
 
-export const unit7Levels = [
+export const unit7Levels = prepareLevels([
     level(1, {
         title: 'הוכחה מול מלל משכנע',
         name: 'unit7_l1_proof_not_persuasion',
         variableLine: 'variable {obj : Type} {P Q : obj → Prop}',
         proposition: '(∀ x, P x ∧ Q x) → ((∀ x, P x) ∧ (∀ x, Q x))',
-        goalLabel: '((∀x (P(x) ∧ Q(x))) → ((∀x (P(x))) ∧ (∀x (Q(x)))))',
         toolboxBlocks: ['assume', 'and_intro', 'forall_intro', 'forall_elim', 'and_elim', 'exact'],
         introduction: `# הוכחה מול מלל משכנע
 
@@ -76,14 +74,12 @@ export const unit7Levels = [
         ],
         conclusion: `זו ההוכחה מהשקף: "נניח ∀x (P(x) ∧ Q(x)). נוכיח את שני החלקים. החלק הראשון: יהי x₀ שרירותי. נציב אותו בהנחה ונקבל P(x₀) ∧ Q(x₀), ובפרט P(x₀). מאחר ש־x₀ שרירותי, ∀x (P(x)). החלק השני: באותו אופן, ∀x (Q(x)). לכן ∀x (P(x)) ∧ ∀x (Q(x))."
 כל שורה נובעת מההנחה, מהגדרת הקשר או מהשורות שלפניה. בהנחת ה־∀ *אנחנו בחרנו* להציב את אותו x₀.`,
-        startXml: goalXml('((∀x (P(x) ∧ Q(x))) → ((∀x (P(x))) ∧ (∀x (Q(x)))))'),
     }),
     level(2, {
         title: 'כשיש ¬β, מקבלים ¬α',
         name: 'unit7_l2_modus_tollens',
         params: '(h1 : P → Q) (h2 : ¬Q)',
         proposition: '¬P',
-        goalLabel: '¬P',
         toolboxBlocks: ['modus_tollens', 'exact'],
         newTacticsBlocks: ['modus_tollens'],
         newTacticsInfo: [mtInfo],
@@ -96,14 +92,12 @@ export const unit7Levels = [
             `¬P בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"מ־P → Q ומ־¬Q נקבל ¬P": אם המסקנה לא נכונה, גם התנאי לא נכון.`,
-        startXml: goalXml('¬P', '(P → Q),  ¬Q'),
     }),
     level(3, {
         title: 'הוכחה בקונטרפוזיציה',
         name: 'unit7_l3_contrapositive',
         params: '(h1 : ¬R → ¬Q) (h2 : ¬Q → ¬P)',
         proposition: 'P → R',
-        goalLabel: '(P → R)',
         toolboxBlocks: ['contrapositive', 'forward', 'exact'],
         newTacticsBlocks: ['contrapositive'],
         newTacticsInfo: [contrapositiveInfo],
@@ -118,7 +112,6 @@ export const unit7Levels = [
             `¬P בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"נוכיח את הקונטרפוזיציה: נניח ¬R. עלינו להראות ¬P. מ־¬R → ¬Q ומ־¬R נקבל ¬Q, ומ־¬Q → ¬P ומ־¬Q נקבל ¬P. הוכחנו ¬R → ¬P, ולכן P → R."`,
-        startXml: goalXml('(P → R)', '(¬R → ¬Q),  (¬Q → ¬P)'),
     }),
     level(4, {
         title: 'שלוש דרכים להוכחת גרירה',
@@ -126,7 +119,6 @@ export const unit7Levels = [
         variableLine: 'variable {obj : Type} {P Q R : obj → Prop}',
         params: '(h : ∀ x, (P x → R x) ∧ (R x → Q x))',
         proposition: '∀ x, P x → Q x',
-        goalLabel: '∀x (P(x) → Q(x))',
         toolboxBlocks: ['forall_intro', 'forall_elim', 'and_elim', 'assume', 'forward', 'contrapositive', 'modus_tollens', 'by_contradiction', 'contradiction', 'exact'],
         introduction: `# שלוש דרכים להוכחת גרירה
 
@@ -148,14 +140,12 @@ export const unit7Levels = [
             'בשלילה: "נניח" P(x₀), ובתוכו "נניח בשלילה" ¬Q(x₀). בתוכו נקבל R(x₀) ואז Q(x₀), ואז "קיבלנו Q(x₀) וגם ¬Q(x₀), בסתירה."',
         ],
         conclusion: `שלוש ההוכחות מהשקף, ובכל אחת שורת הסיום של המבנה שלה: "לכן P(x₀) → Q(x₀)", "הוכחנו ¬Q(x₀) → ¬P(x₀), ולכן P(x₀) → Q(x₀)", "קיבלנו סתירה, ולכן Q(x₀)". ובסוף כולן: "מאחר ש־x₀ שרירותי, ∀x (P(x) → Q(x))."`,
-        startXml: goalXml('∀x (P(x) → Q(x))', '∀x ((P(x) → R(x)) ∧ (R(x) → Q(x)))'),
     }),
     level(5, {
         title: 'פרדוקס הספר',
         name: 'unit7_l5_barber',
         variableLine: 'variable {obj : Type} {Shaves : obj → obj → Prop}',
         proposition: '¬∃ b, ∀ y, Shaves b y ↔ ¬Shaves y y',
-        goalLabel: '¬∃b (∀y (Shaves(b,y) ↔ ¬Shaves(y,y)))',
         claims: ['Shaves b₀ b₀'],
         toolboxBlocks: ['not_intro', 'exists_elim', 'forall_elim', 'iff_elim', 'em_cases', 'forward', 'contradiction'],
         newTacticsBlocks: ['em_cases'],
@@ -175,7 +165,6 @@ export const unit7Levels = [
         ],
         conclusion: `"נניח בשלילה שקיים b כזה, ונסמן ב־b₀ אדם כזה. נציב y = b₀ ונקבל Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀). נחלק למקרים. בשני המקרים קיבלנו טענה ואת שלילתה, בסתירה. לכן הנחת השלילה שגויה, ואין b כזה."
 באותו מבנה בדיוק נוכיח בהרצאה הבאה את פרדוקס ראסל.`,
-        startXml: goalXml('¬∃b (∀y (Shaves(b,y) ↔ ¬Shaves(y,y)))'),
     }),
     level(6, {
         title: 'הוכחת "וגם": פינגווינים',
@@ -183,7 +172,6 @@ export const unit7Levels = [
         variableLine: 'variable {obj : Type} {Penguin Bird Swims : obj → Prop}',
         params: '(h1 : ∀ x, Penguin x → Bird x) (h2 : ∀ x, Penguin x → Swims x)',
         proposition: '∀ x, Penguin x → Bird x ∧ Swims x',
-        goalLabel: '∀x (Penguin(x) → (Bird(x) ∧ Swims(x)))',
         toolboxBlocks: ['forall_intro', 'assume', 'and_intro', 'forall_elim', 'forward', 'exact'],
         introduction: `# הוכחת "וגם"
 
@@ -196,14 +184,12 @@ export const unit7Levels = [
             `בחלק הראשון: ${FORALL_ELIM_BLOCK} בנתון הראשון עם x₀, ואחר כך ${FORWARD_BLOCK} עם Penguin(x₀) → Bird(x₀) ועם Penguin(x₀). בחלק השני אותו דבר, בנתון השני.`,
         ],
         conclusion: `"יהי x₀ שרירותי, ונניח Penguin(x₀). החלק הראשון: נציב x = x₀ בנתון הראשון ונקבל Penguin(x₀) → Bird(x₀), ולכן Bird(x₀). החלק השני: באותו אופן, Swims(x₀). הוכחנו את שני החלקים, ולכן Bird(x₀) ∧ Swims(x₀). מאחר ש־x₀ כללי, הטענה נכונה לכל x."`,
-        startXml: goalXml('∀x (Penguin(x) → (Bird(x) ∧ Swims(x)))', '∀x (Penguin(x) → Bird(x)),  ∀x (Penguin(x) → Swims(x))'),
     }),
     level(7, {
         title: 'הוכחת "או": בוחן או עבודה',
         name: 'unit7_l7_quiz_or_project',
         variableLine: 'variable {obj : Type} {Quiz Project : obj → Prop}',
         proposition: '(∀ x, Quiz x ∨ Project x) → ((∀ x, Quiz x) ∨ (∃ x, Project x))',
-        goalLabel: '((∀x (Quiz(x) ∨ Project(x))) → ((∀x (Quiz(x))) ∨ (∃x (Project(x)))))',
         laws: ['easylean_not_forall'],
         toolboxBlocks: ['assume', 'or_by_negation', 'replace', 'exists_elim', 'forall_elim', 'or_elim', 'exfalso', 'contradiction', 'exists_intro', 'exact'],
         introduction: `# הוכחת "או"
@@ -221,14 +207,12 @@ export const unit7Levels = [
         ],
         conclusion: `"נניח ¬∀x (Quiz(x)), כלומר ∃x (¬Quiz(x)). נסמן ב־x₀ סטודנט כזה. נציב x = x₀ בהנחה הראשונה: Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ולכן x₀ הוא עד ל־∃x (Project(x)). הוכחנו ¬α → β, ולכן α ∨ β."
 שימו לב: אי אפשר להחליף כאן את ∃x (Project(x)) ב־∀x (Project(x)). זו בדיוק הטעות "פילוג לכל על או".`,
-        startXml: goalXml('((∀x (Quiz(x) ∨ Project(x))) → ((∀x (Quiz(x))) ∨ (∃x (Project(x)))))'),
     }),
     level(8, {
         title: 'הוכחת "לכל": הדלתות',
         name: 'unit7_l8_doors',
         variableLine: 'variable {obj : Type} {Locked Floor2 : obj → Prop}',
         proposition: '(∀ x, Locked x) → ∀ x, Floor2 x → Locked x',
-        goalLabel: '((∀x (Locked(x))) → (∀x (Floor2(x) → Locked(x))))',
         toolboxBlocks: ['assume', 'forall_intro', 'forall_elim', 'exact'],
         introduction: `# הוכחת "לכל"
 
@@ -240,14 +224,12 @@ export const unit7Levels = [
             `${FORALL_ELIM_BLOCK}: בהנחה ∀x (Locked(x)) נציב x = x₀. ואז ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"נניח ∀x (Locked(x)). יהי x₀ כלשהו. נניח Floor2(x₀). נציב x = x₀ בהנחה ונקבל Locked(x₀). לכן Floor2(x₀) → Locked(x₀). מאחר ש־x₀ היה כללי, הטענה נכונה לכל x."`,
-        startXml: goalXml('((∀x (Locked(x))) → (∀x (Floor2(x) → Locked(x))))'),
     }),
     level(9, {
         title: 'הוכחת "קיים": לכל אחד יש חבר',
         name: 'unit7_l9_friends',
         variableLine: 'variable {obj : Type} {Friend : obj → obj → Prop}',
         proposition: '(∀ x, Friend x x) → ∀ x, ∃ y, Friend x y',
-        goalLabel: '((∀x (Friend(x,x))) → (∀x (∃y (Friend(x,y)))))',
         toolboxBlocks: ['assume', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
         introduction: `# הוכחת "קיים"
 
@@ -260,14 +242,12 @@ export const unit7Levels = [
             `${FORALL_ELIM_BLOCK}: בהנחה נציב x = x₀, ואז ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"נניח ∀x (Friend(x,x)). יהי x₀. נבחר y = x₀, שתלוי ב־x₀ החופשי. מההנחה Friend(x₀,x₀). לכן קיים y כזה. מאחר ש־x₀ כללי, הטענה נכונה לכל x."`,
-        startXml: goalXml('((∀x (Friend(x,x))) → (∀x (∃y (Friend(x,y)))))'),
     }),
     level(10, {
         title: 'שני כמתים: מי שמכיר את כולם',
         name: 'unit7_l10_knows',
         variableLine: 'variable {obj : Type} {Knows : obj → obj → Prop}',
         proposition: '(∃ x, ∀ y, Knows x y) → ∀ y, ∃ x, Knows x y',
-        goalLabel: '((∃x (∀y (Knows(x,y)))) → (∀y (∃x (Knows(x,y)))))',
         toolboxBlocks: ['assume', 'exists_elim', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
         introduction: `# שני כמתים
 
@@ -284,14 +264,12 @@ export const unit7Levels = [
             `${FORALL_ELIM_BLOCK}: ב־∀y (Knows(x₀,y)) נציב y = y₀. ואז ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"נסמן ב־x₀ אדם כך ש־∀y (Knows(x₀,y)). יהי y₀ כלשהו. נבחר x = x₀ כעד. נציב y = y₀ בהנחה על x₀ ונקבל Knows(x₀,y₀). לכן קיים x כזה. מאחר ש־y₀ שרירותי, ∀y (∃x (Knows(x,y)))."`,
-        startXml: goalXml('((∃x (∀y (Knows(x,y)))) → (∀y (∃x (Knows(x,y)))))'),
     }),
     level(11, {
         title: 'טווח: על מה חלה כל מילה?',
         name: 'unit7_l11_scope',
         variableLine: 'variable {obj : Type} {Trusts : obj → obj → Prop}',
         proposition: '∀ x, (∀ y, Trusts x y) → Trusts x x',
-        goalLabel: '∀x ((∀y (Trusts(x,y))) → Trusts(x,x))',
         toolboxBlocks: ['forall_intro', 'assume', 'forall_elim', 'exact'],
         introduction: `# טווח
 
@@ -308,7 +286,6 @@ export const unit7Levels = [
         ],
         conclusion: `"יהי x₀. נניח ∀y (Trusts(x₀,y)). בפרט, נציב y = x₀ ונקבל Trusts(x₀,x₀)."
 בטענה 2 ההנחה היא "קיים y": היא נותנת y אחד שאיננו בוחרים, ואולי זה דווקא מישהו אחר, שלא אומר כלום על x₀ עצמו.`,
-        startXml: goalXml('∀x ((∀y (Trusts(x,y))) → Trusts(x,x))'),
     }),
     level(12, {
         title: 'חלוקה למקרים: גשם',
@@ -316,7 +293,6 @@ export const unit7Levels = [
         variableLine: 'variable {obj : Type} {Rain Bus Bike : obj → Prop}',
         params: '(h1 : ∀ d, Rain d → Bus d) (h2 : ∀ d, ¬Rain d → Bike d)',
         proposition: '∀ d, Bus d ∨ Bike d',
-        goalLabel: '∀d (Bus(d) ∨ Bike(d))',
         claims: ['Rain d₀'],
         toolboxBlocks: ['forall_intro', 'em_cases', 'forall_elim', 'forward', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# חלוקה למקרים
@@ -332,6 +308,5 @@ export const unit7Levels = [
         ],
         conclusion: `"יהי d₀ שרירותי. נחלק למקרים: Rain(d₀) או ¬Rain(d₀). מקרה 1: מהנתון הראשון Bus(d₀), ולכן Bus(d₀) ∨ Bike(d₀). מקרה 2: מהנתון השני Bike(d₀), ולכן Bus(d₀) ∨ Bike(d₀). המקרים מכסים את כל האפשרויות, ובשניהם מתקיימת המסקנה. מאחר ש־d₀ כללי, הטענה נכונה לכל d."
 סיימתם את היחידה ואת כל מבני ההוכחה של ההרצאה.`,
-        startXml: goalXml('∀d (Bus(d) ∨ Bike(d))', '∀d (Rain(d) → Bus(d)),  ∀d (¬Rain(d) → Bike(d))'),
     }),
-];
+]);

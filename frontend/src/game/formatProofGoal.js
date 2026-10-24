@@ -52,6 +52,11 @@ const parseQuantifier = (text) => {
             return { symbol: text[0], names, body: text.slice(index + 1) };
         }
     }
+    // The course's own writing, `∀x (P(x))`: the body in parentheses, to the end.
+    const course = text.match(/^.(\p{L}[\p{L}\p{N}₀-₉_']*) \(/u);
+    if (course && closingOf(text, course[0].length - 1) === text.length - 1) {
+        return { symbol: text[0], names: [course[1]], body: text.slice(course[0].length, -1) };
+    }
     return null;
 };
 

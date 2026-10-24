@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 4 (see blocks/moves.js): negation, with the
 // rules of the usual natural-deduction courses (forall x, Huth & Ryan, Logic
@@ -16,8 +16,6 @@ import { goalXml } from './levelXml';
 // only the moves of its solution.
 
 export const unit4WorldName = 'יחידה 4 - שלילה והוכחה בשלילה';
-
-const CONTRADICTION = 'סתירה (⊥)';
 
 // The moves as the toolbox shows them, before they are placed.
 // not_intro and by_contradiction wrap: the rest of their proof goes inside
@@ -59,7 +57,7 @@ const byContradictionInfo = {
     doc: 'כדי להוכיח A מניחים בשלילה ש־A לא נכונה (¬A) ומגיעים לסתירה. אם ¬A מובילה לסתירה, היא לא נכונה, ולכן A נכונה. בהוכחה כתובה: "נניח בשלילה ¬A. עלינו להגיע לסתירה. … קיבלנו סתירה, ולכן A." הבלוק מתאים לכל מטרה.',
 };
 
-export const unit4Levels = [
+export const unit4Levels = prepareLevels([
     {
         id: 'unit4-1',
         levelNumber: 1,
@@ -69,12 +67,7 @@ export const unit4Levels = [
         variableLine: 'variable {P : Prop}',
         params: '(hp : P) (hn : ¬P)',
         proposition: 'False',
-        goalLabel: CONTRADICTION,
         objects: [],
-        assumptions: [
-            { name: 'hp', prop: 'P' },
-            { name: 'hn', prop: '¬P' },
-        ],
         toolboxBlocks: ['contradiction'],
         introduction: `# שלילה וסתירה
 
@@ -92,7 +85,6 @@ export const unit4Levels = [
         ],
         conclusion: `P ו־¬P לא יכולות להיות נכונות יחד, ולכן שתיהן יחד הן סתירה.
 בשלבים הבאים נגיע לסתירה מהנחות שנוסיף בעצמנו.`,
-        startXml: goalXml(CONTRADICTION, 'P,  ¬P'),
     },
     {
         id: 'unit4-2',
@@ -103,9 +95,7 @@ export const unit4Levels = [
         variableLine: 'variable {P : Prop}',
         params: '(hp : P)',
         proposition: '¬¬P',
-        goalLabel: '¬¬P',
         objects: [],
-        assumptions: [{ name: 'hp', prop: 'P' }],
         toolboxBlocks: ['not_intro', 'contradiction'],
         introduction: `# מוכיחים שלילה
 
@@ -124,7 +114,6 @@ export const unit4Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח בשלילה ¬P. עלינו להגיע לסתירה. קיבלנו P וגם ¬P, בסתירה. קיבלנו סתירה, ולכן ¬¬P."
 הנחתם את ¬P והגעתם לסתירה, ולכן ¬P לא נכונה: הוכחתם את ¬¬P.`,
-        startXml: goalXml('¬¬P', 'P'),
     },
     {
         id: 'unit4-3',
@@ -135,12 +124,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(h : (P → Q)) (hnq : ¬Q)',
         proposition: '¬P',
-        goalLabel: '¬P',
         objects: [],
-        assumptions: [
-            { name: 'h', prop: 'P → Q' },
-            { name: 'hnq', prop: '¬Q' },
-        ],
         toolboxBlocks: ['not_intro', 'forward', 'contradiction'],
         introduction: `# שלילה של המסקנה
 
@@ -158,7 +142,6 @@ export const unit4Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח בשלילה P. עלינו להגיע לסתירה. מ־P → Q ומ־P נקבל Q. קיבלנו Q וגם ¬Q, בסתירה. קיבלנו סתירה, ולכן ¬P."
 לכלל "מ־P → Q ומ־¬Q נובע ¬P" קוראים *modus tollens*.`,
-        startXml: goalXml('¬P', '(P → Q),  ¬Q'),
     },
     {
         id: 'unit4-4',
@@ -169,9 +152,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(h : ¬(P ∨ Q))',
         proposition: '¬P',
-        goalLabel: '¬P',
         objects: [],
-        assumptions: [{ name: 'h', prop: '¬(P ∨ Q)' }],
         toolboxBlocks: ['not_intro', 'not_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# משתמשים בשלילה
 
@@ -193,7 +174,6 @@ export const unit4Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח בשלילה P. עלינו להגיע לסתירה. לפי ¬(P ∨ Q) כדי להגיע לסתירה די להוכיח P ∨ Q. כדי להוכיח P ∨ Q נוכיח את P. P בידינו, וזה מה שעלינו להראות. לכן P ∨ Q. קיבלנו סתירה, ולכן ¬P."
 השתמשתם בשלילה שבידינו כדי להגיע לסתירה: הוכחתם את הטענה שהיא שוללת.`,
-        startXml: goalXml('¬P', '¬(P ∨ Q)'),
     },
     {
         id: 'unit4-5',
@@ -204,9 +184,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
-        goalLabel: '(¬(P ∨ Q) → (¬P ∧ ¬Q))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'and_intro', 'not_intro', 'not_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# שלילה של "או"
 
@@ -224,7 +202,6 @@ export const unit4Levels = [
             'בחלק השני אותו דבר, עם Q. ב"או" בחרו הפעם ב־Q.',
         ],
         conclusion: `"לא (P או Q)" פירושו "לא P וגם לא Q".`,
-        startXml: goalXml('(¬(P ∨ Q) → (¬P ∧ ¬Q))'),
     },
     {
         id: 'unit4-6',
@@ -235,12 +212,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(hp : P) (hn : ¬P)',
         proposition: 'Q',
-        goalLabel: 'Q',
         objects: [],
-        assumptions: [
-            { name: 'hp', prop: 'P' },
-            { name: 'hn', prop: '¬P' },
-        ],
         toolboxBlocks: ['exfalso', 'contradiction'],
         introduction: `# מסתירה נובע הכול
 
@@ -257,7 +229,6 @@ export const unit4Levels = [
         ],
         conclusion: `הוכחתם את Q בלי לדעת עליה דבר, רק מפני שההנחות סותרות.
 הבלוק ${CONTRADICTION_BLOCK} לבדו לא היה מספיק: הוא מסיים רק כשהמטרה היא סתירה.`,
-        startXml: goalXml('Q', 'P,  ¬P'),
     },
     {
         id: 'unit4-7',
@@ -268,12 +239,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(h : (P ∨ Q)) (hn : ¬P)',
         proposition: 'Q',
-        goalLabel: 'Q',
         objects: [],
-        assumptions: [
-            { name: 'h', prop: 'P ∨ Q' },
-            { name: 'hn', prop: '¬P' },
-        ],
         toolboxBlocks: ['or_elim', 'exfalso', 'contradiction', 'exact'],
         introduction: `# מוציאים אפשרות
 
@@ -291,7 +257,6 @@ export const unit4Levels = [
         ],
         conclusion: `במקרה ש־P נכונה הגעתם לסתירה, ולכן במקרה הזה אפשר להסיק כל דבר.
 כך "מוציאים" אפשרות: מראים שהיא סותרת את ההנחות.`,
-        startXml: goalXml('Q', '(P ∨ Q),  ¬P'),
     },
     {
         id: 'unit4-8',
@@ -302,9 +267,7 @@ export const unit4Levels = [
         variableLine: 'variable {P : Prop}',
         params: '(h : ¬¬P)',
         proposition: 'P',
-        goalLabel: 'P',
         objects: [],
-        assumptions: [{ name: 'h', prop: '¬¬P' }],
         toolboxBlocks: ['by_contradiction', 'contradiction'],
         introduction: `# הוכחה בשלילה
 
@@ -325,7 +288,6 @@ export const unit4Levels = [
         ],
         conclusion: `הנחתם ש־P לא נכונה, הגעתם לסתירה, והסקתם את P.
 יחד עם שלב 2, ¬¬P ו־P שקולות: שלילה כפולה מבטלת את עצמה.`,
-        startXml: goalXml('P', '¬¬P'),
     },
     {
         id: 'unit4-9',
@@ -336,9 +298,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((¬Q → ¬P) → (P → Q))',
-        goalLabel: '((¬Q → ¬P) → (P → Q))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'by_contradiction', 'forward', 'contradiction'],
         introduction: `# קונטרה־פוזיציה
 
@@ -356,7 +316,6 @@ export const unit4Levels = [
             `הוסיפו אחריו את הבלוק ${CONTRADICTION_BLOCK}, ובחרו בו P.`,
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ¬Q → ¬P. עלינו להראות P → Q. נניח P. עלינו להראות Q. נניח בשלילה ¬Q. עלינו להגיע לסתירה. מ־¬Q → ¬P ומ־¬Q נקבל ¬P. קיבלנו P וגם ¬P, בסתירה. קיבלנו סתירה, ולכן Q. לכן P → Q. לכן (¬Q → ¬P) → (P → Q)."`,
-        startXml: goalXml('((¬Q → ¬P) → (P → Q))'),
     },
     {
         id: 'unit4-10',
@@ -367,9 +326,7 @@ export const unit4Levels = [
         variableLine: 'variable {P : Prop}',
         params: '',
         proposition: '(P ∨ ¬P)',
-        goalLabel: '(P ∨ ¬P)',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['or_by_negation', 'exact'],
         introduction: `# מוכיחים "או" כמו בהרצאה
 
@@ -387,7 +344,6 @@ export const unit4Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח ¬P. עלינו להראות ¬P, וזה בידינו. הוכחנו ¬P → ¬P, ולכן P ∨ ¬P."
 בחירת צד היא מקרה פרטי של הדרך הזאת: כשאפשר להוכיח את β בלי שום הנחה, אין צורך בהנחה ¬α. הדרך של ההרצאה מתאימה לכל "או".`,
-        startXml: goalXml('(P ∨ ¬P)'),
     },
     {
         id: 'unit4-11',
@@ -398,9 +354,7 @@ export const unit4Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((P → Q) → (¬P ∨ Q))',
-        goalLabel: '((P → Q) → (¬P ∨ Q))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'or_by_negation', 'apply_rule', 'by_contradiction', 'not_elim', 'exact'],
         introduction: `# בונוס: גרירה כ"או"
 
@@ -419,6 +373,5 @@ export const unit4Levels = [
         ],
         conclusion: `סיימתם את יחידה 4, כולל שלב הבונוס! ההוכחה, כמו שכותבים אותה ביד: "נניח P → Q. עלינו להראות ¬P ∨ Q. נניח ¬¬P. עלינו להראות Q. לפי P → Q די להוכיח P. נניח בשלילה ¬P. לפי ¬¬P די להוכיח ¬P, וזה בידינו. קיבלנו סתירה, ולכן P. הוכחנו ¬¬P → Q, ולכן ¬P ∨ Q."
 אתם יודעים להגיע לסתירה, להוכיח שלילה ולהשתמש בה, להסיק מסתירה כל טענה, להוכיח בשלילה, ולהוכיח "או" כמו בהרצאה.`,
-        startXml: goalXml('((P → Q) → (¬P ∨ Q))'),
     },
-];
+]);

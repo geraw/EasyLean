@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 3 (see blocks/moves.js): "and", "or" and "iff", in moves that read
 // like a proof written by hand. A move that
@@ -62,7 +62,7 @@ const prematureSideXml = `
 
 const CLOSE = '"המטרה בידינו, וזה מה שעלינו להראות."';
 
-export const unit3Levels = [
+export const unit3Levels = prepareLevels([
     {
         id: 'unit3-1',
         levelNumber: 1,
@@ -72,9 +72,7 @@ export const unit3Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(h : (P ∧ Q))',
         proposition: 'Q',
-        goalLabel: 'Q',
         objects: [],
-        assumptions: [{ name: 'h', prop: 'P ∧ Q' }],
         toolboxBlocks: ['and_elim', 'exact'],
         introduction: `# "וגם"
 
@@ -92,7 +90,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "מ־P ∧ Q נקבל P וגם Q. Q בידינו, וזה מה שעלינו להראות."
 כך משתמשים ב"וגם": מפרקים אותו לשני הצדדים, וכל צד הוא הנחה בפני עצמה.`,
-        startXml: goalXml('Q', '(P ∧ Q)'),
     },
     {
         id: 'unit3-2',
@@ -103,12 +100,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '(h1 : P) (h2 : Q)',
         proposition: '(P ∧ Q)',
-        goalLabel: '(P ∧ Q)',
         objects: [],
-        assumptions: [
-            { name: 'h1', prop: 'P' },
-            { name: 'h2', prop: 'Q' },
-        ],
         toolboxBlocks: ['and_intro', 'exact'],
         introduction: `# הוכחה בשני חלקים
 
@@ -129,7 +121,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `הוכחתם את P ואת Q כל אחד בחלק משלו, ולכן הוכחתם את "P וגם Q".
 בהוכחה כתובה: "נוכיח את שני החלקים של P ∧ Q. החלק הראשון: P בידינו, וזה מה שעלינו להראות. החלק השני: Q בידינו, וזה מה שעלינו להראות. הוכחנו את שני החלקים, ולכן P ∧ Q."`,
-        startXml: goalXml('(P ∧ Q)', 'P,  Q'),
     },
     {
         id: 'unit3-3',
@@ -140,9 +131,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((P ∧ Q) → (Q ∧ P))',
-        goalLabel: '((P ∧ Q) → (Q ∧ P))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'and_elim', 'and_intro', 'and_combine', 'exact'],
         introduction: `# מחליפים את הצדדים
 
@@ -163,7 +152,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `"וגם" לא תלוי בסדר: מ"P וגם Q" נובע "Q וגם P".
 בהוכחה השתמשתם ב"וגם" שבהנחה (פירקתם אותו) וגם הוכחתם "וגם" (בשני חלקים, או קדימה).`,
-        startXml: goalXml('((P ∧ Q) → (Q ∧ P))'),
     },
     {
         id: 'unit3-4',
@@ -174,9 +162,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '(h : P)',
         proposition: '(Q ∨ P)',
-        goalLabel: '(Q ∨ P)',
         objects: [],
-        assumptions: [{ name: 'h', prop: 'P' }],
         toolboxBlocks: ['or_by_negation', 'or_intro', 'exact'],
         introduction: `# "או"
 
@@ -197,7 +183,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         conclusion: `ההוכחה, כמו בהרצאה: "נניח ¬Q. עלינו להראות P, וזה בידינו. הוכחנו ¬Q → P, ולכן Q ∨ P." או בקיצור: "כדי להוכיח Q ∨ P נוכיח את P. P בידינו. לכן Q ∨ P."
 שימו לב איזה צד שוללים: אם הייתם שוללים את P, הייתם צריכים להוכיח את Q, שאין לנו שום דרך להוכיח.
 בכל שלב שמוכיחים בו "או" יש בארגז את שתי הדרכים.`,
-        startXml: goalXml('(Q ∨ P)', 'P'),
     },
     {
         id: 'unit3-5',
@@ -208,13 +193,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q R : Prop}',
         params: '(hpr : (P → R)) (hqr : (Q → R)) (h : (P ∨ Q))',
         proposition: 'R',
-        goalLabel: 'R',
         objects: [],
-        assumptions: [
-            { name: 'hpr', prop: 'P → R' },
-            { name: 'hqr', prop: 'Q → R' },
-            { name: 'h', prop: 'P ∨ Q' },
-        ],
         toolboxBlocks: ['or_elim', 'apply_rule', 'forward', 'exact'],
         introduction: `# חלוקה למקרים
 
@@ -237,7 +216,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `לא ידעתם איזה צד של "P או Q" נכון, ולכן הוכחתם את R בשני המקרים.
 זו הוכחה בחלוקה למקרים: כשמשתמשים ב"או", צריך לטפל בכל אחד מהצדדים שלו.`,
-        startXml: goalXml('R', '(P → R),  (Q → R),  (P ∨ Q)'),
     },
     {
         id: 'unit3-6',
@@ -248,9 +226,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((P ∨ Q) → (Q ∨ P))',
-        goalLabel: '((P ∨ Q) → (Q ∨ P))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'or_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# מתי בוחרים צד?
 
@@ -270,7 +246,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `כשמשתמשים ב"או" כדי להוכיח "או", בדרך כלל קודם מחלקים למקרים, ורק בתוך כל מקרה בוחרים צד:
 רק שם יודעים איזה צד אפשר להוכיח.`,
-        startXml: goalXml('((P ∨ Q) → (Q ∨ P))', 'אין הנחות פתיחה', prematureSideXml),
+        startProof: prematureSideXml,
     },
     {
         id: 'unit3-7',
@@ -281,12 +257,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '(h : (P ↔ Q)) (hq : Q)',
         proposition: 'P',
-        goalLabel: 'P',
         objects: [],
-        assumptions: [
-            { name: 'h', prop: 'P ↔ Q' },
-            { name: 'hq', prop: 'Q' },
-        ],
         toolboxBlocks: ['iff_elim', 'apply_rule', 'forward', 'exact'],
         introduction: `# "אם ורק אם"
 
@@ -305,7 +276,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `מ"P אם ורק אם Q" קיבלתם את שתי הגרירות, והשתמשתם ב־Q → P.
 "אם ורק אם" הוא בעצם שתי גרירות, ומשתמשים בכל אחת מהן כמו בכל גרירה.`,
-        startXml: goalXml('P', '(P ↔ Q),  Q'),
     },
     {
         id: 'unit3-8',
@@ -316,9 +286,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((P ∧ Q) ↔ (Q ∧ P))',
-        goalLabel: '((P ∧ Q) ↔ (Q ∧ P))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['iff_intro', 'assume', 'and_elim', 'and_intro', 'and_combine', 'exact'],
         introduction: `# תרגיל מסכם: שני כיוונים
 
@@ -338,7 +306,6 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         conclusion: `אתם יודעים להשתמש ב"וגם", ב"או" וב"אם ורק אם" שבהנחות, ולהוכיח כל אחד מהם:
 "וגם" בשני חלקים, "או" בבחירת צד (אחרי חלוקה למקרים, אם צריך), ו"אם ורק אם" בשני כיוונים.
 בשלב הבונוס תשלבו את כל הכללים בהוכחה אחת.`,
-        startXml: goalXml('((P ∧ Q) ↔ (Q ∧ P))'),
     },
     {
         id: 'unit3-9',
@@ -349,9 +316,7 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         variableLine: 'variable {P Q R : Prop}',
         params: '',
         proposition: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
-        goalLabel: '((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'and_elim', 'and_intro', 'and_combine', 'or_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# בונוס: פילוג
 
@@ -371,6 +336,5 @@ P הוא *צד שמאל* שלה, ו־Q הוא *צד ימין* שלה.
         ],
         conclusion: `סיימתם את יחידה 3, כולל שלב הבונוס! בהוכחה אחת השתמשתם ב"וגם" ובחלוקה למקרים,
 בחרתם צד של "או" בתוך כל מקרה, והוכחתם "וגם".`,
-        startXml: goalXml('((P ∧ (Q ∨ R)) → ((P ∧ Q) ∨ (P ∧ R)))'),
     },
-];
+]);

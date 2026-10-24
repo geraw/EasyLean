@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 8, the first of lesson 2 (see blocks/moves.js): sets of objects and
 // inclusion, in the order of the lecture (01-sets.md, "יחסים בין קבוצות" and
@@ -53,19 +53,17 @@ const level = (number, fields) => ({
     variableLine: SETS,
     params: '',
     objects: [],
-    assumptions: [],
     newTacticsBlocks: [],
     newTacticsInfo: [],
     newDefinitions: [],
     ...fields,
 });
 
-export const unit8Levels = [
+export const unit8Levels = prepareLevels([
     level(1, {
         title: 'כל קבוצה מוכלת בעצמה',
         name: 'unit8_l1_subset_refl',
         proposition: 'A ⊆ A',
-        goalLabel: 'A ⊆ A',
         toolboxBlocks: ['subset_intro', 'exact'],
         introduction: `# קבוצות והכלה
 
@@ -84,16 +82,13 @@ export const unit8Levels = [
         ],
         conclusion: `ההוכחה מההרצאה: "יהי x איבר כלשהו, ונניח ש־x ∈ A. מההנחה נובע ישירות ש־x ∈ A. לכן A ⊆ A."
 בשמו של האיבר אין צורך באינדקס: הוא הראשון שנקרא x. אם כבר יש בידינו x, האיבר החדש נקרא x₀.`,
-        startXml: goalXml('A ⊆ A'),
     }),
     level(2, {
         title: 'משתמשים בהכלה',
         name: 'unit8_l2_subset_elim',
         params: '(x : obj) (h : A ⊆ B) (hx : x ∈ A)',
         proposition: 'x ∈ B',
-        goalLabel: 'x ∈ B',
         objects: [{ name: 'x', type: 'obj' }],
-        assumptions: [{ name: 'h', prop: 'A ⊆ B' }, { name: 'hx', prop: 'x ∈ A' }],
         toolboxBlocks: ['subset_elim', 'exact'],
         introduction: `# משתמשים בהכלה
 
@@ -107,13 +102,11 @@ export const unit8Levels = [
             `x ∈ B בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: 'מההכלה ומהשייכות ל־A הסקתם את השייכות ל־B: מה שנכון לכל איבר של A נכון גם ל־x. זו הצבה בטענת "לכל" שבהגדרת ההכלה.',
-        startXml: goalXml('x ∈ B', 'A ⊆ B,  x ∈ A'),
     }),
     level(3, {
         title: 'טרנזיטיביות ההכלה',
         name: 'unit8_l3_subset_trans',
         proposition: '(A ⊆ B ∧ B ⊆ C) → A ⊆ C',
-        goalLabel: '((A ⊆ B ∧ B ⊆ C) → A ⊆ C)',
         toolboxBlocks: ['assume', 'and_elim', 'subset_intro', 'subset_elim', 'exact'],
         introduction: `# טרנזיטיביות ההכלה
 
@@ -127,13 +120,11 @@ export const unit8Levels = [
             `x ∈ C בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: 'ההוכחה, כמו בהרצאה: "נניח A ⊆ B וגם B ⊆ C. יהי x ∈ A. מהנתון A ⊆ B נובע כי x ∈ B. מהנתון B ⊆ C נובע כי x ∈ C. הראינו שאם x ∈ A אז x ∈ C, ולכן A ⊆ C."',
-        startXml: goalXml('((A ⊆ B ∧ B ⊆ C) → A ⊆ C)'),
     }),
     level(4, {
         title: 'שלילת יחס ההכלה',
         name: 'unit8_l4_not_subset',
         proposition: '¬(A ⊆ B) → ∃ x, x ∈ A ∧ ¬x ∈ B',
-        goalLabel: '(¬(A ⊆ B) → ∃x (x ∈ A ∧ ¬x ∈ B))',
         toolboxBlocks: ['assume', 'by_contradiction', 'not_elim', 'subset_intro', 'exists_intro', 'and_intro', 'exact'],
         introduction: `# שלילת יחס ההכלה
 
@@ -149,13 +140,11 @@ export const unit8Levels = [
         ],
         conclusion: `הוכחתם שמ־A ⊈ B נובע שקיים איבר ב־A שאינו ב־B. הכיוון השני קל יותר: איבר כזה מראה שלא כל איבר של A שייך ל־B.
 זו השקילות של ההרצאה, ¬∀x (x ∈ A → x ∈ B) ⟺ ∃x (x ∈ A ∧ x ∉ B): שלילת "לכל" ושלילת גרירה, שתיהן מיחידה 6.`,
-        startXml: goalXml('(¬(A ⊆ B) → ∃x (x ∈ A ∧ ¬x ∈ B))'),
     }),
     level(5, {
         title: 'שוויון והכלה הדדית',
         name: 'unit8_l5_set_eq',
         proposition: '(A ⊆ B ∧ B ⊆ A) → A = B',
-        goalLabel: '((A ⊆ B ∧ B ⊆ A) → A = B)',
         toolboxBlocks: ['assume', 'and_elim', 'set_eq', 'exact'],
         introduction: `# שוויון והכלה הדדית
 
@@ -172,13 +161,11 @@ export const unit8Levels = [
             `בכל חלק, ההכלה כבר בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: 'מעכשיו, כדי להוכיח ששתי קבוצות שוות, מוכיחים שתי הכלות: יהי x באגף שמאל ונוכיח שהוא באגף ימין, ולהפך. זו התבנית של כל הוכחות השוויון ביחידות הבאות.',
-        startXml: goalXml('((A ⊆ B ∧ B ⊆ A) → A = B)'),
     }),
     level(6, {
         title: 'הקבוצה הריקה',
         name: 'unit8_l6_empty_subset',
         proposition: '∅ ⊆ A',
-        goalLabel: '∅ ⊆ A',
         toolboxBlocks: ['subset_intro', 'unfold', 'exfalso', 'exact'],
         introduction: `# הקבוצה הריקה
 
@@ -196,6 +183,5 @@ export const unit8Levels = [
         ],
         conclusion: `סיימתם את יחידה 8! ∅ ⊆ A לכל קבוצה A, כי אין ב־∅ איבר שיכול להפריך את ההכלה.
 בהרצאה הוכחנו את זה בשלילה: אם ∅ ⊈ A, יש איבר x ∈ ∅, וזו סתירה. כאן הסתירה הופיעה ישר מההגדרה. מזה נובע גם שיש רק קבוצה ריקה אחת: שתי קבוצות ריקות מוכלות זו בזו, ולכן שוות.`,
-        startXml: goalXml('∅ ⊆ A'),
     }),
-];
+]);

@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 2 (see blocks/moves.js): the proof screen, in its first level, and
 // then implication, proved by assuming its condition and used forward or
@@ -29,7 +29,7 @@ const forwardInfo = {
 
 const ALL_MOVES = ['assume', 'apply_rule', 'forward', 'exact'];
 
-export const unit2Levels = [
+export const unit2Levels = prepareLevels([
     {
         id: 'unit2-1',
         levelNumber: 1,
@@ -39,9 +39,7 @@ export const unit2Levels = [
         variableLine: 'variable {P : Prop}',
         params: '(h : P)',
         proposition: 'P',
-        goalLabel: 'P',
         objects: [],
-        assumptions: [{ name: 'h', prop: 'P' }],
         toolboxBlocks: ['exact'],
         introduction: `# מסך ההוכחות
 
@@ -63,7 +61,6 @@ export const unit2Levels = [
         conclusion: `ההנחה P אמרה בדיוק את המטרה, ולכן ההוכחה הושלמה. כשהבלוק במקומו, כתוב בו מה שהייתם כותבים בהוכחה ביד: "P בידינו, וזה מה שעלינו להראות."
 לחיצה על בלוק של מהלך מאפשרת לבחור במצב ההוכחה "לפני המהלך" או "אחרי המהלך": לפני המהלך נשאר להוכיח את P, ואחריו לא נשאר דבר להוכיח.
 עכשיו אתם מכירים את חלקי המסך. מהשלב הבא נלמד להוכיח גרירות.`,
-        startXml: goalXml('P', 'P'),
     },
     {
         id: 'unit2-2',
@@ -74,9 +71,7 @@ export const unit2Levels = [
         variableLine: 'variable {P : Prop}',
         params: '',
         proposition: 'P → P',
-        goalLabel: 'P → P',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ['assume', 'exact'],
         introduction: `# מתחילים מהנחה
 
@@ -103,7 +98,6 @@ export const unit2Levels = [
         ],
         conclusion: `ההוכחה שבניתם, כמו שכותבים אותה ביד: "נניח P. עלינו להראות P. P בידינו, וזה מה שעלינו להראות. לכן P → P."
 הנחתם את התנאי של הגרירה, ונשארתם עם המסקנה שלה כמטרה. זהו המבנה הבסיסי של הוכחת גרירה.`,
-        startXml: goalXml('P → P'),
     },
     {
         id: 'unit2-3',
@@ -114,12 +108,7 @@ export const unit2Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '(h1 : (P → Q)) (h : P)',
         proposition: 'Q',
-        goalLabel: 'Q',
         objects: [],
-        assumptions: [
-            { name: 'h1', prop: 'P → Q' },
-            { name: 'h', prop: 'P' },
-        ],
         toolboxBlocks: ['apply_rule', 'exact'],
         introduction: `# שימוש בגרירה שבידינו
 
@@ -148,7 +137,7 @@ export const unit2Levels = [
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "לפי P → Q כדי להוכיח Q די להוכיח P. P בידינו, וזה מה שעלינו להראות."
 כך משתמשים בגרירה שבידינו: מהמסקנה שלה חוזרים לתנאי שלה.`,
         // Starts by closing too early on purpose, so the first error is planned and explained.
-        startXml: goalXml('Q', '(P → Q),  P', '<block type="exact"></block>'),
+        startProof: '<block type="exact"></block>',
     },
     {
         id: 'unit2-4',
@@ -159,13 +148,7 @@ export const unit2Levels = [
         variableLine: 'variable {P Q R : Prop}',
         params: '(h1 : (P → Q)) (h2 : (Q → R)) (hp : P)',
         proposition: 'R',
-        goalLabel: 'R',
         objects: [],
-        assumptions: [
-            { name: 'h1', prop: 'P → Q' },
-            { name: 'h2', prop: 'Q → R' },
-            { name: 'hp', prop: 'P' },
-        ],
         toolboxBlocks: ['forward', 'exact'],
         introduction: `# מסיקים קדימה
 
@@ -186,7 +169,6 @@ export const unit2Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "מ־P → Q ומ־P נקבל Q. מ־Q → R ומ־Q נקבל R. R בידינו, וזה מה שעלינו להראות."
 הלכתם קדימה מההנחות עד שהגעתם למטרה. את אותה הוכחה אפשר לבנות גם אחורה, מהמטרה, כמו בשלב 3.`,
-        startXml: goalXml('R', '(P → Q),  (Q → R),  P'),
     },
     {
         id: 'unit2-5',
@@ -197,9 +179,7 @@ export const unit2Levels = [
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '(P → ((P → Q) → Q))',
-        goalLabel: '(P → ((P → Q) → Q))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ALL_MOVES,
         introduction: `# קוראים את המטרה לפי הסדר
 
@@ -219,7 +199,6 @@ export const unit2Levels = [
         ],
         conclusion: `ההוכחה, כמו שכותבים אותה ביד: "נניח P. עלינו להראות (P → Q) → Q. נניח P → Q. עלינו להראות Q. לפי P → Q כדי להוכיח Q די להוכיח P. P בידינו, וזה מה שעלינו להראות. לכן (P → Q) → Q. לכן P → ((P → Q) → Q)."
 הוכחה טובה עוקבת אחר מבנה המטרה: מניחים את התנאים של הגרירות לפי הסדר, ואז משתמשים בהנחות.`,
-        startXml: goalXml('(P → ((P → Q) → Q))'),
     },
     {
         id: 'unit2-6',
@@ -230,9 +209,7 @@ export const unit2Levels = [
         variableLine: 'variable {P Q R : Prop}',
         params: '',
         proposition: '((P → Q) → ((Q → R) → (P → R)))',
-        goalLabel: '((P → Q) → ((Q → R) → (P → R)))',
         objects: [],
-        assumptions: [],
         toolboxBlocks: ALL_MOVES,
         introduction: `# תרגיל מסכם
 
@@ -253,6 +230,5 @@ export const unit2Levels = [
         conclusion: `סיימתם את יחידה 2. אתם יודעים להוכיח גרירה ("נניח P. עלינו להראות Q. … לכן P → Q."),
 להשתמש בגרירה שבידינו אחורה ("די להוכיח את התנאי שלה") וקדימה ("נקבל את המסקנה שלה"),
 ולסיים לפי הנחה שאומרת בדיוק את המטרה ("וזה מה שעלינו להראות").`,
-        startXml: goalXml('((P → Q) → ((Q → R) → (P → R)))'),
     },
-];
+]);

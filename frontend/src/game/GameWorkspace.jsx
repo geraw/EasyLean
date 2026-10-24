@@ -11,6 +11,7 @@ import { findLeanProblem, GENERIC_PROBLEM, INCOMPLETE_MOVE } from './leanErrors'
 import { goalLabel, openGoals } from './proofState';
 import { isolateFormulas } from './bidi';
 import { renderMarkdownLite } from './markdownLite';
+import { shownAssumptions } from './levelXml';
 import SuccessCelebration from './SuccessCelebration';
 import { BACKEND_URL } from '../backendUrl';
 import { proofOutline } from '../feedback/proofOutline';
@@ -49,20 +50,6 @@ Blockly.Toolbox.prototype.updateFlyout_ = function (oldItem, newItem) {
 
 defineGameBlocks();
 defineMoveBlocks();
-
-// The opening assumptions on a level's card: as the level lists them, or,
-// when it does not, read from its Lean parameters, the hypotheses (h…) among
-// them, as the proof state shows them.
-const cardAssumptions = (level) => {
-    if (level.assumptions?.length) return level.assumptions.map((a) => a.prop);
-    const groups = [];
-    for (let index = 0, depth = 0, start = -1; index < (level.params || '').length; index += 1) {
-        const char = level.params[index];
-        if (char === '(') { if (depth === 0) start = index; depth += 1; }
-        if (char === ')') { depth -= 1; if (depth === 0) groups.push(level.params.slice(start + 1, index)); }
-    }
-    return groups.map((group) => group.match(/^\s*(h\w*)\s*:\s*([\s\S]+)$/)).filter(Boolean).map(([, , prop]) => formatProofGoal(prop.trim()));
-};
 
 const GameWorkspace = ({
     levels,
@@ -665,7 +652,7 @@ const GameWorkspace = ({
                                 <div key={o.name} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{o.name}</div>
                             ))}
                             <h4 style={{ margin: '10px 0 6px 0' }}>הנחות</h4>
-                            {cardAssumptions(level).map((prop) => (
+                            {shownAssumptions(level).map((prop) => (
                                 <div key={prop} style={{ direction: 'ltr', textAlign: 'right', fontFamily: "'EasyLean Big Operators', monospace" }}>{prop}</div>
                             ))}
                             <h4 style={{ margin: '10px 0 6px 0' }}>מטרה</h4>

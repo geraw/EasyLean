@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 9 (see blocks/moves.js): the operations on sets, in the order of the
 // lecture (01-sets.md, "פעולות על קבוצות" and "הפרש סימטרי"): its basic claims
@@ -46,19 +46,17 @@ const level = (number, fields) => ({
     variableLine: SETS,
     params: '',
     objects: [],
-    assumptions: [],
     newTacticsBlocks: [],
     newTacticsInfo: [],
     newDefinitions: [],
     ...fields,
 });
 
-export const unit9Levels = [
+export const unit9Levels = prepareLevels([
     level(1, {
         title: 'איחוד: A ⊆ A ∪ B',
         name: 'unit9_l1_subset_union',
         proposition: 'A ⊆ A ∪ B',
-        goalLabel: 'A ⊆ A ∪ B',
         toolboxBlocks: ['subset_intro', 'unfold', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# פעולות על קבוצות: איחוד
 
@@ -73,13 +71,11 @@ export const unit9Levels = [
             `הוסיפו את הבלוק ${OR_INTRO_BLOCK}, ובחרו בו x ∈ A. היא בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: 'ההוכחה, כמו בהרצאה: "יהי x ∈ A. אז x ∈ A ∨ x ∈ B, כלומר x ∈ A ∪ B." כאן ידוע איזה צד של ה"או" נכון, ולכן מספיק לבחור אותו.',
-        startXml: goalXml('A ⊆ A ∪ B'),
     }),
     level(2, {
         title: 'חיתוך: A ∩ B ⊆ A',
         name: 'unit9_l2_inter_subset',
         proposition: 'A ∩ B ⊆ A',
-        goalLabel: 'A ∩ B ⊆ A',
         toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'exact'],
         introduction: `# חיתוך
 
@@ -93,14 +89,12 @@ export const unit9Levels = [
             `הוסיפו את הבלוק ${AND_ELIM_BLOCK}, ובחרו בו x ∈ A ∧ x ∈ B. עכשיו x ∈ A בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: 'ההוכחה, כמו בהרצאה: "יהי x ∈ A ∩ B. אז x ∈ A ∧ x ∈ B, ובפרט x ∈ A."',
-        startXml: goalXml('A ∩ B ⊆ A'),
     }),
     level(3, {
         title: 'הכלה בחיתוך',
         name: 'unit9_l3_subset_inter_iff',
         variableLine: 'variable {obj : Type} {A B X : Set obj}',
         proposition: 'X ⊆ A ∩ B ↔ X ⊆ A ∧ X ⊆ B',
-        goalLabel: '(X ⊆ A ∩ B ↔ (X ⊆ A ∧ X ⊆ B))',
         toolboxBlocks: ['iff_intro', 'assume', 'and_intro', 'and_elim', 'subset_intro', 'subset_elim', 'unfold', 'exact'],
         introduction: `# הכלה בחיתוך
 
@@ -116,13 +110,11 @@ export const unit9Levels = [
             `פתחו את הגדרת החיתוך במטרה x ∈ (A ∩ B), ו־${AND_INTRO_BLOCK}: בכל חלק, ${SUBSET_ELIM_BLOCK} עם ההכלה המתאימה ועם x ∈ X.`,
         ],
         conclusion: 'הוכחתם את שני הכיוונים, כמו בהרצאה. בכיוון ⇐ זו ההוכחה מהשקף: "יהי x ∈ X. אז x ∈ A (כי X ⊆ A) וגם x ∈ B (כי X ⊆ B). לכן x ∈ A ∩ B, ומכאן X ⊆ A ∩ B."',
-        startXml: goalXml('(X ⊆ A ∩ B ↔ (X ⊆ A ∧ X ⊆ B))'),
     }),
     level(4, {
         title: 'חוק החילוף',
         name: 'unit9_l4_inter_comm',
         proposition: 'A ∩ B = B ∩ A',
-        goalLabel: 'A ∩ B = B ∩ A',
         toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'and_combine', 'exact'],
         introduction: `# חוק החילוף
 
@@ -137,13 +129,11 @@ export const unit9Levels = [
             'או קדימה, במקום להוכיח את ה"וגם" בשני חלקים: מ־x ∈ B ומ־x ∈ A נקבל (x ∈ B ∧ x ∈ A), וזו המטרה.',
         ],
         conclusion: 'שתי ההכלות הוכחו, ולכן A ∩ B = B ∩ A. אחרי פתיחת ההגדרות, זה חוק החילוף של "וגם".',
-        startXml: goalXml('A ∩ B = B ∩ A'),
     }),
     level(5, {
         title: 'חוק הפילוג',
         name: 'unit9_l5_distrib',
         proposition: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
-        goalLabel: 'A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)',
         toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'or_elim', 'or_by_negation', 'or_intro', 'and_intro', 'exact'],
         introduction: `# חוק הפילוג
 
@@ -157,13 +147,11 @@ export const unit9Levels = [
             'המקרה השני דומה, עם x ∈ (A ∩ C).',
         ],
         conclusion: 'ההוכחה: "יהי x ∈ A ∩ (B ∪ C), כלומר x ∈ A, ו־x ∈ B או x ∈ C. במקרה ש־x ∈ B, x ∈ A ∩ B; במקרה ש־x ∈ C, x ∈ A ∩ C." אחרי פתיחת ההגדרות, זה חוק הפילוג של "וגם" על "או". גם ההכלה ההפוכה נכונה, ולכן הקבוצות שוות.',
-        startXml: goalXml('A ∩ (B ∪ C) ⊆ (A ∩ B) ∪ (A ∩ C)'),
     }),
     level(6, {
         title: 'איך מוכיחים שקבוצה ריקה',
         name: 'unit9_l6_diff_empty',
         proposition: '(A ⊆ B) → A \\ B = ∅',
-        goalLabel: '((A ⊆ B) → A \\ B = ∅)',
         toolboxBlocks: ['assume', 'set_eq', 'subset_intro', 'unfold', 'and_elim', 'subset_elim', 'contradiction', 'exfalso', 'exact'],
         introduction: `# איך מוכיחים שקבוצה ריקה
 
@@ -180,13 +168,11 @@ export const unit9Levels = [
             `בחלק השני, כמו ביחידה 8: יהי x ∈ ∅, פתחו את ההגדרה, ${EXFALSO_BLOCK}, והסתירה בידינו.`,
         ],
         conclusion: 'הוכחתם שאין איבר ב־A \\ B: כל איבר כזה מוביל לסתירה. גם הכיוון ⇒ נכון: אם A \\ B = ∅, איבר של A שאינו ב־B היה איבר של A \\ B, וזו סתירה.',
-        startXml: goalXml('((A ⊆ B) → A \\ B = ∅)'),
     }),
     level(7, {
         title: 'טבלת המצבים',
         name: 'unit9_l7_cases_table',
         proposition: 'A \\ C ⊆ (A \\ B) ∪ (B \\ C)',
-        goalLabel: 'A \\ C ⊆ (A \\ B) ∪ (B \\ C)',
         claims: ['x ∈ B'],
         toolboxBlocks: ['subset_intro', 'unfold', 'and_elim', 'em_cases', 'or_by_negation', 'or_intro', 'and_intro', 'exact'],
         introduction: `# טבלת המצבים
@@ -201,13 +187,11 @@ export const unit9Levels = [
             `במקרה 2, ¬x ∈ B: בחרו להוכיח x ∈ (A \\ B), פתחו את ההגדרה, והוכיחו את ה"וגם" בשני חלקים.`,
         ],
         conclusion: 'בכל אחד משני המקרים x שייך לאגף ימין. אלה שורות הטבלה שבהן x ∈ A ו־x ∉ C: שורה עם x ∈ B ושורה עם x ∉ B. בשאר השורות x לא שייך לאגף שמאל, ואין מה לבדוק.',
-        startXml: goalXml('A \\ C ⊆ (A \\ B) ∪ (B \\ C)'),
     }),
     level(8, {
         title: 'הפרש סימטרי',
         name: 'unit9_l8_symmetric_difference',
         proposition: 'A ∆ B = (A \\ B) ∪ (B \\ A)',
-        goalLabel: 'A ∆ B = (A \\ B) ∪ (B \\ A)',
         toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'or_elim', 'or_by_negation', 'or_intro', 'and_elim', 'and_combine', 'exact'],
         introduction: `# הפרש סימטרי
 
@@ -224,13 +208,11 @@ export const unit9Levels = [
         ],
         conclusion: `A ∆ B = (A \\ B) ∪ (B \\ A), כמו בהרצאה: "x ∈ A ∆ B ⟺ (x ∈ A ∧ x ∉ B) ∨ (x ∉ A ∧ x ∈ B) ⟺ x ∈ (A \\ B) ∨ x ∈ (B \\ A)".
 בהרצאה הוכחנו גם ש־A ∆ B = (A ∪ B) \\ (A ∩ B), ולכן לשלוש ההגדרות אותה משמעות, ואפשר להשתמש בכל אחת מהן לפי הנוחות.`,
-        startXml: goalXml('A ∆ B = (A \\ B) ∪ (B \\ A)'),
     }),
     level(9, {
         title: 'שלב בונוס: כלל דה מורגן',
         name: 'unit9_l9_de_morgan',
         proposition: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',
-        goalLabel: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',
         claims: ['x ∈ B'],
         toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'em_cases', 'or_by_negation', 'or_intro', 'or_elim', 'not_intro', 'not_elim', 'contradiction', 'exact'],
         introduction: `# בונוס: כלל דה מורגן
@@ -248,6 +230,5 @@ export const unit9Levels = [
         ],
         conclusion: `סיימתם את יחידה 9, כולל שלב הבונוס! אחרי פתיחת ההגדרות, כל הוכחה על פעולות בקבוצות היא הוכחה לוגית מוכרת: ∪ הוא "או", ∩ הוא "וגם", ו־\\ הוא "וגם לא".
 הכלל השני של דה מורגן, A \\ (B ∪ C) = (A \\ B) ∩ (A \\ C), מוכח באותה דרך.`,
-        startXml: goalXml('A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)'),
     }),
-];
+]);

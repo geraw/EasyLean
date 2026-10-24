@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 10 (see blocks/moves.js): sets of sets, in the order of the lecture
 // (01-sets.md, "קבוצת החזקה" and "פעולות אונריות"): the power set, the claims
@@ -52,19 +52,17 @@ const level = (number, fields) => ({
     variableLine: SETS,
     params: '',
     objects: [],
-    assumptions: [],
     newTacticsBlocks: [],
     newTacticsInfo: [],
     newDefinitions: [],
     ...fields,
 });
 
-export const unit10Levels = [
+export const unit10Levels = prepareLevels([
     level(1, {
         title: 'קבוצת החזקה',
         name: 'unit10_l1_self_mem_powerset',
         proposition: 'A ∈ 𝒫 A',
-        goalLabel: 'A ∈ 𝒫(A)',
         toolboxBlocks: ['unfold', 'subset_intro', 'exact'],
         introduction: `# קבוצת החזקה
 
@@ -79,13 +77,11 @@ export const unit10Levels = [
             `הוסיפו את הבלוק ${SUBSET_INTRO_BLOCK}: יהי x ∈ A, והוא בידינו.`,
         ],
         conclusion: 'כל קבוצה היא איבר של קבוצת החזקה שלה, כי היא תת־קבוצה של עצמה. בהמשך תשתמשו בזה כטענת עזר.',
-        startXml: goalXml('A ∈ 𝒫(A)'),
     }),
     level(2, {
         title: 'הקבוצה הריקה בקבוצת החזקה',
         name: 'unit10_l2_empty_mem_powerset',
         proposition: '∅ ∈ 𝒫 A',
-        goalLabel: '∅ ∈ 𝒫(A)',
         toolboxBlocks: ['unfold', 'subset_intro', 'exfalso', 'exact'],
         introduction: `# הקבוצה הריקה בקבוצת החזקה
 
@@ -98,13 +94,11 @@ export const unit10Levels = [
             `הוסיפו את הבלוק ${EXFALSO_BLOCK}. הסתירה כבר בידינו: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: '∅ ∈ 𝒫(A) לכל קבוצה A: קבוצת החזקה אף פעם אינה ריקה. לכן גם בדוגמאות של ההרצאה, ∅ היא תמיד אחד האיברים.',
-        startXml: goalXml('∅ ∈ 𝒫(A)'),
     }),
     level(3, {
         title: 'אם A ⊆ B אז 𝒫(A) ⊆ 𝒫(B)',
         name: 'unit10_l3_powerset_mono',
         proposition: '(A ⊆ B) → (𝒫 A ⊆ 𝒫 B)',
-        goalLabel: '((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))',
         toolboxBlocks: ['assume', 'subset_intro', 'unfold', 'subset_elim', 'exact'],
         introduction: `# אם A ⊆ B אז 𝒫(A) ⊆ 𝒫(B)
 
@@ -118,13 +112,11 @@ export const unit10Levels = [
             `שוב ${SUBSET_INTRO_BLOCK}: יהי x ∈ X. אחר כך ${SUBSET_ELIM_BLOCK} עם X ⊆ A ועם x ∈ X, ואחריו עוד אחד עם A ⊆ B ועם x ∈ A.`,
         ],
         conclusion: 'האיברים של 𝒫(A) הם קבוצות, ולכן לקחתם *קבוצה* X ∈ 𝒫(A), ובתוכה איבר x ∈ X. אותה תבנית הכלה, ברמה אחת מעל.',
-        startXml: goalXml('((A ⊆ B) → (𝒫(A) ⊆ 𝒫(B)))'),
     }),
     level(4, {
         title: 'הכיוון השני: טענת עזר',
         name: 'unit10_l4_powerset_mono_back',
         proposition: '(𝒫 A ⊆ 𝒫 B) → (A ⊆ B)',
-        goalLabel: '(𝒫(A) ⊆ 𝒫(B) → A ⊆ B)',
         claims: ['A ∈ 𝒫 A', 'B ∈ 𝒫 B', 'A ∈ 𝒫 B'],
         toolboxBlocks: ['assume', 'claim', 'unfold', 'subset_intro', 'subset_elim', 'exact'],
         newTacticsBlocks: ['claim'],
@@ -144,13 +136,11 @@ export const unit10Levels = [
         ],
         conclusion: `יחד עם השלב הקודם: A ⊆ B אם ורק אם 𝒫(A) ⊆ 𝒫(B). ומכאן, כמו בהרצאה, גם A = B אם ורק אם 𝒫(A) = 𝒫(B): שוויון הוא הכלה בשני הכיוונים.
 טענת העזר A ∈ 𝒫(A) היא הרעיון של ההוכחה, ולכן כותבים אותה במפורש.`,
-        startXml: goalXml('(𝒫(A) ⊆ 𝒫(B) → A ⊆ B)'),
     }),
     level(5, {
         title: '𝒫(A ∩ B) = 𝒫(A) ∩ 𝒫(B)',
         name: 'unit10_l5_powerset_inter',
         proposition: '𝒫 (A ∩ B) = 𝒫 A ∩ 𝒫 B',
-        goalLabel: '𝒫(A ∩ B) = 𝒫(A) ∩ 𝒫(B)',
         toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'subset_elim', 'exact'],
         introduction: `# 𝒫(A ∩ B) = 𝒫(A) ∩ 𝒫(B)
 
@@ -166,13 +156,11 @@ export const unit10Levels = [
             `בחלק השני: ${AND_ELIM_BLOCK}, ופתחו את הגדרת קבוצת החזקה בשני החלקים: X ⊆ A ו־X ⊆ B. במטרה X ⊆ A ∩ B: יהי x ∈ X, פתחו את הגדרת החיתוך, ובכל חלק ${SUBSET_ELIM_BLOCK} עם ההכלה המתאימה.`,
         ],
         conclusion: 'הוכחתם הכלה בשני הכיוונים, ולכן 𝒫(A ∩ B) = 𝒫(A) ∩ 𝒫(B): תת־קבוצה של החיתוך היא תת־קבוצה של כל אחת מהשתיים, ולהפך.',
-        startXml: goalXml('𝒫(A ∩ B) = 𝒫(A) ∩ 𝒫(B)'),
     }),
     level(6, {
         title: 'ומה עם האיחוד?',
         name: 'unit10_l6_powerset_union',
         proposition: '𝒫 A ∪ 𝒫 B ⊆ 𝒫 (A ∪ B)',
-        goalLabel: '𝒫(A) ∪ 𝒫(B) ⊆ 𝒫(A ∪ B)',
         toolboxBlocks: ['subset_intro', 'unfold', 'or_elim', 'subset_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# ומה עם האיחוד?
 
@@ -187,7 +175,6 @@ export const unit10Levels = [
             'במקרה 2 אותו דבר, עם B.',
         ],
         conclusion: 'בכל מקרה X ∈ 𝒫(A ∪ B). ההכלה ההפוכה נכונה רק כש־A ⊆ B או B ⊆ A: בלי זה, קבוצה עם איבר מ־A ואיבר מ־B שייכת ל־𝒫(A ∪ B), אבל לא ל־𝒫(A) ולא ל־𝒫(B).',
-        startXml: goalXml('𝒫(A) ∪ 𝒫(B) ⊆ 𝒫(A ∪ B)'),
     }),
     level(7, {
         title: 'חיתוך אונרי',
@@ -195,8 +182,6 @@ export const unit10Levels = [
         variableLine: SET_OF_SETS,
         params: '(hA : A ∈ X)',
         proposition: '⋂ X ⊆ A',
-        goalLabel: '⋂X ⊆ A',
-        assumptions: [{ name: 'hA', prop: 'A ∈ X' }],
         toolboxBlocks: ['subset_intro', 'unfold', 'forall_elim', 'forward', 'apply_rule', 'exact'],
         introduction: `# חיתוך אונרי
 
@@ -213,7 +198,6 @@ export const unit10Levels = [
             'או אחורה: לפי הגרירה A ∈ X → x ∈ A, כדי להוכיח x ∈ A די להוכיח A ∈ X, וזה בידינו.',
         ],
         conclusion: 'חיתוך אונרי הוא טענת "לכל", ולכן משתמשים בו בהצבה: את הקבוצה *אנחנו בוחרים*, כאן A. זכרו מההרצאה: ⋂ הולך עם "לכל".',
-        startXml: goalXml('⋂X ⊆ A', 'A ∈ X'),
     }),
     level(8, {
         title: 'איחוד אונרי',
@@ -221,8 +205,6 @@ export const unit10Levels = [
         variableLine: SET_OF_SETS,
         params: '(hA : A ∈ X)',
         proposition: 'A ⊆ ⋃ X',
-        goalLabel: 'A ⊆ ⋃X',
-        assumptions: [{ name: 'hA', prop: 'A ∈ X' }],
         toolboxBlocks: ['subset_intro', 'unfold', 'exists_intro', 'and_intro', 'exact'],
         introduction: `# איחוד אונרי
 
@@ -238,13 +220,11 @@ export const unit10Levels = [
             `${AND_INTRO_BLOCK}: בכל חלק, מה שמוכיחים כבר בידינו.`,
         ],
         conclusion: 'איחוד אונרי הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: קבוצה מ־X שהאיבר שייך אליה. ⋃ הולך עם "קיים". יחד עם השלב הקודם: ⋂X ⊆ A ⊆ ⋃X.',
-        startXml: goalXml('A ⊆ ⋃X', 'A ∈ X'),
     }),
     level(9, {
         title: 'שלב בונוס: איחוד אונרי של קבוצת החזקה',
         name: 'unit10_l9_sunion_powerset',
         proposition: '⋃ (𝒫 A) = A',
-        goalLabel: '⋃𝒫(A) = A',
         toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'exists_elim', 'and_elim', 'subset_elim', 'exists_intro', 'and_intro', 'exact'],
         introduction: `# בונוס: איחוד אונרי של קבוצת החזקה
 
@@ -260,6 +240,5 @@ export const unit10Levels = [
         ],
         conclusion: `סיימתם את יחידה 10, כולל שלב הבונוס, ואת כל השיעור השני! בחלק הראשון השתמשתם ב"קיים" (נתתם שם לקבוצה), ובחלק השני הוכחתם "קיים" (בחרתם עד).
 בהרצאה: "שתי הנחות שייכות לאיחוד נותנות שני עדים, ונותנים להם שמות שונים". לכן שמות כמו S₀ ו־S₁.`,
-        startXml: goalXml('⋃𝒫(A) = A'),
     }),
-];
+]);

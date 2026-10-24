@@ -1,4 +1,4 @@
-import { goalXml } from './levelXml';
+import { prepareLevels } from './levelXml';
 
 // Unit 6 (see blocks/moves.js): logical equivalences, as the replacement
 // rules of Copi and Hurley. The laws of the connectives were proved in the
@@ -47,20 +47,18 @@ const level = (number, fields) => ({
     variableLine: PROPOSITIONS,
     params: '',
     objects: [],
-    assumptions: [],
     newTacticsBlocks: [],
     newTacticsInfo: [],
     newDefinitions: [],
     ...fields,
 });
 
-export const unit6Levels = [
+export const unit6Levels = prepareLevels([
     level(1, {
         title: 'משלימים את השלילה של "קיים"',
         name: 'unit6_l1_not_exists_back',
         variableLine: DOMAIN,
         proposition: '(∀ x, ¬P x) → ¬∃ x, P x',
-        goalLabel: '((∀x (¬P(x))) → ¬∃x (P(x)))',
         toolboxBlocks: ['assume', 'not_intro', 'exists_elim', 'forall_elim', 'contradiction'],
         introduction: `# שקילויות בהוכחות
 
@@ -75,14 +73,12 @@ export const unit6Levels = [
             `ב־∀x (¬P(x)) נציב x = x₀, ונקבל ¬P(x₀). אחר כך ${CONTRADICTION_BLOCK}, עם P(x₀).`,
         ],
         conclusion: 'עכשיו ¬∃x (P(x)) ↔ ∀x (¬P(x)) היא שקילות: "לא קיים" פירושו "לכל ... לא".',
-        startXml: goalXml('((∀x (¬P(x))) → ¬∃x (P(x)))'),
     }),
     level(2, {
         title: 'משלימים את השלילה של "לכל"',
         name: 'unit6_l2_not_forall_back',
         variableLine: DOMAIN,
         proposition: '(∃ x, ¬P x) → ¬∀ x, P x',
-        goalLabel: '((∃x (¬P(x))) → ¬∀x (P(x)))',
         toolboxBlocks: ['assume', 'not_intro', 'exists_elim', 'forall_elim', 'contradiction'],
         introduction: `# משלימים את השלילה של "לכל"
 
@@ -94,14 +90,12 @@ export const unit6Levels = [
         ],
         conclusion: `עכשיו ¬∀x (P(x)) ↔ ∃x (¬P(x)) היא שקילות: "לא לכל" פירושו "קיים ... לא".
 עכשיו גם השקילויות של הכמתים הוכחו בשני הכיוונים, ומהשלב הבא משתמשים בהן, יחד עם השקילויות מהטבלאות.`,
-        startXml: goalXml('((∃x (¬P(x))) → ¬∀x (P(x)))'),
     }),
     level(3, {
         title: 'במקום גרירה, "או"',
         name: 'unit6_l3_replace_goal',
         params: '(h : ¬P)',
         proposition: 'P → Q',
-        goalLabel: '(P → Q)',
         laws: ['easylean_imp_or'],
         toolboxBlocks: ['replace', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# במקום גרירה, "או"
@@ -120,14 +114,12 @@ export const unit6Levels = [
         ],
         conclusion: `ההוכחה: "לפי השקילות (A → B) ↔ (¬A ∨ B), נחליף את P → Q ב־¬P ∨ Q. כדי להוכיח ¬P ∨ Q נוכיח את ¬P: ¬P בידינו, וזה מה שעלינו להראות. לכן ¬P ∨ Q."
 גרירה שהתנאי שלה לא נכון היא נכונה, מה שלא תהיה המסקנה. זו *אמת ריקה*.`,
-        startXml: goalXml('(P → Q)', '¬P'),
     }),
     level(4, {
         title: 'מחליפים בהנחה',
         name: 'unit6_l4_replace_assumption',
         params: '(h : ¬(P ∨ Q))',
         proposition: '¬Q',
-        goalLabel: '¬Q',
         laws: ['easylean_not_or'],
         toolboxBlocks: ['replace', 'and_elim', 'exact'],
         introduction: `# מחליפים בהנחה
@@ -143,13 +135,11 @@ export const unit6Levels = [
         ],
         conclusion: `ההוכחה: "לפי דה מורגן, ¬(P ∨ Q) פירושו ¬P ∧ ¬Q. מ־¬P ∧ ¬Q נקבל ¬P וגם ¬Q, ו־¬Q הוא מה שעלינו להראות."
 ביחידה 4 בניתם הוכחה כזאת מהכללים. שקילות שהוכחה פעם אחת חוסכת את העבודה בכל פעם שצריך אותה.`,
-        startXml: goalXml('¬Q', '¬(P ∨ Q)'),
     }),
     level(5, {
         title: 'קונטרה־פוזיציה כשיטת הוכחה',
         name: 'unit6_l5_contrapositive',
         proposition: '(¬Q → ¬P) → (P → Q)',
-        goalLabel: '((¬Q → ¬P) → (P → Q))',
         laws: ['easylean_contrapositive'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# קונטרה־פוזיציה כשיטת הוכחה
@@ -164,13 +154,11 @@ export const unit6Levels = [
             'או: במקום להחליף במטרה, החליפו בהנחה ¬Q → ¬P, ובחרו את הכיוון "את (¬Q → ¬P) ב־(P → Q)". עכשיו P → Q בידינו.',
         ],
         conclusion: `ביחידה 4 ההוכחה הזאת דרשה הוכחה בשלילה. כאן היא החלפה אחת: "נניח ¬Q → ¬P. עלינו להראות P → Q. לפי הקונטרה־פוזיציה, להוכיח P → Q זה כמו להוכיח ¬Q → ¬P, ו־¬Q → ¬P בידינו. לכן (¬Q → ¬P) → (P → Q)."`,
-        startXml: goalXml('((¬Q → ¬P) → (P → Q))'),
     }),
     level(6, {
         title: 'שרשרת של החלפות',
         name: 'unit6_l6_chain',
         proposition: '¬(P ∨ ¬Q) → (¬P ∧ Q)',
-        goalLabel: '(¬(P ∨ ¬Q) → (¬P ∧ Q))',
         laws: ['easylean_not_or', 'easylean_not_not'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# שרשרת של החלפות
@@ -186,14 +174,12 @@ export const unit6Levels = [
         ],
         conclusion: `ההוכחה היא שרשרת של שקילויות: ¬(P ∨ ¬Q) שקולה ל־¬P ∧ ¬¬Q, וזו שקולה ל־¬P ∧ Q.
 כך מוכיחים זהויות באלגברה, וכך מוכיחים גם שקילויות בלוגיקה.`,
-        startXml: goalXml('(¬(P ∨ ¬Q) → (¬P ∧ Q))'),
     }),
     level(7, {
         title: 'דוחפים את השלילה פנימה',
         name: 'unit6_l7_push_negation',
         variableLine: RELATION,
         proposition: '(¬∀ x, ∃ y, R x y) → (∃ x, ∀ y, ¬R x y)',
-        goalLabel: '((¬∀x (∃y (R(x,y)))) → (∃x (∀y (¬R(x,y)))))',
         laws: ['easylean_not_forall', 'easylean_not_exists'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# דוחפים את השלילה פנימה
@@ -210,14 +196,12 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
             `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"לא כל אחד מכיר מישהו" פירושו "יש מישהו שלא מכיר אף אחד". כך מוצאים את השלילה של כל טענה עם כמתים: מעבירים את השלילה פנימה, ומחליפים כל כמת שהיא עוברת.`,
-        startXml: goalXml('((¬∀x (∃y (R(x,y)))) → (∃x (∀y (¬R(x,y)))))'),
     }),
     level(8, {
         title: 'דוגמה נגדית',
         name: 'unit6_l8_counterexample',
         variableLine: TWO_PROPERTIES,
         proposition: '(¬∀ x, P x → Q x) → (∃ x, P x ∧ ¬Q x)',
-        goalLabel: '((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))',
         laws: ['easylean_not_forall', 'easylean_not_imp'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# דוגמה נגדית
@@ -232,14 +216,12 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
             `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `"לא כל P הוא Q" פירושו "יש P שאינו Q". כך מפריכים טענה כללית: מראים דוגמה נגדית.`,
-        startXml: goalXml('((¬∀x (P(x) → Q(x))) → (∃x (P(x) ∧ ¬Q(x))))'),
     }),
     level(9, {
         title: 'שלילת טענה מורכבת',
         name: 'unit6_l9_negate_compound',
         variableLine: 'variable {P Q R S : Prop}',
         proposition: '¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S))',
-        goalLabel: '(¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S)))',
         laws: ['easylean_not_imp', 'easylean_not_or', 'easylean_not_not'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# שלילת טענה מורכבת
@@ -260,14 +242,12 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         ],
         conclusion: `השלילה של (P ∧ Q) → (R ∨ ¬S) היא (P ∧ Q) ∧ (¬R ∧ S): בדיוק כש־P, Q ו־S נכונות ו־R לא.
 בדיקת שפיות, כמו בהרצאה: הגרירה המקורית שקרית רק כשהתנאי נכון והמסקנה לא, כלומר בדיוק כש־P, Q ו־S אמת ו־R שקר.`,
-        startXml: goalXml('(¬((P ∧ Q) → (R ∨ ¬S)) → ((P ∧ Q) ∧ (¬R ∧ S)))'),
     }),
     level(10, {
         title: 'שלילת טענה עם כמתים',
         name: 'unit6_l10_negate_quantified',
         variableLine: 'variable {obj : Type} {R : obj → obj → Prop} {Q : obj → Prop}',
         proposition: '(¬∀ x, ∃ y, R x y ∧ Q y) → (∃ x, ∀ y, ¬R x y ∨ ¬Q y)',
-        goalLabel: '((¬∀x (∃y (R(x,y) ∧ Q(y)))) → (∃x (∀y (¬R(x,y) ∨ ¬Q(y)))))',
         laws: ['easylean_not_forall', 'easylean_not_exists', 'easylean_not_and'],
         toolboxBlocks: ['assume', 'replace', 'exact'],
         introduction: `# שלילת טענה עם כמתים
@@ -287,7 +267,6 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
             `זו המטרה: הוסיפו את הבלוק ${CLOSE_BLOCK}.`,
         ],
         conclusion: `השלילה של ∀x (∃y (R(x,y) ∧ Q(y))) היא ∃x (∀y (¬R(x,y) ∨ ¬Q(y))): השלילה עברה דרך שני הכמתים, הפכה כל אחד מהם, ובסוף עברה דרך ה"וגם".`,
-        startXml: goalXml('((¬∀x (∃y (R(x,y) ∧ Q(y)))) → (∃x (∀y (¬R(x,y) ∨ ¬Q(y)))))'),
     }),
     level(11, {
         title: 'הוכחת "או": נניח את השלילה של צד אחד',
@@ -295,7 +274,6 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         variableLine: 'variable {P Q R : Prop}',
         params: '(h1 : ¬P → R) (h2 : R → Q)',
         proposition: 'P ∨ Q',
-        goalLabel: '(P ∨ Q)',
         laws: ['easylean_or_as_imp'],
         toolboxBlocks: ['replace', 'assume', 'forward', 'exact'],
         introduction: `# הוכחת "או"
@@ -313,14 +291,12 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         ],
         conclusion: `ההוכחה, כמו בהרצאה: "נוכיח P ∨ Q. לפי השקילות, די להוכיח ¬P → Q. נניח ¬P. עלינו להראות Q. מ־¬P → R ומ־¬P נקבל R, ומ־R → Q ומ־R נקבל Q. לכן ¬P → Q."
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
-        startXml: goalXml('(P ∨ Q)', '(¬P → R),  (R → Q)'),
     }),
     level(12, {
         title: 'הוכחת "או", כשהצד הוא שלילה',
         name: 'unit6_l12_or_by_double_negation',
         params: '(h : P → Q)',
         proposition: '¬P ∨ Q',
-        goalLabel: '(¬P ∨ Q)',
         laws: ['easylean_or_as_imp', 'easylean_not_not'],
         toolboxBlocks: ['replace', 'assume', 'forward', 'exact'],
         introduction: `# הוכחת "או", כשהצד הוא שלילה
@@ -337,13 +313,11 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
         ],
         conclusion: `ההוכחה, כמו בהרצאה: "נוכיח ¬P ∨ Q. לפי השקילות, די להוכיח ¬¬P → Q. נניח ¬¬P. עלינו להראות Q. לפי השלילה הכפולה, ¬¬P פירושו P, ומ־P → Q ומ־P נקבל Q. לכן ¬¬P → Q."
 כך מוכיחים "או": מניחים שצד אחד לא נכון, ומוכיחים את הצד השני.`,
-        startXml: goalXml('(¬P ∨ Q)', 'P → Q'),
     }),
     level(13, {
         title: 'שלב בונוס: דה מורגן ל"וגם"',
         name: 'unit6_l13_de_morgan_and',
         proposition: '¬(P ∧ Q) → (¬P ∨ ¬Q)',
-        goalLabel: '(¬(P ∧ Q) → (¬P ∨ ¬Q))',
         laws: ['easylean_or_as_imp', 'easylean_not_not', 'easylean_imp_or'],
         toolboxBlocks: ['assume', 'replace', 'not_intro', 'not_elim', 'and_intro', 'exact'],
         introduction: `# בונוס: דה מורגן ל"וגם", בהוכחה
@@ -362,6 +336,5 @@ R(x,y) היא *יחס* בין שני עצמים, למשל "x מכיר את y". �
             'בתוכו: לפי ¬(P ∧ Q) כדי להגיע לסתירה די להוכיח P ∧ Q. הוכיחו אותה בשני חלקים: P ו־Q בידינו.',
         ],
         conclusion: `סיימתם את יחידה 6, כולל שלב הבונוס! את ¬(A ∧ B) → (¬A ∨ ¬B) בדקתם קודם בטבלה, ועכשיו הוכחתם אותה גם בהוכחה: כדי להוכיח "או", הנחתם שצד אחד לא נכון והוכחתם את הצד השני.`,
-        startXml: goalXml('(¬(P ∧ Q) → (¬P ∨ ¬Q))'),
     }),
-];
+]);
