@@ -44,6 +44,8 @@ instance : SDiff (Set α) := ⟨fun A B => fun x => x ∈ A ∧ ¬ x ∈ B⟩
 instance : EmptyCollection (Set α) := ⟨fun _ => False⟩
 def Set.symmDiff (A B : Set α) : Set α := fun x => (x ∈ A ∧ ¬ x ∈ B) ∨ (¬ x ∈ A ∧ x ∈ B)
 infixl:65 " ∆ " => Set.symmDiff
+@[pp_nodot] def Set.sep {α : Type u} (A : Set α) (p : α → Prop) : Set α := fun x => x ∈ A ∧ p x
+def Set.repl {α : Type u} {β : Type v} (f : α → β) (A : Set α) : Set β := fun y => ∃ x, x ∈ A ∧ f x = y
 def Set.compl (A : Set α) : Set α := fun x => ¬ x ∈ A
 postfix:max "ᶜ" => Set.compl
 def Set.powerset (A : Set α) : Set (Set α) := fun B => B ⊆ A
@@ -56,6 +58,8 @@ theorem easylean_mem_inter {α : Type u} {A B : Set α} {x : α} : x ∈ A ∩ B
 theorem easylean_mem_union {α : Type u} {A B : Set α} {x : α} : x ∈ A ∪ B ↔ x ∈ A ∨ x ∈ B := Iff.rfl
 theorem easylean_mem_diff {α : Type u} {A B : Set α} {x : α} : x ∈ A \\ B ↔ x ∈ A ∧ ¬ x ∈ B := Iff.rfl
 theorem easylean_mem_symmDiff {α : Type u} {A B : Set α} {x : α} : x ∈ A ∆ B ↔ (x ∈ A ∧ ¬ x ∈ B) ∨ (¬ x ∈ A ∧ x ∈ B) := Iff.rfl
+theorem easylean_mem_sep {α : Type u} {A : Set α} {p : α → Prop} {x : α} : x ∈ Set.sep A p ↔ x ∈ A ∧ p x := Iff.rfl
+theorem easylean_mem_repl {α : Type u} {β : Type v} {f : α → β} {A : Set α} {y : β} : y ∈ Set.repl f A ↔ ∃ x, x ∈ A ∧ f x = y := Iff.rfl
 theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ ¬ x ∈ A := Iff.rfl
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl

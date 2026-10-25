@@ -263,6 +263,10 @@ const writeLists = (text) => {
 // statement, or of the parentheses around it).
 const writeImages = (text) => {
     let result = text.replace(/setOf fun (\S+) => ([^()]*(?:\([^()]*\)[^()]*)*)/gu, (match, x, body) => `{${x} | ${body.trim()}}`);
+    // Separation and a template (unit 8): {x ∈ A | P(x)}, {f(x) | x ∈ A}.
+    const group = String.raw`(\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)|[^\s()]+)`;
+    result = result.replace(new RegExp(String.raw`Set\.sep ${group} ([^\s()]+)`, 'u'), (match, set, p) => `{x ∈ ${set} | ${p}(x)}`);
+    result = result.replace(new RegExp(String.raw`Set\.repl ([^\s()]+) ${group}`, 'u'), (match, f, set) => `{${f}(x) | x ∈ ${set}}`);
     for (let previous = null; previous !== result;) {
         previous = result;
         result = result.replace(/Set\.(image|preimage) (\S+) (\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)|[^\s()]+)/u,
@@ -410,6 +414,9 @@ const SET_OPERATIONS = {
     // Functions (unit 10): the image, the preimage, and a set given by a property.
     image: { lemma: 'easylean_mem_image', name: 'התמונה', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
     preimage: { lemma: 'easylean_mem_preimage', name: 'התמונה ההפוכה', means: (t, [f, b]) => `${f} ${t} ∈ ${b}` },
+    // Sets defined as the lecture's slide does (unit 8): by separation, {x ∈ A | P(x)}, and by a template, {f(x) | x ∈ A}.
+    sep: { lemma: 'easylean_mem_sep', name: 'קבוצה לפי הפרדה', means: (t, [a, p]) => `${t} ∈ ${a} ∧ ${p} ${t}` },
+    repl: { lemma: 'easylean_mem_repl', name: 'קבוצה לפי תבנית', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
     setOf: { lemma: 'easylean_mem_setOf', name: 'קבוצה לפי תכונה', means: (t, [x, p]) => substituteName(stripOuterParentheses(p), stripOuterParentheses(x), t) },
 };
 
@@ -457,6 +464,10 @@ const mainSetOperation = (text) => {
     if (equivalenceClass) return { operation: '[]_', operands: [equivalenceClass[1], equivalenceClass[2]] };
     const image = set.match(/^Set\.(image|preimage) (\S+) (.+)$/);
     if (image) return { operation: image[1], operands: [image[2], image[3]] };
+    const separation = set.match(/^Set\.sep (.+) (\S+)$/u);
+    if (separation) return { operation: 'sep', operands: [separation[1], separation[2]] };
+    const template = set.match(/^Set\.repl (\S+) (.+)$/u);
+    if (template) return { operation: 'repl', operands: [template[1], template[2]] };
     const byProperty = set.match(/^setOf fun (\S+) => (.+)$/);
     if (byProperty) return { operation: 'setOf', operands: [byProperty[1], byProperty[2]] };
     if (set === '∅') return { operation: '∅', operands: [] };

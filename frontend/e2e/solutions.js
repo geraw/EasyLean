@@ -252,6 +252,8 @@ const COURSE = [
         unit: 8,
         world: 'יחידה 8 - קבוצות והכלה',
         levels: [
+            [{ label: 'פתרון', steps: [unfold('a ∈ Set.sep A P'), andIntro([close], [close])] }],
+            [{ label: 'פתרון', steps: [unfold('f a ∈ Set.repl f A'), existsIntro('a'), andIntro([close], [['rfl']])] }],
             [{ label: 'פתרון', steps: [subsetIntro, close] }],
             [{ label: 'פתרון', steps: [subsetElim('A ⊆ B', 'x ∈ A'), close] }],
             [{
