@@ -269,7 +269,7 @@ describe('the moves of lesson 2, on sets', () => {
         expect([phraseOf(unfoldHyp, 'NAME'), phraseOf(unfoldHyp)]).toEqual(['לפי הגדרת החיתוך,', 'פירושו (x ∈ A ∧ x ∈ (B ∪ C))']);
         // The symmetric difference, as the lecture defines it.
         unfoldGoal.setStateBefore({ assumptions: [], objects: ['x'], sets: [], goal: 'x ∈ A ∆ B' });
-        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת ההפרש הסימטרי, כדי להוכיח', 'די להוכיח ((x ∈ A ∧ ¬x ∈ B) ∨ (¬x ∈ A ∧ x ∈ B))']);
+        expect([phraseOf(unfoldGoal, 'NAME'), phraseOf(unfoldGoal)]).toEqual(['לפי הגדרת ההפרש הסימטרי, כדי להוכיח', 'די להוכיח ((x ∈ A ∧ x ∉ B) ∨ (x ∉ A ∧ x ∈ B))']);
         // The menu offers only membership statements with a definition to use, the goal first.
         unfoldGoal.setStateBefore({ assumptions: ['A ⊆ B', 'x ∈ A', 'x ∈ A ∪ B'], objects: ['x'], sets: [], goal: 'x ∈ B ∩ A' });
         expect(unfoldGoal.getField('STATEMENT').getOptions(false).map(([, value]) => value)).toEqual(['x ∈ A ∆ B', 'x ∈ B ∩ A', 'x ∈ A ∪ B', '__write_own__']);
@@ -326,7 +326,7 @@ describe('the moves of unit 6', () => {
     it("offer the level's laws, and what the chosen one replaces in the chosen place", () => {
         setLevelLaws(unit6Levels[6].laws);
         const { blocks: [, first, second] } = solved(unit6Levels[6], unitSolutions(6).levels[6][0].steps);
-        expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ↔ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ↔ A', 'easylean_not_not']]);
+        expect(options(first, 'LAW')).toEqual([['?', '?'], ['¬(A ∨ B) ≡ (¬A ∧ ¬B)', 'easylean_not_or'], ['¬¬A ≡ A', 'easylean_not_not']]);
         // The place has no part of the other side's form: that direction shows the law.
         expect(options(first, 'DIRECTION')).toEqual([['את ¬(P ∨ ¬Q) ב־(¬P ∧ ¬¬Q)', 'FORWARD'], ['את (¬A ∧ ¬B) ב־¬(A ∨ B)', 'BACKWARD']]);
         // Double negation only removes one: backward, A fits any statement.

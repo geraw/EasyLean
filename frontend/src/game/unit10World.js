@@ -14,6 +14,7 @@ export const unit10WorldName = 'יחידה 10 - קבוצת החזקה ופעול
 
 const SETS = 'variable {obj : Type} {A B : Set obj}';
 const SET_OF_SETS = 'variable {obj : Type} {A : Set obj} {X : Set (Set obj)}';
+const TWO_FAMILIES = 'variable {obj : Type} {X Y : Set (Set obj)}';
 
 // The moves as the toolbox shows them, before they are placed.
 const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
@@ -32,6 +33,7 @@ const EXISTS_ELIM_BLOCK = '"לפי ? ניתן שם לעצם כזה."';
 const FORALL_ELIM_BLOCK = '"ב־ ? נציב ? ונקבל מה שהוא אומר על העצם."';
 const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרירה."';
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
+const FORALL_INTRO_BLOCK = '"יהי עצם שרירותי. עלינו להראות שהוא מקיים את התכונה."';
 
 const claimInfo = {
     name: 'טענת עזר',
@@ -42,12 +44,12 @@ const powerset = { symbol: 'קבוצת החזקה', doc: '𝒫(A) = {X | X ⊆ A
 const union = { symbol: 'האיחוד', doc: 'x ∈ (A ∪ B) פירושו x ∈ A ∨ x ∈ B.' };
 const inter = { symbol: 'החיתוך', doc: 'x ∈ (A ∩ B) פירושו x ∈ A ∧ x ∈ B.' };
 const sUnion = { symbol: 'האיחוד האונרי', doc: '⋃X = {a | ∃A ∈ X (a ∈ A)}: האיברים הנמצאים באיזושהי קבוצה של X. לכן x ∈ ⋃X פירושו ∃S (S ∈ X ∧ x ∈ S).' };
-const sInter = { symbol: 'החיתוך האונרי', doc: '⋂X = {a | ∀A ∈ X (a ∈ A)}: האיברים המשותפים לכל הקבוצות של X. לכן x ∈ ⋂X פירושו ∀S (S ∈ X → x ∈ S).' };
+const sInter = { symbol: 'החיתוך האונרי', doc: '⋂X = {a | ∀A ∈ X (a ∈ A)}: האיברים המשותפים לכל הקבוצות של X. לכן x ∈ ⋂X פירושו ∀S (S ∈ X → x ∈ S). מוגדר עבור X לא ריקה: ⋂∅ אינו מוגדר.' };
 
 const level = (number, fields) => ({
     id: `unit10-${number}`,
     levelNumber: number,
-    totalLevels: 9,
+    totalLevels: 10,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -185,7 +187,9 @@ export const unit10Levels = prepareLevels([
         toolboxBlocks: ['subset_intro', 'unfold', 'forall_elim', 'forward', 'apply_rule', 'exact'],
         introduction: `# חיתוך אונרי
 
-תהי X קבוצה שאבריה קבוצות. *החיתוך האונרי* של X: \`⋂X = {a | ∀A ∈ X (a ∈ A)}\`, האיברים המשותפים לכל הקבוצות של X. לכן \`x ∈ ⋂X\` פירושו \`∀S (S ∈ X → x ∈ S)\`.
+תהי X קבוצה **לא ריקה** שאבריה קבוצות. *החיתוך האונרי* של X: \`⋂X = {a | ∀A ∈ X (a ∈ A)}\`, האיברים המשותפים לכל הקבוצות של X. לכן \`x ∈ ⋂X\` פירושו \`∀S (S ∈ X → x ∈ S)\`. כאן A ∈ X, ולכן X אינה ריקה, ו־⋂X מוגדר.
+
+"לכל A ∈ X" פירושו "לכל A, אם A ∈ X אז …", ו"קיים A ∈ X" פירושו "קיים A כך ש־A ∈ X וגם …". המשתנה הקשור נקרא כאן S, כי A כבר בידינו.
 
 הדוגמה מההרצאה: תהי A ∈ X. אז \`⋂X ⊆ A ⊆ ⋃X\`. כאן החלק הראשון: "יהי a ∈ ⋂X. מההנחה a ∈ ⋂X מותר להציב *כל* קבוצה ב־X שנבחר. נבחר את A ∈ X, ונקבל a ∈ A."
 מההנחה "∀" מציבים, כמו ביחידה 5: כאן מציבים קבוצה.`,
@@ -208,7 +212,7 @@ export const unit10Levels = prepareLevels([
         toolboxBlocks: ['subset_intro', 'unfold', 'exists_intro', 'and_intro', 'exact'],
         introduction: `# איחוד אונרי
 
-*האיחוד האונרי* של X: \`⋃X = {a | ∃A ∈ X (a ∈ A)}\`, האיברים הנמצאים באיזושהי קבוצה של X. לכן \`x ∈ ⋃X\` פירושו \`∃S (S ∈ X ∧ x ∈ S)\`.
+*האיחוד האונרי* של X: \`⋃X = {a | ∃A ∈ X (a ∈ A)}\`, האיברים הנמצאים באיזושהי קבוצה של X. לכן \`x ∈ ⋃X\` פירושו \`∃S (S ∈ X ∧ x ∈ S)\`: "קיים A ∈ X", עם S כמשתנה הקשור, כמו בשלב הקודם.
 
 החלק השני של הדוגמה מההרצאה, \`A ⊆ ⋃X\`: "יהי a ∈ A. כדי להוכיח a ∈ ⋃X צריך *עד*. A עצמה היא העד: A ∈ X ו־a ∈ A, ולכן a ∈ ⋃X."
 להוכיח "קיים" בוחרים עד, כמו ביחידה 5.`,
@@ -222,6 +226,30 @@ export const unit10Levels = prepareLevels([
         conclusion: 'איחוד אונרי הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: קבוצה מ־X שהאיבר שייך אליה. ⋃ הולך עם "קיים". יחד עם השלב הקודם: ⋂X ⊆ A ⊆ ⋃X.',
     }),
     level(9, {
+        title: 'החיתוך מתהפך',
+        name: 'unit10_l9_sinter_antitone',
+        variableLine: TWO_FAMILIES,
+        params: '(hXY : X ⊆ Y)',
+        proposition: '⋂ Y ⊆ ⋂ X',
+        toolboxBlocks: ['subset_intro', 'unfold', 'forall_intro', 'assume', 'subset_elim', 'forall_elim', 'forward', 'exact'],
+        introduction: `# החיתוך מתהפך
+
+התרגיל מההרצאה: לכל שתי קבוצות לא ריקות של קבוצות X ו־Y, אם \`X ⊆ Y\` אז \`⋂Y ⊆ ⋂X\`.
+
+ההוכחה מההרצאה: "נניח X ⊆ Y, ויהי a ∈ ⋂Y. כדי להוכיח a ∈ ⋂X, תהי A ∈ X *שרירותית*. מאחר ש־X ⊆ Y, A ∈ Y. מההנחה a ∈ ⋂Y מותר להציב כל קבוצה ב־Y, ונבחר את A: לכן a ∈ A. מאחר ש־A שרירותית, a ∈ ⋂X."
+
+כדי להוכיח שייכות לחיתוך אונרי מוכיחים טענת "לכל", ולכן לוקחים קבוצה שרירותית של X. כאן היא נקראת S₀, כי בהגדרה הקשור הוא S.`,
+        newDefinitions: [sInter],
+        hints: [
+            `גררו את הבלוק ${SUBSET_INTRO_BLOCK} אל תוך בלוק המטרה: יהי x ∈ ⋂Y ונוכיח x ∈ ⋂X.`,
+            `הוסיפו את הבלוק ${UNFOLD_BLOCK}, ובחרו בו את המטרה x ∈ ⋂X. נשאר להוכיח ∀S (S ∈ X → x ∈ S): טענת "לכל".`,
+            `הוסיפו את הבלוק ${FORALL_INTRO_BLOCK}, ובתוכו ${ASSUME_BLOCK}: יהי S₀ שרירותי, ונניח S₀ ∈ X. נשאר להוכיח x ∈ S₀.`,
+            `${SUBSET_ELIM_BLOCK} עם X ⊆ Y ועם S₀ ∈ X: נובע S₀ ∈ Y.`,
+            `${UNFOLD_BLOCK} בהנחה x ∈ ⋂Y, ואחר כך ${FORALL_ELIM_BLOCK}: נציב S = S₀ ונקבל S₀ ∈ Y → x ∈ S₀. אחריו ${FORWARD_BLOCK} עם S₀ ∈ Y, ו־${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `כשהאוסף גדל, החיתוך קטן: יש יותר קבוצות לחתוך, ופחות איברים משותפים לכולן. ושוב: ⋂ הולך עם "לכל", ולכן מוכיחים שייכות אליו בעצם שרירותי, כמו בתבנית של ההרצאה.`,
+    }),
+    level(10, {
         title: 'שלב בונוס: איחוד אונרי של קבוצת החזקה',
         name: 'unit10_l9_sunion_powerset',
         proposition: '⋃ (𝒫 A) = A',
@@ -231,7 +259,7 @@ export const unit10Levels = prepareLevels([
 הטענה מההרצאה: \`⋃𝒫(A) = A\`. האיחוד של כל תת־הקבוצות של A הוא A עצמה.
 
 - **(⊆)** יהי x ∈ ⋃𝒫(A). לפי ההגדרה, קיימת S ∈ 𝒫(A) כך ש־x ∈ S. *נותנים לה שם*, S₀, אבל לא בוחרים אותה, כמו ב"נסמן ב־x₀ עצם כזה" של יחידה 5. S₀ ⊆ A, ולכן x ∈ A.
-- **(⊇)** יהי x ∈ A. העד: A עצמה, כי A ∈ 𝒫(A) (שלב 1) ו־x ∈ A.`,
+- **(⊇)** יהי x ∈ A. בהרצאה העד הוא היחידון {x}; בבלוקים אין יחידונים, ולכן ניקח את A עצמה: A ∈ 𝒫(A) (שלב 1) ו־x ∈ A.`,
         hints: [
             `גררו את הבלוק ${SET_EQ_BLOCK} אל תוך בלוק המטרה. בחלק הראשון: יהי x ∈ ⋃𝒫(A), ופתחו את ההגדרה: ∃S (S ∈ 𝒫(A) ∧ x ∈ S).`,
             `${EXISTS_ELIM_BLOCK} עם ה"קיים": נסמן ב־S₀ עצם כזה. אחר כך ${AND_ELIM_BLOCK}, פתחו את ההגדרה ב־S₀ ∈ 𝒫(A) (פירושו S₀ ⊆ A), ו־${SUBSET_ELIM_BLOCK} עם S₀ ⊆ A ועם x ∈ S₀.`,
@@ -239,6 +267,6 @@ export const unit10Levels = prepareLevels([
             `${AND_INTRO_BLOCK}: בחלק A ∈ 𝒫(A), פתחו את ההגדרה ויהי x₀ ∈ A, והוא בידינו (השם x כבר תפוס). בחלק השני x ∈ A בידינו.`,
         ],
         conclusion: `סיימתם את יחידה 10, כולל שלב הבונוס, ואת כל השיעור השני! בחלק הראשון השתמשתם ב"קיים" (נתתם שם לקבוצה), ובחלק השני הוכחתם "קיים" (בחרתם עד).
-בהרצאה: "שתי הנחות שייכות לאיחוד נותנות שני עדים, ונותנים להם שמות שונים". לכן שמות כמו S₀ ו־S₁.`,
+בהרצאה: נותנים לעד שם, אבל לא בוחרים אותו; ואם יש שתי הנחות שייכות לאיחוד, נותנים לשני העדים שמות שונים (S₀, S₁), כי ייתכן שהם שונים.`,
     }),
 ]);

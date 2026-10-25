@@ -1,14 +1,15 @@
 import { prepareLevels } from './levelXml';
 
 // Unit 7 (see blocks/moves.js): the structures of proof, as the part of the
-// first lecture on proofs teaches them, with its examples, in its order: proof
-// against persuasive talk, the three ways to prove an implication, the barber,
-// and the proofs of "and", "or", "for all", "there exists", of using
-// quantified assumptions, of scope and of cases. The lecture's strategies that
-// had no move of their own get one here: modus tollens, proof by
-// contraposition, proving "or" by assuming the negation of one side, and cases
-// by a statement and its negation. Each level offers only the moves of its
-// solutions.
+// first lecture on proofs teaches them, with its examples, in the order of its
+// slides: the strategies of its tables (modus tollens, the contrapositive),
+// the proofs of "for all" and "there exists", of using quantified assumptions
+// and of scope, then proof against persuasive talk, the three ways to prove an
+// implication, the barber, and the proofs of "and", "or" and of cases. The
+// lecture's strategies that had no move of their own get one here: modus
+// tollens, proof by contraposition, and cases by a statement and its negation
+// (proving "or" by assuming the negation of one side is from unit 3). Each
+// level offers only the moves of its solutions.
 
 export const unit7WorldName = 'יחידה 7 - מבני הוכחה';
 
@@ -57,25 +58,6 @@ const level = (number, fields) => ({
 
 export const unit7Levels = prepareLevels([
     level(1, {
-        title: 'הוכחה מול מלל משכנע',
-        name: 'unit7_l1_proof_not_persuasion',
-        variableLine: 'variable {obj : Type} {P Q : obj → Prop}',
-        proposition: '(∀ x, P x ∧ Q x) → ((∀ x, P x) ∧ (∀ x, Q x))',
-        toolboxBlocks: ['assume', 'and_intro', 'forall_intro', 'forall_elim', 'and_elim', 'exact'],
-        introduction: `# הוכחה מול מלל משכנע
-
-היחידה הזאת היא החלק של ההרצאה על הוכחות, עם הדוגמאות של השקפים. להוכחה יש מבנה קבוע: *שורת פתיחה* שקובעת מה מניחים ומה צריך להראות, *גוף* שבו כל שורה נובעת מקודמותיה, ו*שורת סיום* שאומרת מה הוכחנו. המבנה נקבע לפי המילה הראשית.
-
-"אם כל אחד מקיים את שתי התכונות, ברור שכל אחד מקיים כל אחת מהן" הוא מלל משכנע, ולא הוכחה. ההוכחה מההרצאה: נניח ∀x (P(x) ∧ Q(x)), ונוכיח בנפרד את שני חלקי ה־∧. בכל חלק: יהי x₀ שרירותי, נציב אותו בהנחה ונקבל P(x₀) ∧ Q(x₀), ובפרט את החלק שצריך.`,
-        hints: [
-            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. המילה הראשית של המטרה היא →.`,
-            `בתוך "נניח" המטרה היא "וגם": גררו לתוכו את הבלוק ${AND_INTRO_BLOCK}.`,
-            `בכל חלק: ${FORALL_INTRO_BLOCK}, ובתוכו ${FORALL_ELIM_BLOCK} עם ההנחה ועם x₀. אחר כך ${AND_ELIM_BLOCK} עם P(x₀) ∧ Q(x₀), ו־${CLOSE_BLOCK}.`,
-        ],
-        conclusion: `זו ההוכחה מהשקף: "נניח ∀x (P(x) ∧ Q(x)). נוכיח את שני החלקים. החלק הראשון: יהי x₀ שרירותי. נציב אותו בהנחה ונקבל P(x₀) ∧ Q(x₀), ובפרט P(x₀). מאחר ש־x₀ שרירותי, ∀x (P(x)). החלק השני: באותו אופן, ∀x (Q(x)). לכן ∀x (P(x)) ∧ ∀x (Q(x))."
-כל שורה נובעת מההנחה, מהגדרת הקשר או מהשורות שלפניה. בהנחת ה־∀ *אנחנו בחרנו* להציב את אותו x₀.`,
-    }),
-    level(2, {
         title: 'כשיש ¬β, מקבלים ¬α',
         name: 'unit7_l2_modus_tollens',
         params: '(h1 : P → Q) (h2 : ¬Q)',
@@ -85,6 +67,8 @@ export const unit7Levels = prepareLevels([
         newTacticsInfo: [mtInfo],
         introduction: `# כשיש ¬β, מקבלים ¬α
 
+היחידה הזאת היא החלק של ההרצאה על הוכחות, עם הדוגמאות של השקפים. להוכחה יש מבנה קבוע: *שורת פתיחה* שקובעת מה מניחים ומה צריך להראות, *גוף* שבו כל שורה נובעת מקודמותיה, ו*שורת סיום* שאומרת מה הוכחנו. המבנה נקבע לפי המילה הראשית.
+
 בטבלה של ההרצאה "כשצריך להוכיח וכשזה נתון", גרירה α → β שנתונה משמשת בשתי דרכים: כשיש לנו α, מקבלים β; וכשיש ¬β, מקבלים ¬α.
 את הדרך השנייה הוכחתם ביחידה 4, שלב 3, בכללי השלילה. מעכשיו יש לה מהלך משלה: ${MT_BLOCK}`,
         hints: [
@@ -93,7 +77,7 @@ export const unit7Levels = prepareLevels([
         ],
         conclusion: `"מ־P → Q ומ־¬Q נקבל ¬P": אם המסקנה לא נכונה, גם התנאי לא נכון.`,
     }),
-    level(3, {
+    level(2, {
         title: 'הוכחה בקונטרפוזיציה',
         name: 'unit7_l3_contrapositive',
         params: '(h1 : ¬R → ¬Q) (h2 : ¬Q → ¬P)',
@@ -113,7 +97,103 @@ export const unit7Levels = prepareLevels([
         ],
         conclusion: `"נוכיח את הקונטרפוזיציה: נניח ¬R. עלינו להראות ¬P. מ־¬R → ¬Q ומ־¬R נקבל ¬Q, ומ־¬Q → ¬P ומ־¬Q נקבל ¬P. הוכחנו ¬R → ¬P, ולכן P → R."`,
     }),
+    level(3, {
+        title: 'הוכחת "לכל": הדלתות',
+        name: 'unit7_l8_doors',
+        variableLine: 'variable {obj : Type} {Locked Floor2 : obj → Prop}',
+        proposition: '(∀ x, Locked x) → ∀ x, Floor2 x → Locked x',
+        toolboxBlocks: ['assume', 'forall_intro', 'forall_elim', 'exact'],
+        introduction: `# הוכחת "לכל"
+
+אם כל הדלתות נעולות, אז כל דלת בקומה 2 נעולה.
+
+כדי להוכיח ∀x (α(x)) פותחים ב"יהי x₀ ...": קובעים עצם *שרירותי*, x₀, שעליו לא מניחים דבר מלבד מה שנתון. x₀ הוא משתנה חופשי בהוכחה: הוא מייצג ערך מסוים אבל שרירותי. השם x₀, ולא x, מבדיל אותו מ־x הקשור שב־∀x. ובסוף: "מאחר ש־x₀ שרירותי, הטענה נכונה לכל x."`,
+        hints: [
+            `${ASSUME_BLOCK}, ובתוכו ${FORALL_INTRO_BLOCK}, ובתוכו שוב ${ASSUME_BLOCK} (המילה הראשית בפנים היא →).`,
+            `${FORALL_ELIM_BLOCK}: בהנחה ∀x (Locked(x)) נציב x = x₀. ואז ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `"נניח ∀x (Locked(x)). יהי x₀ שרירותי. נניח Floor2(x₀). נציב x = x₀ בהנחה ונקבל Locked(x₀). לכן Floor2(x₀) → Locked(x₀). מאחר ש־x₀ שרירותי, הטענה נכונה לכל x."`,
+    }),
     level(4, {
+        title: 'הוכחת "קיים": לכל אחד יש חבר',
+        name: 'unit7_l9_friends',
+        variableLine: 'variable {obj : Type} {Friend : obj → obj → Prop}',
+        proposition: '(∀ x, Friend x x) → ∀ x, ∃ y, Friend x y',
+        toolboxBlocks: ['assume', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
+        introduction: `# הוכחת "קיים"
+
+אם כל אחד הוא חבר של עצמו, אז לכל אחד יש חבר.
+
+כדי להוכיח ∃y (α(y)) מספיק להציג דוגמה: לבחור ערך מסוים של y ולבדוק שהוא מקיים את α. כשיש ∀ ואחריו ∃, הבחירה יכולה להיות תלויה במשתנה שכבר קבענו: כאן נבחר y = x₀.`,
+        hints: [
+            `${ASSUME_BLOCK}, ובתוכו ${FORALL_INTRO_BLOCK}.`,
+            `בתוכו: ${EXISTS_INTRO_BLOCK} עם x₀. עכשיו כתוב בו: נבחר y = x₀. עלינו להראות Friend(x₀,x₀).`,
+            `${FORALL_ELIM_BLOCK}: בהנחה נציב x = x₀, ואז ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `"נניח ∀x (Friend(x,x)). יהי x₀ שרירותי. נבחר y = x₀, שתלוי ב־x₀ החופשי. מההנחה Friend(x₀,x₀). לכן קיים y כזה. מאחר ש־x₀ שרירותי, הטענה נכונה לכל x."`,
+    }),
+    level(5, {
+        title: 'שני כמתים: מי שמכיר את כולם',
+        name: 'unit7_l10_knows',
+        variableLine: 'variable {obj : Type} {Knows : obj → obj → Prop}',
+        proposition: '(∃ x, ∀ y, Knows x y) → ∀ y, ∃ x, Knows x y',
+        toolboxBlocks: ['assume', 'exists_elim', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
+        introduction: `# שני כמתים
+
+אם יש מישהו שמכיר את כולם, אז כל אחד מוכר על ידי מישהו.
+
+- הנחת "קיים": נסמן ב־x₀ עצם כך ש־∀y (Knows(x₀,y)). את x₀ *קיבלנו*: נותנים לו שם, אבל לא בוחרים אותו.
+
+- המסקנה היא "לכל": יהי y₀ שרירותי. נבחר עד: את x₀ שקיבלנו. נציב y = y₀ בהנחה על x₀.
+
+סדר הכמתים חשוב: ההפך אינו נכון. אם כל אחד מוכר על ידי מישהו, לא בהכרח יש מישהו שמכיר את כולם.`,
+        hints: [
+            `${ASSUME_BLOCK}, ובתוכו ${EXISTS_ELIM_BLOCK} עם ההנחה.`,
+            `${FORALL_INTRO_BLOCK}, ובתוכו ${EXISTS_INTRO_BLOCK} עם x₀.`,
+            `${FORALL_ELIM_BLOCK}: ב־∀y (Knows(x₀,y)) נציב y = y₀. ואז ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `"נסמן ב־x₀ עצם כך ש־∀y (Knows(x₀,y)). יהי y₀ שרירותי. נבחר x = x₀ כעד. נציב y = y₀ בהנחה על x₀ ונקבל Knows(x₀,y₀). לכן קיים x כזה. מאחר ש־y₀ שרירותי, ∀y (∃x (Knows(x,y)))."`,
+    }),
+    level(6, {
+        title: 'טווח: על מה חלה כל מילה?',
+        name: 'unit7_l11_scope',
+        variableLine: 'variable {obj : Type} {Trusts : obj → obj → Prop}',
+        proposition: '∀ x, (∀ y, Trusts x y) → Trusts x x',
+        toolboxBlocks: ['forall_intro', 'assume', 'forall_elim', 'exact'],
+        introduction: `# טווח
+
+מיקום הכמת קובע על מה הוא חל. השוו, כש־Trusts(x,y) פירושו "x סומך על y":
+
+- **טענה 1:** לכל x: אם x סומך על *כולם*, אז x סומך על עצמו. ∀x ((∀y (Trusts(x,y))) → Trusts(x,x)). אמיתית: אותה תוכיחו כאן.
+
+- **טענה 2:** לכל x: אם x סומך על *מישהו*, אז x סומך על עצמו. ∀x ((∃y (Trusts(x,y))) → Trusts(x,x)). שקרית: שני אנשים, a ו־b, ו־a סומך רק על b.
+
+ההבדל הוא במילה הראשית של ההנחה: הנחת "לכל y" מאפשרת לנו *לבחור* איזה y להציב.`,
+        hints: [
+            `${FORALL_INTRO_BLOCK}, ובתוכו ${ASSUME_BLOCK}.`,
+            `${FORALL_ELIM_BLOCK}: ב־∀y (Trusts(x₀,y)) נציב y = x₀. ואז ${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `"יהי x₀ שרירותי. נניח ∀y (Trusts(x₀,y)). בפרט, נציב y = x₀ ונקבל Trusts(x₀,x₀)."
+בטענה 2 ההנחה היא "קיים y": היא נותנת y אחד שאיננו בוחרים, ואולי זה דווקא מישהו אחר, שלא אומר כלום על x₀ עצמו.`,
+    }),
+    level(7, {
+        title: 'הוכחה מול מלל משכנע',
+        name: 'unit7_l1_proof_not_persuasion',
+        variableLine: 'variable {obj : Type} {P Q : obj → Prop}',
+        proposition: '(∀ x, P x ∧ Q x) → ((∀ x, P x) ∧ (∀ x, Q x))',
+        toolboxBlocks: ['assume', 'and_intro', 'forall_intro', 'forall_elim', 'and_elim', 'exact'],
+        introduction: `# הוכחה מול מלל משכנע
+
+"אם כל אחד מקיים את שתי התכונות, ברור שכל אחד מקיים כל אחת מהן" הוא מלל משכנע, ולא הוכחה. ההוכחה מההרצאה: נניח ∀x (P(x) ∧ Q(x)), ונוכיח בנפרד את שני חלקי ה־∧. בכל חלק: יהי x₀ שרירותי, נציב אותו בהנחה ונקבל P(x₀) ∧ Q(x₀), ובפרט את החלק שצריך.`,
+        hints: [
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה. המילה הראשית של המטרה היא →.`,
+            `בתוך "נניח" המטרה היא "וגם": גררו לתוכו את הבלוק ${AND_INTRO_BLOCK}.`,
+            `בכל חלק: ${FORALL_INTRO_BLOCK}, ובתוכו ${FORALL_ELIM_BLOCK} עם ההנחה ועם x₀. אחר כך ${AND_ELIM_BLOCK} עם P(x₀) ∧ Q(x₀), ו־${CLOSE_BLOCK}.`,
+        ],
+        conclusion: `זו ההוכחה מהשקף: "נניח ∀x (P(x) ∧ Q(x)). נוכיח את שני החלקים. החלק הראשון: יהי x₀ שרירותי. נציב אותו בהנחה ונקבל P(x₀) ∧ Q(x₀), ובפרט P(x₀). מאחר ש־x₀ שרירותי, ∀x (P(x)). החלק השני: באותו אופן, ∀x (Q(x)). לכן ∀x (P(x)) ∧ ∀x (Q(x))."
+כל שורה נובעת מההנחה, מהגדרת הקשר או מהשורות שלפניה. בהנחת ה־∀ *אנחנו בחרנו* להציב את אותו x₀.`,
+    }),
+    level(8, {
         title: 'שלוש דרכים להוכחת גרירה',
         name: 'unit7_l4_three_ways',
         variableLine: 'variable {obj : Type} {P Q R : obj → Prop}',
@@ -141,7 +221,7 @@ export const unit7Levels = prepareLevels([
         ],
         conclusion: `שלוש ההוכחות מהשקף, ובכל אחת שורת הסיום של המבנה שלה: "לכן P(x₀) → Q(x₀)", "הוכחנו ¬Q(x₀) → ¬P(x₀), ולכן P(x₀) → Q(x₀)", "קיבלנו סתירה, ולכן Q(x₀)". ובסוף כולן: "מאחר ש־x₀ שרירותי, ∀x (P(x) → Q(x))."`,
     }),
-    level(5, {
+    level(9, {
         title: 'פרדוקס הספר',
         name: 'unit7_l5_barber',
         variableLine: 'variable {obj : Type} {Shaves : obj → obj → Prop}',
@@ -154,19 +234,19 @@ export const unit7Levels = prepareLevels([
 
 **משפט:** אין אדם b שמספר בדיוק את כל מי שאינו מספר את עצמו. המילה הראשית היא ¬∃, ולכן נוכיח בשלילה.
 
-ההוכחה מההרצאה: נניח בשלילה שקיים b כזה, ונסמן ב־b₀ אדם כזה. את b₀ קיבלנו מההנחה: נותנים לו שם, אבל לא בוחרים אותו. ההנחה עליו היא הנחת "לכל", ולכן מותר להציב בה כל y ש*אנחנו בוחרים*: נבחר y = b₀, ונקבל Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀).
+ההוכחה מההרצאה: נניח בשלילה שקיים b כזה, ונסמן ב־b₀ עצם כזה. את b₀ קיבלנו מההנחה: נותנים לו שם, אבל לא בוחרים אותו. ההנחה עליו היא הנחת "לכל", ולכן מותר להציב בה כל y ש*אנחנו בוחרים*: נבחר y = b₀, ונקבל Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀).
 
-אחר כך נחלק למקרים: Shaves(b₀,b₀), או ¬Shaves(b₀,b₀). לזה יש מהלך חדש, ${CASES_BLOCK}: כל טענה נכונה או לא נכונה. בשני המקרים נקבל טענה ואת שלילתה, בסתירה.`,
+בהרצאה ראינו בטבלת אמת שטענה מהצורה α ↔ ¬α היא סתירה. כאן נוכיח זאת במהלכים: נחלק למקרים, Shaves(b₀,b₀) או ¬Shaves(b₀,b₀). לזה יש מהלך חדש, ${CASES_BLOCK}: כל טענה נכונה או לא נכונה. בשני המקרים נקבל טענה ואת שלילתה, בסתירה.`,
         hints: [
             'גררו את הבלוק "נניח בשלילה את הטענה שהמטרה שוללת..." אל תוך בלוק המטרה. בתוכו: לפי ה"קיים" שהנחנו, נסמן ב־b₀ עצם כזה.',
             `${FORALL_ELIM_BLOCK}: בהנחה על b₀ נציב y = b₀. אחר כך "מ־ ? נקבל את שני הכיוונים שלו" עם Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀).`,
             `${CASES_BLOCK} עם Shaves(b₀,b₀). במקרה 1, מהגרירה Shaves(b₀,b₀) → ¬Shaves(b₀,b₀) נקבל ¬Shaves(b₀,b₀); במקרה 2, מהגרירה השנייה נקבל Shaves(b₀,b₀).`,
             'בכל מקרה: "קיבלנו ? וגם את השלילה שלה, בסתירה." עם Shaves(b₀,b₀).',
         ],
-        conclusion: `"נניח בשלילה שקיים b כזה, ונסמן ב־b₀ אדם כזה. נציב y = b₀ ונקבל Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀). נחלק למקרים. בשני המקרים קיבלנו טענה ואת שלילתה, בסתירה. לכן הנחת השלילה שגויה, ואין b כזה."
+        conclusion: `"נניח בשלילה שקיים b כזה, ונסמן ב־b₀ עצם כזה. נציב y = b₀ ונקבל Shaves(b₀,b₀) ↔ ¬Shaves(b₀,b₀). נחלק למקרים. בשני המקרים קיבלנו טענה ואת שלילתה, בסתירה. לכן הנחת השלילה שגויה, ואין b כזה."
 באותו מבנה בדיוק נוכיח בהרצאה הבאה את פרדוקס ראסל.`,
     }),
-    level(6, {
+    level(10, {
         title: 'הוכחת "וגם": פינגווינים',
         name: 'unit7_l6_penguins',
         variableLine: 'variable {obj : Type} {Penguin Bird Swims : obj → Prop}',
@@ -183,9 +263,9 @@ export const unit7Levels = prepareLevels([
             `בתוך "נניח": ${AND_INTRO_BLOCK}`,
             `בחלק הראשון: ${FORALL_ELIM_BLOCK} בנתון הראשון עם x₀, ואחר כך ${FORWARD_BLOCK} עם Penguin(x₀) → Bird(x₀) ועם Penguin(x₀). בחלק השני אותו דבר, בנתון השני.`,
         ],
-        conclusion: `"יהי x₀ שרירותי, ונניח Penguin(x₀). החלק הראשון: נציב x = x₀ בנתון הראשון ונקבל Penguin(x₀) → Bird(x₀), ולכן Bird(x₀). החלק השני: באותו אופן, Swims(x₀). הוכחנו את שני החלקים, ולכן Bird(x₀) ∧ Swims(x₀). מאחר ש־x₀ כללי, הטענה נכונה לכל x."`,
+        conclusion: `"יהי x₀ שרירותי, ונניח Penguin(x₀). החלק הראשון: נציב x = x₀ בנתון הראשון ונקבל Penguin(x₀) → Bird(x₀), ולכן Bird(x₀). החלק השני: באותו אופן, Swims(x₀). הוכחנו את שני החלקים, ולכן Bird(x₀) ∧ Swims(x₀). מאחר ש־x₀ שרירותי, הטענה נכונה לכל x."`,
     }),
-    level(7, {
+    level(11, {
         title: 'הוכחת "או": בוחן או עבודה',
         name: 'unit7_l7_quiz_or_project',
         variableLine: 'variable {obj : Type} {Quiz Project : obj → Prop}',
@@ -196,96 +276,17 @@ export const unit7Levels = prepareLevels([
 
 **טענה:** אם כל סטודנט עבר את הבוחן או הגיש עבודה, אז כולם עברו את הבוחן, *או* שמישהו הגיש עבודה.
 
-המילה הראשית היא →, ובמסקנה ∨. כמו בהרצאה, להוכחת α ∨ β נוכיח את הגרירה השקולה ¬α → β: נניח ¬∀x (Quiz(x)), ונוכיח ∃x (Project(x)). זה המהלך מיחידה 4, ${OR_BY_NEGATION_BLOCK}
+המילה הראשית היא →, ובמסקנה ∨. כמו בהרצאה, להוכחת α ∨ β נוכיח את הגרירה השקולה ¬α → β: נניח ¬∀x (Quiz(x)), ונוכיח ∃x (Project(x)). זה המהלך מיחידה 3, ${OR_BY_NEGATION_BLOCK}
 
-אחר כך, כמו בהרצאה: ¬∀x (Quiz(x)) פירושו (שלילת כמת) ∃x (¬Quiz(x)). נסמן ב־x₀ סטודנט כזה. נציב אותו בהנחה הראשונה ונקבל Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ו־x₀ הוא עד ל־∃x (Project(x)).`,
+אחר כך, כמו בהרצאה: ¬∀x (Quiz(x)) פירושו (שלילת כמת) ∃x (¬Quiz(x)). נסמן ב־x₀ עצם כזה. נציב אותו בהנחה הראשונה ונקבל Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ו־x₀ הוא עד ל־∃x (Project(x)).`,
         hints: [
             `${ASSUME_BLOCK}, ובתוכו ${OR_BY_NEGATION_BLOCK} עכשיו כתוב בו: נניח ¬∀x (Quiz(x)). עלינו להראות ∃x (Project(x)).`,
             'לפי השקילות של שלילת "לכל", החליפו בהנחה ¬∀x (Quiz(x)): עכשיו בידינו ∃x (¬Quiz(x)).',
             `${EXISTS_ELIM_BLOCK} עם ∃x (¬Quiz(x)), ואחריו ${FORALL_ELIM_BLOCK} בהנחה הראשונה עם x₀.`,
             `"נחלק למקרים לפי ?" עם Quiz(x₀) ∨ Project(x₀). במקרה 1 יש סתירה עם ¬Quiz(x₀): "מסתירה נובע הכול", ובתוכו "קיבלנו ...". במקרה 2: ${EXISTS_INTRO_BLOCK} עם x₀, ובתוכו ${CLOSE_BLOCK}`,
         ],
-        conclusion: `"נניח ¬∀x (Quiz(x)), כלומר ∃x (¬Quiz(x)). נסמן ב־x₀ סטודנט כזה. נציב x = x₀ בהנחה הראשונה: Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ולכן x₀ הוא עד ל־∃x (Project(x)). הוכחנו ¬α → β, ולכן α ∨ β."
+        conclusion: `"נניח ¬∀x (Quiz(x)), כלומר ∃x (¬Quiz(x)). נסמן ב־x₀ עצם כזה. נציב x = x₀ בהנחה הראשונה: Quiz(x₀) ∨ Project(x₀). מאחר ש־¬Quiz(x₀), מתקיים Project(x₀), ולכן x₀ הוא עד ל־∃x (Project(x)). הוכחנו ¬α → β, ולכן α ∨ β."
 שימו לב: אי אפשר להחליף כאן את ∃x (Project(x)) ב־∀x (Project(x)). זו בדיוק הטעות "פילוג לכל על או".`,
-    }),
-    level(8, {
-        title: 'הוכחת "לכל": הדלתות',
-        name: 'unit7_l8_doors',
-        variableLine: 'variable {obj : Type} {Locked Floor2 : obj → Prop}',
-        proposition: '(∀ x, Locked x) → ∀ x, Floor2 x → Locked x',
-        toolboxBlocks: ['assume', 'forall_intro', 'forall_elim', 'exact'],
-        introduction: `# הוכחת "לכל"
-
-אם כל הדלתות נעולות, אז כל דלת בקומה 2 נעולה.
-
-כדי להוכיח ∀x (α(x)) פותחים ב"יהי x₀ ...": בוחרים עצם *כללי*, x₀, שעליו לא מניחים דבר מלבד מה שנתון. x₀ הוא משתנה חופשי בהוכחה: הוא מייצג ערך מסוים אבל שרירותי. השם x₀, ולא x, מבדיל אותו מ־x הקשור שב־∀x. ובסוף: "מאחר ש־x₀ כללי, הטענה נכונה לכל x."`,
-        hints: [
-            `${ASSUME_BLOCK}, ובתוכו ${FORALL_INTRO_BLOCK}, ובתוכו שוב ${ASSUME_BLOCK} (המילה הראשית בפנים היא →).`,
-            `${FORALL_ELIM_BLOCK}: בהנחה ∀x (Locked(x)) נציב x = x₀. ואז ${CLOSE_BLOCK}.`,
-        ],
-        conclusion: `"נניח ∀x (Locked(x)). יהי x₀ כלשהו. נניח Floor2(x₀). נציב x = x₀ בהנחה ונקבל Locked(x₀). לכן Floor2(x₀) → Locked(x₀). מאחר ש־x₀ היה כללי, הטענה נכונה לכל x."`,
-    }),
-    level(9, {
-        title: 'הוכחת "קיים": לכל אחד יש חבר',
-        name: 'unit7_l9_friends',
-        variableLine: 'variable {obj : Type} {Friend : obj → obj → Prop}',
-        proposition: '(∀ x, Friend x x) → ∀ x, ∃ y, Friend x y',
-        toolboxBlocks: ['assume', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
-        introduction: `# הוכחת "קיים"
-
-אם כל אחד הוא חבר של עצמו, אז לכל אחד יש חבר.
-
-כדי להוכיח ∃y (α(y)) מספיק להציג דוגמה: לבחור ערך מסוים של y ולבדוק שהוא מקיים את α. כשיש ∀ ואחריו ∃, הבחירה יכולה להיות תלויה במשתנה שכבר קבענו: כאן נבחר y = x₀.`,
-        hints: [
-            `${ASSUME_BLOCK}, ובתוכו ${FORALL_INTRO_BLOCK}.`,
-            `בתוכו: ${EXISTS_INTRO_BLOCK} עם x₀. עכשיו כתוב בו: נבחר y = x₀. עלינו להראות Friend(x₀,x₀).`,
-            `${FORALL_ELIM_BLOCK}: בהנחה נציב x = x₀, ואז ${CLOSE_BLOCK}.`,
-        ],
-        conclusion: `"נניח ∀x (Friend(x,x)). יהי x₀. נבחר y = x₀, שתלוי ב־x₀ החופשי. מההנחה Friend(x₀,x₀). לכן קיים y כזה. מאחר ש־x₀ כללי, הטענה נכונה לכל x."`,
-    }),
-    level(10, {
-        title: 'שני כמתים: מי שמכיר את כולם',
-        name: 'unit7_l10_knows',
-        variableLine: 'variable {obj : Type} {Knows : obj → obj → Prop}',
-        proposition: '(∃ x, ∀ y, Knows x y) → ∀ y, ∃ x, Knows x y',
-        toolboxBlocks: ['assume', 'exists_elim', 'forall_intro', 'exists_intro', 'forall_elim', 'exact'],
-        introduction: `# שני כמתים
-
-אם יש מישהו שמכיר את כולם, אז כל אחד מוכר על ידי מישהו.
-
-- הנחת "קיים": נסמן ב־x₀ אדם כך ש־∀y (Knows(x₀,y)). את x₀ *קיבלנו*: נותנים לו שם, אבל לא בוחרים אותו.
-
-- המסקנה היא "לכל": יהי y₀ כלשהו. נבחר עד: את x₀ שקיבלנו. נציב y = y₀ בהנחה על x₀.
-
-סדר הכמתים חשוב: ההפך אינו נכון. אם כל אחד מוכר על ידי מישהו, לא בהכרח יש מישהו שמכיר את כולם.`,
-        hints: [
-            `${ASSUME_BLOCK}, ובתוכו ${EXISTS_ELIM_BLOCK} עם ההנחה.`,
-            `${FORALL_INTRO_BLOCK}, ובתוכו ${EXISTS_INTRO_BLOCK} עם x₀.`,
-            `${FORALL_ELIM_BLOCK}: ב־∀y (Knows(x₀,y)) נציב y = y₀. ואז ${CLOSE_BLOCK}.`,
-        ],
-        conclusion: `"נסמן ב־x₀ אדם כך ש־∀y (Knows(x₀,y)). יהי y₀ כלשהו. נבחר x = x₀ כעד. נציב y = y₀ בהנחה על x₀ ונקבל Knows(x₀,y₀). לכן קיים x כזה. מאחר ש־y₀ שרירותי, ∀y (∃x (Knows(x,y)))."`,
-    }),
-    level(11, {
-        title: 'טווח: על מה חלה כל מילה?',
-        name: 'unit7_l11_scope',
-        variableLine: 'variable {obj : Type} {Trusts : obj → obj → Prop}',
-        proposition: '∀ x, (∀ y, Trusts x y) → Trusts x x',
-        toolboxBlocks: ['forall_intro', 'assume', 'forall_elim', 'exact'],
-        introduction: `# טווח
-
-מיקום הכמת קובע על מה הוא חל. השוו, כש־Trusts(x,y) פירושו "x סומך על y":
-
-- **טענה 1:** לכל x: אם x סומך על *כולם*, אז x סומך על עצמו. ∀x ((∀y (Trusts(x,y))) → Trusts(x,x)). אמיתית: אותה תוכיחו כאן.
-
-- **טענה 2:** לכל x: אם x סומך על *מישהו*, אז x סומך על עצמו. ∀x ((∃y (Trusts(x,y))) → Trusts(x,x)). שקרית: שני אנשים, a ו־b, ו־a סומך רק על b.
-
-ההבדל הוא במילה הראשית של ההנחה: הנחת "לכל y" מאפשרת לנו *לבחור* איזה y להציב.`,
-        hints: [
-            `${FORALL_INTRO_BLOCK}, ובתוכו ${ASSUME_BLOCK}.`,
-            `${FORALL_ELIM_BLOCK}: ב־∀y (Trusts(x₀,y)) נציב y = x₀. ואז ${CLOSE_BLOCK}.`,
-        ],
-        conclusion: `"יהי x₀. נניח ∀y (Trusts(x₀,y)). בפרט, נציב y = x₀ ונקבל Trusts(x₀,x₀)."
-בטענה 2 ההנחה היא "קיים y": היא נותנת y אחד שאיננו בוחרים, ואולי זה דווקא מישהו אחר, שלא אומר כלום על x₀ עצמו.`,
     }),
     level(12, {
         title: 'חלוקה למקרים: גשם',
@@ -299,14 +300,14 @@ export const unit7Levels = prepareLevels([
 
 נתון: בימים גשומים נוסעים באוטובוס, ובימים לא גשומים רוכבים על אופניים. נוכיח: בכל יום נוסעים באוטובוס או רוכבים.
 
-כשקל יותר לטפל בכמה מצבים בנפרד, מחלקים למקרים שמכסים את *כל* האפשרויות. כאן: Rain(d₀) או ¬Rain(d₀), כמו בשלב 5.`,
+כשקל יותר לטפל בכמה מצבים בנפרד, מחלקים למקרים שמכסים את *כל* האפשרויות. כאן: Rain(d₀) או ¬Rain(d₀), כמו בפרדוקס הספר.`,
         hints: [
             `${FORALL_INTRO_BLOCK}, ובתוכו ${CASES_BLOCK} עם Rain(d₀).`,
             `במקרה 1: ${FORALL_ELIM_BLOCK} בנתון הראשון עם d₀, ואחר כך ${FORWARD_BLOCK} עם Rain(d₀) → Bus(d₀) ועם Rain(d₀).`,
             'עכשיו Bus(d₀) בידינו: "כדי להוכיח את ה"או" נוכיח את ?" עם Bus(d₀), ובתוכו "המטרה בידינו...".',
             'במקרה 2 אותו דבר, בנתון השני, ובצד Bike(d₀).',
         ],
-        conclusion: `"יהי d₀ שרירותי. נחלק למקרים: Rain(d₀) או ¬Rain(d₀). מקרה 1: מהנתון הראשון Bus(d₀), ולכן Bus(d₀) ∨ Bike(d₀). מקרה 2: מהנתון השני Bike(d₀), ולכן Bus(d₀) ∨ Bike(d₀). המקרים מכסים את כל האפשרויות, ובשניהם מתקיימת המסקנה. מאחר ש־d₀ כללי, הטענה נכונה לכל d."
+        conclusion: `"יהי d₀ שרירותי. נחלק למקרים: Rain(d₀) או ¬Rain(d₀). מקרה 1: מהנתון הראשון Bus(d₀), ולכן Bus(d₀) ∨ Bike(d₀). מקרה 2: מהנתון השני Bike(d₀), ולכן Bus(d₀) ∨ Bike(d₀). המקרים מכסים את כל האפשרויות, ובשניהם מתקיימת המסקנה. מאחר ש־d₀ שרירותי, הטענה נכונה לכל d."
 סיימתם את היחידה ואת כל מבני ההוכחה של ההרצאה.`,
     }),
 ]);

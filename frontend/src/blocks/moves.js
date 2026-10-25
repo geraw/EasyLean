@@ -18,7 +18,7 @@ const shown = (formula) => isolateFormulas(formatProofGoal(formula));
 
 // What a student typed, in Lean's notation (the contradiction ⊥ is False),
 // with a name's subscript typed after an underscore, x_0, as x₀.
-export const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/g, 'False').replace(/\s+/g, ' ')
+export const normalizeTyped = (text) => text.trim().replace(/->/g, '→').replace(/⊥/g, 'False').replace(/∖/g, '\\').replace(/\s+/g, ' ')
     .replace(/(?<=\p{L})_(\d+)/gu, (_, digits) => digits.replace(/\d/g, (digit) => '₀₁₂₃₄₅₆₇₈₉'[digit]));
 
 // The statement of an assumption: a menu of the assumptions in hand before the
@@ -284,7 +284,9 @@ const lawInstances = (law, backward, formula) => {
 };
 
 const lawOf = (value) => LAWS.find((law) => law.value === value);
-const lawLabel = (law) => `${law.left} ↔ ${law.right}`;
+// A law is a claim about two statements, A ≡ B, as the lecture writes it
+// (↔ is a connective inside a statement).
+const lawLabel = (law) => `${law.left} ≡ ${law.right}`;
 
 // The laws a level offers (level.laws), set when the level is loaded, as its
 // toolbox offers only the moves of its solutions.
@@ -1233,7 +1235,7 @@ export const defineMoveBlocks = () => {
     Blockly.Blocks['subset_intro'] = {
         init() {
             appendPhrase(this);
-            move(this, 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי x₀ של A, ומוכיחים ש־x₀ ∈ B.');
+            move(this, 'כדי להוכיח A ⊆ B לוקחים איבר שרירותי של A, "יהי x ∈ A", ומוכיחים ש־x ∈ B.');
             this.updateText();
         },
         ...followState,
@@ -1258,7 +1260,7 @@ export const defineMoveBlocks = () => {
                 .appendField('ומ־')
                 .appendField(new FieldAssumption(), 'MEMBER');
             appendPhrase(this);
-            move(this, 'אם A ⊆ B ו־x₀ ∈ A, אז x₀ ∈ B. התוצאה מצטרפת להנחות.');
+            move(this, 'אם A ⊆ B ו־x ∈ A, אז x ∈ B. התוצאה מצטרפת להנחות.');
             this.updateText();
         },
         ...followState,
@@ -1300,7 +1302,7 @@ export const defineMoveBlocks = () => {
             appendPhrase(this, this.appendDummyInput('NAMEROW'), 'NAME')
                 .appendField(new FieldAssumption({ withGoal: true, filter: (formula) => Boolean(unfoldMembership(formula)) }), 'STATEMENT');
             appendPhrase(this);
-            move(this, 'לפי הגדרת הפעולה על קבוצות: למשל x₀ ∈ (A ∩ B) פירושו x₀ ∈ A ∧ x₀ ∈ B.');
+            move(this, 'לפי הגדרת הפעולה על קבוצות: למשל x ∈ (A ∩ B) פירושו x ∈ A ∧ x ∈ B.');
             this.updateText();
         },
         ...followState,

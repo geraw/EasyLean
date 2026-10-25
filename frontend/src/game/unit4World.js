@@ -188,7 +188,7 @@ export const unit4Levels = prepareLevels([
         toolboxBlocks: ['assume', 'and_intro', 'not_intro', 'not_elim', 'or_by_negation', 'or_intro', 'exact'],
         introduction: `# שלילה של "או"
 
-אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מ*חוקי דה מורגן*.
+אם לא נכון ש"P או Q", אז P לא נכונה וגם Q לא נכונה. זה אחד מ*חוקי דה־מורגן*.
 
 המטרה היא גרירה, ולכן קודם מניחים את התנאי שלה, \`¬(P ∨ Q)\`. אחר כך המטרה היא \`¬P ∧ ¬Q\`, ומוכיחים אותה בשני חלקים, כמו ביחידה 3.
 החלק הראשון, \`¬P\`, הוא בדיוק שלב 4. החלק השני, \`¬Q\`, דומה, עם Q.`,
@@ -293,16 +293,16 @@ export const unit4Levels = prepareLevels([
         id: 'unit4-9',
         levelNumber: 9,
         totalLevels: 11,
-        title: 'קונטרה־פוזיציה',
+        title: 'קונטרפוזיציה',
         name: 'unit4_l9_contrapositive',
         variableLine: 'variable {P Q : Prop}',
         params: '',
         proposition: '((¬Q → ¬P) → (P → Q))',
         objects: [],
         toolboxBlocks: ['assume', 'by_contradiction', 'forward', 'contradiction'],
-        introduction: `# קונטרה־פוזיציה
+        introduction: `# קונטרפוזיציה
 
-הגרירה \`¬Q → ¬P\` נקראת *הקונטרה־פוזיציה* של \`P → Q\`. נוכיח שמהקונטרה־פוזיציה נובעת הגרירה עצמה.
+הגרירה \`¬Q → ¬P\` נקראת *הקונטרפוזיציה* של \`P → Q\`. נוכיח שמהקונטרפוזיציה נובעת הגרירה עצמה.
 זו דרך נפוצה להוכיח גרירה P → Q: מניחים ש־Q לא נכונה, ומראים ש־P לא נכונה.
 
 אחרי שמניחים את \`¬Q → ¬P\` ואת P, המטרה היא Q, ואין דרך ישירה להגיע אליה. לכן נוכיח אותה בשלילה.`,

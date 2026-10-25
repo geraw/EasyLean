@@ -58,12 +58,19 @@ describe('formatProofGoal with and, or, iff, not', () => {
         expect(boundNames('x ∈ A')).toEqual([]);
     });
 
-    it('puts a negated relation in parentheses, but not a negated membership', () => {
+    it('puts a negated relation in parentheses, and writes a negated membership x ∉ A, as the lecture does', () => {
         // Lean's ¬A ⊆ B is ¬(A ⊆ B); written so, it would read as (¬A) ⊆ B.
-        expect(formatProofGoal('¬A ⊆ B → ∃ x, x ∈ A ∧ ¬x ∈ B')).toBe('(¬(A ⊆ B) → (∃x (x ∈ A ∧ ¬x ∈ B)))');
+        expect(formatProofGoal('¬A ⊆ B → ∃ x, x ∈ A ∧ ¬x ∈ B')).toBe('(¬(A ⊆ B) → (∃x (x ∈ A ∧ x ∉ B)))');
         expect(formatProofGoal('¬A = B')).toBe('¬(A = B)');
         expect(formatProofGoal('¬(A ⊆ B)')).toBe('¬(A ⊆ B)');
-        expect(formatProofGoal('¬x ∈ A')).toBe('¬x ∈ A');
+        expect(formatProofGoal('¬x ∈ A')).toBe('x ∉ A');
+        expect(formatProofGoal('x ∉ A')).toBe('x ∉ A');
+    });
+
+    it('writes set difference as the lecture does, A ∖ B', () => {
+        expect(formatProofGoal('x ∈ A \\ B')).toBe('x ∈ (A ∖ B)');
+        expect(formatProofGoal('x ∈ (A ∖ B)')).toBe('x ∈ (A ∖ B)');
+        expect(formatProofGoal('¬x ∈ A \\ (B ∩ C)')).toBe('x ∉ (A ∖ (B ∩ C))');
     });
 
     it('does not read the ASCII iff as an implication', () => {

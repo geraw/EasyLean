@@ -271,7 +271,11 @@ const writeImages = (text) => {
     return result;
 };
 
-export const formatProofGoal = (text) => {
+// Set difference is written A ∖ B, as the lecture writes it (Lean's A \ B);
+// a formula already so written is read the same.
+export const formatProofGoal = (text) => formatFormula((text || '').replace(/ ∖ /g, ' \\ ')).replace(/ \\ /g, ' ∖ ');
+
+const formatFormula = (text) => {
     const normalized = stripOuterParentheses(text || '');
     for (const [symbol, spellings] of CONNECTIVES) {
         const found = findTopLevel(normalized, spellings);
@@ -281,9 +285,12 @@ export const formatProofGoal = (text) => {
         return `(${operand(left)} ${symbol} ${operand(right)})`;
     }
     if (normalized.startsWith('¬')) {
-        // Lean's `¬A ⊆ B` is ¬(A ⊆ B), but reads as (¬A) ⊆ B: a negated
-        // relation is in parentheses. A membership needs none: `¬x ∈ A`.
+        // A negated membership is written x ∉ A, as the lecture writes it.
+        // Lean's `¬A ⊆ B` is ¬(A ⊆ B), but reads as (¬A) ⊆ B: another
+        // negated relation is in parentheses.
         const negated = formatProofGoal(normalized.slice(1));
+        const member = splitRelation(negated, '∈');
+        if (member) return `${member[0]} ∉ ${member[1]}`;
         return NEGATED_RELATIONS.some((relation) => findTopLevel(negated, [` ${relation} `])) ? `¬(${negated})` : `¬${negated}`;
     }
     const quantifier = parseQuantifier(normalized);

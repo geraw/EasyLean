@@ -207,14 +207,18 @@ const COURSE = [
         unit: 7,
         world: 'יחידה 7 - מבני הוכחה',
         levels: [
+            [{ label: 'פתרון', steps: [mt('P → Q', '¬Q'), close] }],
+            [{ label: 'פתרון', steps: [contrapositive, forward('¬R → ¬Q', '¬R'), forward('¬Q → ¬P', '¬Q'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, assume, forallElim('∀ x, Locked x', 'x₀'), close] }],
+            [{ label: 'פתרון', steps: [assume, forallIntro, existsIntro('x₀'), forallElim('∀ x, Friend x x', 'x₀'), close] }],
+            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, ∀ y, Knows x y'), forallIntro, existsIntro('x₀'), forallElim('∀ y, Knows x₀ y', 'y₀'), close] }],
+            [{ label: 'פתרון', steps: [forallIntro, assume, forallElim('∀ y, Trusts x₀ y', 'x₀'), close] }],
             [{
                 label: 'פתרון',
                 steps: [assume, andIntro(
                     [forallIntro, forallElim('∀ x, P x ∧ Q x', 'x₀'), andElim('P x₀ ∧ Q x₀'), close],
                     [forallIntro, forallElim('∀ x, P x ∧ Q x', 'x₀'), andElim('P x₀ ∧ Q x₀'), close])],
             }],
-            [{ label: 'פתרון', steps: [mt('P → Q', '¬Q'), close] }],
-            [{ label: 'פתרון', steps: [contrapositive, forward('¬R → ¬Q', '¬R'), forward('¬Q → ¬P', '¬Q'), close] }],
             [
                 { label: 'ישירה', steps: [forallIntro, forallElim('∀ x, (P x → R x) ∧ (R x → Q x)', 'x₀'), andElim('(P x₀ → R x₀) ∧ (R x₀ → Q x₀)'), assume, forward('P x₀ → R x₀', 'P x₀'), forward('R x₀ → Q x₀', 'R x₀'), close] },
                 { label: 'קונטרפוזיציה', steps: [forallIntro, forallElim('∀ x, (P x → R x) ∧ (R x → Q x)', 'x₀'), andElim('(P x₀ → R x₀) ∧ (R x₀ → Q x₀)'), contrapositive, mt('R x₀ → Q x₀', '¬Q x₀'), mt('P x₀ → R x₀', '¬R x₀'), close] },
@@ -236,10 +240,6 @@ const COURSE = [
                 steps: [assume, orByNegation, replace('easylean_not_forall', 'FORWARD', '¬∀ x, Quiz x'), existsElim('∃ x, ¬Quiz x'), forallElim('∀ x, Quiz x ∨ Project x', 'x₀'),
                     orCases('Quiz x₀ ∨ Project x₀', [exfalso, contradiction('Quiz x₀')], [existsIntro('x₀'), close])],
             }],
-            [{ label: 'פתרון', steps: [assume, forallIntro, assume, forallElim('∀ x, Locked x', 'x₀'), close] }],
-            [{ label: 'פתרון', steps: [assume, forallIntro, existsIntro('x₀'), forallElim('∀ x, Friend x x', 'x₀'), close] }],
-            [{ label: 'פתרון', steps: [assume, existsElim('∃ x, ∀ y, Knows x y'), forallIntro, existsIntro('x₀'), forallElim('∀ y, Knows x₀ y', 'y₀'), close] }],
-            [{ label: 'פתרון', steps: [forallIntro, assume, forallElim('∀ y, Trusts x₀ y', 'x₀'), close] }],
             [{
                 label: 'פתרון',
                 steps: [forallIntro, emCases('Rain d₀',
@@ -254,11 +254,11 @@ const COURSE = [
         levels: [
             [{ label: 'פתרון', steps: [subsetIntro, close] }],
             [{ label: 'פתרון', steps: [subsetElim('A ⊆ B', 'x ∈ A'), close] }],
-            [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ C'), subsetIntro, subsetElim('A ⊆ B', 'x ∈ A'), subsetElim('B ⊆ C', 'x ∈ B'), close] }],
             [{
                 label: 'פתרון',
                 steps: [assume, replace('easylean_subset_def', 'FORWARD', '¬A ⊆ B'), replace('easylean_not_forall', 'FORWARD', '¬∀ (x : obj), x ∈ A → x ∈ B'), replace('easylean_not_imp', 'FORWARD', '∃ x, ¬(x ∈ A → x ∈ B)'), close],
             }],
+            [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ C'), subsetIntro, subsetElim('A ⊆ B', 'x ∈ A'), subsetElim('B ⊆ C', 'x ∈ B'), close] }],
             [{ label: 'פתרון', steps: [assume, andElim('A ⊆ B ∧ B ⊆ A'), setEq([close], [close])] }],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ∅'), exfalso, close] }],
         ],
@@ -368,6 +368,11 @@ const COURSE = [
                 { label: 'אחורה', steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallElim('∀ (S : Set obj), S ∈ X → x ∈ S', 'A'), backward('A ∈ X → x ∈ A'), close] },
             ],
             [{ label: 'פתרון', steps: [subsetIntro, unfold('x ∈ ⋃ X'), existsIntro('A'), andIntro([close], [close])] }],
+            [{
+                label: 'פתרון',
+                steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallIntro, assume, subsetElim('X ⊆ Y', 'S₀ ∈ X'), unfold('x ∈ ⋂ Y'),
+                    forallElim('∀ (S : Set obj), S ∈ Y → x ∈ S', 'S₀'), forward('S₀ ∈ Y → x ∈ S₀', 'S₀ ∈ Y'), close],
+            }],
             [{
                 label: 'פתרון',
                 steps: [setEq(
