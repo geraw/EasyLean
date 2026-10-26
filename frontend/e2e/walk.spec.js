@@ -536,6 +536,12 @@ const chooseValue = async (page, id, field, value) => {
             return;
         }
     }
+    // An object that is not a name, such as U \\ C, is typed by the student (the last item of the menu).
+    if (field === 'TERM' && options.includes('__write_own__')) {
+        await page.evaluate(([id, field, typed]) => window.__easyleanWorkspace.getBlockById(id).getField(field).setValue(typed), [id, field, value]);
+        await page.waitForTimeout(3500);
+        return;
+    }
     throw new Error(`menu of ${field} offers ${options.join(' | ')}, not ${value}`);
 };
 

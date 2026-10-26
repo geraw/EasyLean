@@ -64,8 +64,10 @@ theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ 
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl
 theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
+@[pp_nodot] def Set.compls {α : Type u} (U : Set α) (X : Set (Set α)) : Set (Set α) := fun B => ∃ A, A ∈ X ∧ B = U \\ A
 def partition {α : Type u} (S : Set (Set α)) (A : Set α) : Prop :=
   (∀ t, t ∈ S → t ⊆ A ∧ ∃ y, y ∈ t) ∧ ∀ a, a ∈ A → ∃ t, t ∈ S ∧ a ∈ t ∧ ∀ t', t' ∈ S → a ∈ t' → t' = t
+theorem easylean_mem_compls {α : Type u} {U : Set α} {X : Set (Set α)} {B : Set α} : B ∈ Set.compls U X ↔ ∃ A, A ∈ X ∧ B = U \\ A := Iff.rfl
 theorem easylean_partition {α : Type u} {S : Set (Set α)} {A : Set α} : partition S A ↔ ((∀ t, t ∈ S → t ⊆ A ∧ ∃ y, y ∈ t) ∧ ∀ a, a ∈ A → ∃ t, t ∈ S ∧ a ∈ t ∧ ∀ t', t' ∈ S → a ∈ t' → t' = t) := Iff.rfl
 theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
 theorem easylean_subset_intro {α : Type u} {A B : Set α} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h

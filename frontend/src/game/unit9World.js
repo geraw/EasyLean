@@ -57,7 +57,7 @@ const symmDiff = { symbol: 'ההפרש הסימטרי', doc: 'A ∆ B = {x | (x 
 const level = (number, fields) => ({
     id: `unit9-${number}`,
     levelNumber: number,
-    totalLevels: 10,
+    totalLevels: 11,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -248,9 +248,28 @@ export const unit9Levels = prepareLevels([
             'בחלק השני, חלקו למקרים לפי x ∈ (A ∖ B) ∨ x ∈ (B ∖ A), פתחו את ההגדרה של המקרה, ובחרו את הצד המתאים של ההפרש הסימטרי.',
         ],
         conclusion: `A ∆ B = (A ∖ B) ∪ (B ∖ A), כמו בהרצאה: "x ∈ A ∆ B ⟺ (x ∈ A ∧ x ∉ B) ∨ (x ∉ A ∧ x ∈ B) ⟺ x ∈ (A ∖ B) ∨ x ∈ (B ∖ A)".
-בהרצאה הוכחנו גם ש־A ∆ B = (A ∪ B) ∖ (A ∩ B), ולכן לשלוש ההגדרות אותה משמעות, ואפשר להשתמש בכל אחת מהן לפי הנוחות.`,
+בשלב הבא נראה גם ש־A ∆ B = (A ∪ B) ∖ (A ∩ B), ולכן לשלוש ההגדרות אותה משמעות, ואפשר להשתמש בכל אחת מהן לפי הנוחות.`,
     }),
     level(10, {
+        title: 'הגדרה שנייה להפרש הסימטרי',
+        name: 'unit9_l10_symmetric_difference_two',
+        proposition: 'A ∆ B = (A ∪ B) \\ (A ∩ B)',
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'or_elim', 'or_by_negation', 'or_intro', 'and_elim', 'and_intro', 'not_intro', 'not_elim', 'exact'],
+        introduction: `# הגדרה שנייה להפרש הסימטרי
+
+בהרצאה נתנו שתי הגדרות להפרש הסימטרי: \`A ∆ B = (A ∖ B) ∪ (B ∖ A)\` (שלב 9.9) ו־\`A ∆ B = (A ∪ B) ∖ (A ∩ B)\`. כאן נוכיח את השקילות עם ההגדרה של ההרצאה, "בדיוק אחת מהקבוצות": x ∈ A ∆ B אם ורק אם x ∈ A ∪ B ו־x ∉ A ∩ B.
+
+בהכלה הראשונה מחלקים למקרים לפי ה"או" של ההפרש הסימטרי. במקרה x ∈ A ∧ x ∉ B, x ∈ A ∪ B, ו־x ∉ A ∩ B כי אילו x ∈ A ∩ B היה גם x ∈ B. בהכלה השנייה מחלקים למקרים לפי x ∈ A ∨ x ∈ B: אם x ∈ A, אז x ∉ B, כי אילו x ∈ B היה x ∈ A ∩ B, בסתירה.`,
+        newDefinitions: [inter],
+        hints: [
+            `גררו את הבלוק ${SET_EQ_BLOCK}. בכל חלק: יהי x באגף שמאל, ופתחו את ההגדרות בהנחה ובמטרה.`,
+            `בחלק הראשון, ${OR_ELIM_BLOCK} עם ה"או" של ההפרש הסימטרי. בכל מקרה פרקו את ה"וגם", והוכיחו את שני חלקי ה"וגם" של המטרה: x ∈ A ∪ B (בחירת צד), ו־x ∉ A ∩ B (${NOT_INTRO_BLOCK}: x ∈ A ∩ B, ופתחו את ההגדרה, ו${NOT_ELIM_BLOCK} עם x ∉ B).`,
+            `בחלק השני, פרקו את ה"וגם" שבהנחה, ו${OR_ELIM_BLOCK} לפי x ∈ A ∨ x ∈ B. במקרה x ∈ A בחרו את הצד הראשון של ההפרש הסימטרי: x ∈ A כבר בידינו, ו־x ∉ B: נניח x ∈ B, ו${NOT_ELIM_BLOCK} עם x ∉ A ∩ B: די להוכיח x ∈ A ∩ B, ופתחו את ההגדרה והוכיחו את שני החלקים.`,
+            `במקרה x ∈ B אותו דבר, עם הצד השני של ההפרש הסימטרי.`,
+        ],
+        conclusion: 'A ∆ B = (A ∖ B) ∪ (B ∖ A) = (A ∪ B) ∖ (A ∩ B): שלוש ההגדרות של ההפרש הסימטרי שקולות, ואפשר להשתמש בכל אחת מהן. בשתיהן x שייך לאחת הקבוצות בדיוק.',
+    }),
+    level(11, {
         title: 'שלב בונוס: כלל דה־מורגן',
         name: 'unit9_l9_de_morgan',
         proposition: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',

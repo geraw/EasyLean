@@ -12,6 +12,7 @@ import { prepareLevels } from './levelXml';
 export const unit11WorldName = 'יחידה 11 - חלוקות';
 
 const SETS = 'variable {obj : Type} {A : Set obj} {S T : Set (Set obj)}';
+const ONE_PARTITION = 'variable {obj : Type} {A : Set obj} {P : Set (Set obj)}';
 
 // The moves as the toolbox shows them, before they are placed.
 const SUBSET_INTRO_BLOCK = '"כדי להוכיח הכלה: יהי איבר של הקבוצה המוכלת, ונוכיח שהוא שייך לקבוצה המכילה"';
@@ -37,7 +38,7 @@ const partition = {
 const level = (number, fields) => ({
     id: `unit11-${number}`,
     levelNumber: number,
-    totalLevels: 3,
+    totalLevels: 5,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -116,5 +117,48 @@ export const unit11Levels = prepareLevels([
         ],
         conclusion: `זה המשפט מההרצאה. שימו לב שהיחידות שבה השתמשנו היא של החלוקה **T**: s ו־t שתיהן ב־T. אילו s היה רק ב־S, לא הייתה סיבה לשוויון.
 התנאי שמחלקה לא ריקה נחוץ: בלעדיו אפשר להוסיף ל־T את ∅ ולקבל S ⊊ T, עם אותה הגדרה של "כל איבר שייך למחלקה אחת בדיוק".`,
+    }),
+    level(4, {
+        title: 'ההגדרה השקולה של חלוקה: הכיוון ⇒',
+        name: 'unit11_l4_partition_equiv_forward',
+        variableLine: ONE_PARTITION,
+        params: '(hP : partition P A)',
+        proposition: '⋃ P = A ∧ ∀ (x y : Set obj), x ∈ P → y ∈ P → x ∩ y = ∅ ∨ x = y',
+        claims: ['∃ a, a ∈ x₀ ∩ y₀'],
+        toolboxBlocks: ['and_intro', 'unfold', 'and_elim', 'forall_elim', 'forward', 'exists_elim', 'exists_intro', 'set_eq', 'subset_intro', 'subset_elim', 'forall_intro', 'assume', 'or_by_negation', 'by_contradiction', 'exfalso', 'claim', 'not_elim', 'rewrite', 'rfl', 'exact'],
+        introduction: `# ההגדרה השקולה של חלוקה
+
+בהרצאה: S חלוקה של A אם ורק אם שלושה תנאים: (1) כל מחלקה היא תת־קבוצה לא ריקה של A, (2) \`⋃S = A\`, ו־(3) כל שתי מחלקות x, y ∈ S זרות או שוות: \`x ∩ y = ∅ ∨ x = y\`. תנאי (1) הוא החלק הראשון של ההגדרה, ולכן נשאר להוכיח את (2) ואת (3).
+
+(⇒) נניח ש־P חלוקה של A. (2): ⊆: מחלקה שמכילה את x היא תת־קבוצה של A. ⊇: לכל a ∈ A יש מחלקה שמכילה אותו. (3): נניח ש־x ∩ y ≠ ∅, ויהי a ∈ x ∩ y. מיחידות המחלקה של a, x = y.
+
+יש לשים לב שכאן שם הקבוצה הוא P, כדי שלא יתבלבל עם המשתנה S שבהגדרת האיחוד האונרי.`,
+        hints: [
+            `פתחו את ההגדרה של partition(P, A), ופרקו את ה"וגם". הוכיחו את שני חלקי ה"וגם" של המטרה, ${AND_INTRO_BLOCK}.`,
+            `החלק הראשון, ⋃P = A: ${SET_EQ_BLOCK}. ב־⋃P ⊆ A: יהי x ∈ ⋃P, ופתחו את ההגדרה: x ∈ S₀ לאיזושהי S₀ ∈ P. החלק הראשון של ההגדרה נותן S₀ ⊆ A.`,
+            `ב־A ⊆ ⋃P: יהי x ∈ A. החלק השני של ההגדרה נותן מחלקה t₀ ∈ P עם x ∈ t₀, ולכן x ∈ ⋃P, עם העד t₀.`,
+            `החלק השני: יהיו x, y מחלקות ב־P. כדי להוכיח את ה"או", נניח x ∩ y ≠ ∅, ונוכיח x = y. כמו בהרצאה: יש a ∈ x ∩ y (בהוכחה בשלילה: אחרת x ∩ y = ∅).`,
+            `מיחידות המחלקה של a, x = t₀ וגם y = t₀, ולכן x = y.`,
+        ],
+        conclusion: 'הראינו ש־⋃P = A ושכל שתי מחלקות זרות או שוות. בכיוון ⇐, בשלב הבא, חוזרים מ־(1)–(3) להגדרה המקורית.',
+    }),
+    level(5, {
+        title: 'ההגדרה השקולה של חלוקה: הכיוון ⇐',
+        name: 'unit11_l5_partition_equiv_backward',
+        variableLine: ONE_PARTITION,
+        params: '(h1 : ∀ (t : Set obj), t ∈ P → t ⊆ A ∧ ∃ y, y ∈ t) (h2 : ⋃ P = A) (h3 : ∀ (x y : Set obj), x ∈ P → y ∈ P → x ∩ y = ∅ ∨ x = y)',
+        proposition: 'partition P A',
+        claims: ["a₀ ∈ t'₀ ∩ S₀"],
+        toolboxBlocks: ['unfold', 'and_intro', 'forall_intro', 'assume', 'rewrite', 'exists_elim', 'and_elim', 'exists_intro', 'forall_elim', 'forward', 'or_elim', 'claim', 'exfalso', 'exact'],
+        introduction: `# ההגדרה השקולה של חלוקה: הכיוון ⇐
+
+(⇐) נניח (1) כל מחלקה לא ריקה ומוכלת ב־A, (2) \`⋃P = A\`, ו־(3) כל שתי מחלקות זרות או שוות. נוכיח שזו חלוקה: החלק הראשון של ההגדרה הוא (1). לכל a ∈ A: מ־(2), a ∈ ⋃P, ולכן יש מחלקה t ∈ P עם a ∈ t. יחידות: אם t′ ∈ P ו־a ∈ t′, אז מ־(3), t ∩ t′ = ∅ או t = t′. האפשרות הראשונה נשללת, כי a ∈ t ∩ t′. לכן t′ = t.`,
+        hints: [
+            `פתחו את ההגדרה במטרה, והוכיחו את שני החלקים. החלק הראשון הוא (1), והוא כבר בידינו.`,
+            `בחלק השני: יהי a ∈ A. מ־⋃P = A, החליפו את A ב־⋃P לפי השוויון, ופתחו את הגדרת האיחוד האונרי: מקבלים S₀ ∈ P עם a ∈ S₀. בחרו את S₀, וכבר בידינו S₀ ∈ P ו־a ∈ S₀.`,
+            `ליחידות: יהי t′ ∈ P עם a ∈ t′. הציבו ב־(3) את t′ ואת S₀: מקבלים t′ ∩ S₀ = ∅ או t′ = S₀. חלקו למקרים.`,
+            `במקרה t′ ∩ S₀ = ∅ נקבל סתירה: טענת עזר a ∈ t′ ∩ S₀, והחלפה לפי השוויון נותנת a ∈ ∅. במקרה t′ = S₀ סיימנו.`,
+        ],
+        conclusion: 'הראינו ש־P חלוקה של A. יחד עם הכיוון ⇒: P חלוקה של A אם ורק אם מתקיימים שלושת התנאים. בכל אחת משתי ההגדרות אפשר להשתמש לפי הנוחות.',
     }),
 ]);

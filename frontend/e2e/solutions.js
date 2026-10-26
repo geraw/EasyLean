@@ -345,6 +345,20 @@ const COURSE = [
             [{
                 label: 'פתרון',
                 steps: [setEq(
+                    [subsetIntro, unfold('x ∈ A ∆ B'), orCases('x ∈ A ∧ ¬x ∈ B ∨ ¬x ∈ A ∧ x ∈ B',
+                        [andElim('x ∈ A ∧ ¬x ∈ B'), unfold('x ∈ (A ∪ B) \\ (A ∩ B)'), andIntro(
+                            [unfold('x ∈ A ∪ B'), orIntro('LEFT'), close],
+                            [notIntro, unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), notElim('¬x ∈ B'), close])],
+                        [andElim('¬x ∈ A ∧ x ∈ B'), unfold('x ∈ (A ∪ B) \\ (A ∩ B)'), andIntro(
+                            [unfold('x ∈ A ∪ B'), orIntro('RIGHT'), close],
+                            [notIntro, unfold('x ∈ A ∩ B'), andElim('x ∈ A ∧ x ∈ B'), notElim('¬x ∈ A'), close])])],
+                    [subsetIntro, unfold('x ∈ (A ∪ B) \\ (A ∩ B)'), andElim('x ∈ A ∪ B ∧ ¬x ∈ A ∩ B'), unfold('x ∈ A ∪ B'), orCases('x ∈ A ∨ x ∈ B',
+                        [unfold('x ∈ A ∆ B'), orIntro('LEFT'), andIntro([close], [notIntro, notElim('¬x ∈ A ∩ B'), unfold('x ∈ A ∩ B'), andIntro([close], [close])])],
+                        [unfold('x ∈ A ∆ B'), orIntro('RIGHT'), andIntro([notIntro, notElim('¬x ∈ A ∩ B'), unfold('x ∈ A ∩ B'), andIntro([close], [close])], [close])])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
                     [subsetIntro, unfold('x ∈ A \\ (B ∩ C)'), andElim('x ∈ A ∧ ¬x ∈ B ∩ C'), unfold('x ∈ A \\ B ∪ A \\ C'), emCases('x ∈ B',
                         [orIntro('RIGHT'), unfold('x ∈ A \\ C'), andIntro([close], [notIntro, notElim('¬x ∈ B ∩ C'), unfold('x ∈ B ∩ C'), andIntro([close], [close])])],
                         [orIntro('LEFT'), unfold('x ∈ A \\ B'), andIntro([close], [close])])],
@@ -402,6 +416,23 @@ const COURSE = [
             [{
                 label: 'פתרון',
                 steps: [setEq(
+                    [subsetIntro, unfold('x ∈ U \\ ⋃ X'), andElim('x ∈ U ∧ ¬x ∈ ⋃ X'), unfold('x ∈ ⋂ Set.compls U X'), forallIntro, assume,
+                        unfold('S₀ ∈ Set.compls U X'), existsElim('∃ A, A ∈ X ∧ S₀ = U \\ A'), andElim('A₀ ∈ X ∧ S₀ = U \\ A₀'),
+                        rewrite('S₀ = U \\ A₀', 'FORWARD', '__goal__'), unfold('x ∈ U \\ A₀'),
+                        andIntro([close], [notIntro, notElim('¬x ∈ ⋃ X'), unfold('x ∈ ⋃ X'), existsIntro('A₀'), andIntro([close], [close])])],
+                    [subsetIntro, unfold('x ∈ ⋂ Set.compls U X'), unfold('x ∈ U \\ ⋃ X'),
+                        andIntro(
+                            [forallElim('∀ (S : Set obj), S ∈ Set.compls U X → x ∈ S', 'U \\ C'),
+                                claim('U \\ C ∈ Set.compls U X', [unfold('U \\ C ∈ Set.compls U X'), existsIntro('C'), andIntro([close], [['rfl']])]),
+                                forward('U \\ C ∈ Set.compls U X → x ∈ U \\ C', 'U \\ C ∈ Set.compls U X'), unfold('x ∈ U \\ C'), andElim('x ∈ U ∧ ¬x ∈ C'), close],
+                            [notIntro, unfold('x ∈ ⋃ X'), existsElim('∃ S, S ∈ X ∧ x ∈ S'), andElim('S₀ ∈ X ∧ x ∈ S₀'),
+                                forallElim('∀ (S : Set obj), S ∈ Set.compls U X → x ∈ S', 'U \\ S₀'),
+                                claim('U \\ S₀ ∈ Set.compls U X', [unfold('U \\ S₀ ∈ Set.compls U X'), existsIntro('S₀'), andIntro([close], [['rfl']])]),
+                                forward('U \\ S₀ ∈ Set.compls U X → x ∈ U \\ S₀', 'U \\ S₀ ∈ Set.compls U X'), unfold('x ∈ U \\ S₀'), andElim('x ∈ U ∧ ¬x ∈ S₀'), notElim('¬x ∈ S₀'), close])])],
+            }],
+            [{
+                label: 'פתרון',
+                steps: [setEq(
                     [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsElim('∃ S, S ∈ 𝒫 A ∧ x ∈ S'), andElim('S₀ ∈ 𝒫 A ∧ x ∈ S₀'), unfold('S₀ ∈ 𝒫 A'), subsetElim('S₀ ⊆ A', 'x ∈ S₀'), close],
                     [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsIntro('A'), andIntro([unfold('A ∈ 𝒫 A'), subsetIntro, close], [close])])],
             }],
@@ -425,6 +456,31 @@ const COURSE = [
                 forallElim(ONLY('T', 't₁', 'y₀'), 't₀'), forward('t₀ ∈ T → y₀ ∈ t₀ → t₀ = t₁', 't₀ ∈ T'), forward('y₀ ∈ t₀ → t₀ = t₁', 'y₀ ∈ t₀'),
                 forallElim(ONLY('T', 't₁', 'y₀'), 'x'), forward('x ∈ T → y₀ ∈ x → x = t₁', 'x ∈ T'), forward('y₀ ∈ x → x = t₁', 'y₀ ∈ x'),
                 rewrite('x = t₁', 'FORWARD', '__goal__'), rewrite('t₀ = t₁', 'BACKWARD', '__goal__'), close])] }],
+            [{ label: 'פתרון', steps: [unfold('partition P A'), andElim(` ${PARTITION('P')}`), andIntro(
+                [setEq(
+                    [subsetIntro, unfold('x ∈ ⋃ P'), existsElim('∃ S, S ∈ P ∧ x ∈ S'), andElim('S₀ ∈ P ∧ x ∈ S₀'),
+                        forallElim(P1('P'), 'S₀'), forward('S₀ ∈ P → S₀ ⊆ A ∧ ∃ y, y ∈ S₀', 'S₀ ∈ P'), andElim('S₀ ⊆ A ∧ ∃ y, y ∈ S₀'), subsetElim('S₀ ⊆ A', 'x ∈ S₀'), close],
+                    [subsetIntro, forallElim(UNIQUE('P'), 'x'), forward(IMPL('P', 'x'), 'x ∈ A'), existsElim(EXISTS('P', 'x')), andElim(CLASS('P', 't₀', 'x')), andElim(REST('P', 't₀', 'x')),
+                        unfold('x ∈ ⋃ P'), existsIntro('t₀'), andIntro([close], [close])])],
+                [forallIntro, forallIntro, assume, assume, orByNegation,
+                    claim('∃ a, a ∈ x₀ ∩ y₀', [byContradiction, notElim('¬x₀ ∩ y₀ = ∅'), setEq(
+                        [subsetIntro, exfalso, notElim('¬∃ a, a ∈ x₀ ∩ y₀'), existsIntro('x'), close],
+                        [subsetIntro, unfold('x ∈ ∅'), exfalso, close])]),
+                    existsElim('∃ a, a ∈ x₀ ∩ y₀'), unfold('a₀ ∈ x₀ ∩ y₀'), andElim('a₀ ∈ x₀ ∧ a₀ ∈ y₀'),
+                    forallElim(P1('P'), 'x₀'), forward('x₀ ∈ P → x₀ ⊆ A ∧ ∃ y, y ∈ x₀', 'x₀ ∈ P'), andElim('x₀ ⊆ A ∧ ∃ y, y ∈ x₀'), subsetElim('x₀ ⊆ A', 'a₀ ∈ x₀'),
+                    forallElim(UNIQUE('P'), 'a₀'), forward(IMPL('P', 'a₀'), 'a₀ ∈ A'), existsElim(EXISTS('P', 'a₀')), andElim(CLASS('P', 't₀', 'a₀')), andElim(REST('P', 't₀', 'a₀')),
+                    forallElim(ONLY('P', 't₀', 'a₀'), 'x₀'), forward('x₀ ∈ P → a₀ ∈ x₀ → x₀ = t₀', 'x₀ ∈ P'), forward('a₀ ∈ x₀ → x₀ = t₀', 'a₀ ∈ x₀'),
+                    forallElim(ONLY('P', 't₀', 'a₀'), 'y₀'), forward('y₀ ∈ P → a₀ ∈ y₀ → y₀ = t₀', 'y₀ ∈ P'), forward('a₀ ∈ y₀ → y₀ = t₀', 'a₀ ∈ y₀'),
+                    rewrite('x₀ = t₀', 'FORWARD', '__goal__'), rewrite('y₀ = t₀', 'FORWARD', '__goal__'), ['rfl']])] }],
+            [{ label: 'פתרון', steps: [unfold('partition P A'), andIntro(
+                [close],
+                [forallIntro, assume, rewrite('⋃ P = A', 'BACKWARD', 'a₀ ∈ A'), unfold('a₀ ∈ ⋃ P'), existsElim('∃ S, S ∈ P ∧ a₀ ∈ S'), andElim('S₀ ∈ P ∧ a₀ ∈ S₀'),
+                    existsIntro('S₀'), andIntro([close], [andIntro([close], [forallIntro, assume, assume,
+                        forallElim('∀ (x y : Set obj), x ∈ P → y ∈ P → x ∩ y = ∅ ∨ x = y', `t'₀`), forallElim(`∀ (y : Set obj), t'₀ ∈ P → y ∈ P → t'₀ ∩ y = ∅ ∨ t'₀ = y`, 'S₀'),
+                        forward(`t'₀ ∈ P → S₀ ∈ P → t'₀ ∩ S₀ = ∅ ∨ t'₀ = S₀`, `t'₀ ∈ P`), forward(`S₀ ∈ P → t'₀ ∩ S₀ = ∅ ∨ t'₀ = S₀`, 'S₀ ∈ P'),
+                        orCases(`t'₀ ∩ S₀ = ∅ ∨ t'₀ = S₀`,
+                            [exfalso, claim(`a₀ ∈ t'₀ ∩ S₀`, [unfold(`a₀ ∈ t'₀ ∩ S₀`), andIntro([close], [close])]), rewrite(`t'₀ ∩ S₀ = ∅`, 'FORWARD', `a₀ ∈ t'₀ ∩ S₀`), unfold('a₀ ∈ ∅'), close],
+                            [close])])])])] }],
         ],
     },
 ];

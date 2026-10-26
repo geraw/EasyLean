@@ -13,6 +13,7 @@ import { prepareLevels } from './levelXml';
 export const unit10WorldName = 'יחידה 10 - קבוצת החזקה ופעולות אונריות';
 
 const SETS = 'variable {obj : Type} {A B : Set obj}';
+const UNIVERSE = 'variable {obj : Type} {U : Set obj} {X : Set (Set obj)}';
 const SET_OF_SETS = 'variable {obj : Type} {A : Set obj} {X : Set (Set obj)}';
 const TWO_FAMILIES = 'variable {obj : Type} {X Y : Set (Set obj)}';
 
@@ -33,6 +34,10 @@ const EXISTS_ELIM_BLOCK = '"לפי ? ניתן שם לעצם כזה."';
 const FORALL_ELIM_BLOCK = '"ב־ ? נציב ? ונקבל מה שהוא אומר על העצם."';
 const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרירה."';
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
+const NOT_INTRO_BLOCK = '"נניח בשלילה את הטענה שהמטרה שוללת..."';
+const NOT_ELIM_BLOCK = '"לפי ? כדי להגיע לסתירה די להוכיח את הטענה שהיא שוללת."';
+const REWRITE_BLOCK = '"לפי השוויון ? נחליף ... בתוך ?"';
+const RFL_BLOCK = '"שני הצדדים שווים לפי ההגדרה."';
 const FORALL_INTRO_BLOCK = '"יהי עצם שרירותי. עלינו להראות שהוא מקיים את התכונה."';
 
 const powerset = { symbol: 'קבוצת החזקה', doc: '𝒫(A) = {X | X ⊆ A}: הקבוצה שאיבריה הם כל תת־הקבוצות של A. לכן X ∈ 𝒫(A) פירושו X ⊆ A.' };
@@ -44,7 +49,7 @@ const sInter = { symbol: 'החיתוך האונרי', doc: '⋂X = {a | ∀A ∈
 const level = (number, fields) => ({
     id: `unit10-${number}`,
     levelNumber: number,
-    totalLevels: 11,
+    totalLevels: 12,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -262,6 +267,31 @@ export const unit10Levels = prepareLevels([
         conclusion: `כשהאוסף גדל, החיתוך קטן: יש יותר קבוצות לחתוך, ופחות איברים משותפים לכולן. ושוב: ⋂ הולך עם "לכל", ולכן מוכיחים שייכות אליו בעצם שרירותי, כמו בתבנית של ההרצאה.`,
     }),
     level(11, {
+        title: 'דה־מורגן לאיחוד אונרי',
+        name: 'unit10_l11_de_morgan_sunion',
+        variableLine: UNIVERSE,
+        params: '(C : Set obj) (hC : C ∈ X)',
+        proposition: 'U \\ ⋃ X = ⋂ (Set.compls U X)',
+        claims: ['U \\ C ∈ Set.compls U X', 'U \\ S₀ ∈ Set.compls U X'],
+        toolboxBlocks: ['set_eq', 'subset_intro', 'unfold', 'and_elim', 'and_intro', 'forall_intro', 'assume', 'exists_elim', 'exists_intro', 'rewrite', 'not_intro', 'not_elim', 'claim', 'forall_elim', 'forward', 'rfl', 'exact'],
+        introduction: `# דה־מורגן לאיחוד אונרי
+
+בהרצאה: כלל דה־מורגן לאיחוד אונרי. בקבוצת יקום U ובאוסף X של קבוצות (שלא ריק): \`U ∖ ⋃X = ⋂{U ∖ A | A ∈ X}\`, המשלים של האיחוד הוא החיתוך של המשלימים. כאן {U ∖ A | A ∈ X} היא האוסף של כל הקבוצות U ∖ A, כשהקבוצה A עוברת על X.
+
+x ∈ U ∖ ⋃X פירושו x ∈ U ו־x ∉ ⋃X, כלומר x לא שייך לאף קבוצה של X. וגם x ∈ ⋂{U ∖ A | A ∈ X} פירושו שלכל A ∈ X, x ∈ U ∖ A. ההוכחה היא שתי הכלות, בתבנית של ההרצאה.
+
+כאן C ∈ X, ולכן X אינו ריק, ו־⋂ מוגדר. נחוץ לפחות איבר אחד של X כדי להראות ש־x ∈ U.`,
+        newDefinitions: [{ symbol: 'משלימי הקבוצות של אוסף', doc: '{U ∖ A | A ∈ X}: האוסף שאיבריו הם הקבוצות U ∖ A, לכל A ∈ X. לכן B ∈ {U ∖ A | A ∈ X} פירושו ∃A (A ∈ X ∧ B = U ∖ A).' }],
+        hints: [
+            `גררו את הבלוק ${SET_EQ_BLOCK}. בחלק הראשון: ${SUBSET_INTRO_BLOCK} יהי x ∈ U ∖ ⋃X, פתחו את ההגדרה ופרקו את ה"וגם": x ∈ U ו־x ∉ ⋃X.`,
+            `פתחו את ההגדרה של x ∈ ⋂{U ∖ A | A ∈ X} במטרה: ∀S (S ∈ {U ∖ A | A ∈ X} → x ∈ S). ${FORALL_INTRO_BLOCK} ואחריו ${ASSUME_BLOCK}: S₀ ∈ {U ∖ A | A ∈ X}. פתחו את ההגדרה: ${EXISTS_ELIM_BLOCK} נותן A₀ ∈ X עם S₀ = U ∖ A₀.`,
+            `${REWRITE_BLOCK} עם S₀ = U ∖ A₀: נשאר להוכיח x ∈ U ∖ A₀, כלומר x ∈ U (בידינו) ו־x ∉ A₀: ${NOT_INTRO_BLOCK} x ∈ A₀, ו${NOT_ELIM_BLOCK} עם x ∉ ⋃X: די להוכיח x ∈ ⋃X, עם העד A₀.`,
+            `בחלק השני: יהי x ∈ ⋂{U ∖ A | A ∈ X}. בעזרת C ∈ X, ${CLAIM_BLOCK} U ∖ C ∈ {U ∖ A | A ∈ X} (העד C), והצבה ב־∀: x ∈ U ∖ C, ובפרט x ∈ U.`,
+            `ועוד: x ∉ ⋃X. נניח x ∈ ⋃X, עם עד S₀ ∈ X, x ∈ S₀. אז U ∖ S₀ ∈ {U ∖ A | A ∈ X} (עם העד S₀), ולכן x ∈ U ∖ S₀, בסתירה ל־x ∈ S₀.`,
+        ],
+        conclusion: 'הוכחתם: U ∖ ⋃X = ⋂{U ∖ A | A ∈ X}, כמו בהרצאה. זה כלל דה־מורגן לאיחוד אונרי: "לא שייך לאיחוד" פירושו "לא שייך לאף אחת מהקבוצות", ו"שייך לכל המשלימים" פירושו אותו דבר. הכלל הכפול, למשלים של החיתוך, מוכח באופן דומה.',
+    }),
+    level(12, {
         title: 'שלב בונוס: איחוד אונרי של קבוצת החזקה',
         name: 'unit10_l9_sunion_powerset',
         proposition: '⋃ (𝒫 A) = A',

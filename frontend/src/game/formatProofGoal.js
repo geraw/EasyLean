@@ -267,6 +267,7 @@ const writeImages = (text) => {
     const group = String.raw`(\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)|[^\s()]+)`;
     result = result.replace(new RegExp(String.raw`Set\.sep ${group} ([^\s()]+)`, 'u'), (match, set, p) => `{x ∈ ${set} | ${p}(x)}`);
     result = result.replace(new RegExp(String.raw`Set\.repl ([^\s()]+) ${group}`, 'u'), (match, f, set) => `{${f}(x) | x ∈ ${set}}`);
+    result = result.replace(new RegExp(String.raw`Set\.compls ([^\s()]+) ${group}`, 'u'), (match, u, set) => `{${u} \\ A | A ∈ ${set}}`);
     for (let previous = null; previous !== result;) {
         previous = result;
         result = result.replace(/Set\.(image|preimage) (\S+) (\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)|[^\s()]+)/u,
@@ -415,6 +416,8 @@ const SET_OPERATIONS = {
     image: { lemma: 'easylean_mem_image', name: 'התמונה', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
     preimage: { lemma: 'easylean_mem_preimage', name: 'התמונה ההפוכה', means: (t, [f, b]) => `${f} ${t} ∈ ${b}` },
     // Sets defined as the lecture's slide does (unit 8): by separation, {x ∈ A | P(x)}, and by a template, {f(x) | x ∈ A}.
+    // The complements, in a universe U, of the sets of a family X (unit 10): {U ∖ A | A ∈ X}.
+    compls: { lemma: 'easylean_mem_compls', name: 'משלימי הקבוצות של אוסף', means: (t, [u, x]) => `∃ A, A ∈ ${x} ∧ ${t} = ${u} \\ A` },
     sep: { lemma: 'easylean_mem_sep', name: 'קבוצה לפי הפרדה', means: (t, [a, p]) => `${t} ∈ ${a} ∧ ${p} ${t}` },
     repl: { lemma: 'easylean_mem_repl', name: 'קבוצה לפי תבנית', means: (t, [f, a]) => `∃ x, x ∈ ${a} ∧ ${f} x = ${t}` },
     setOf: { lemma: 'easylean_mem_setOf', name: 'קבוצה לפי תכונה', means: (t, [x, p]) => substituteName(stripOuterParentheses(p), stripOuterParentheses(x), t) },
@@ -464,6 +467,8 @@ const mainSetOperation = (text) => {
     if (equivalenceClass) return { operation: '[]_', operands: [equivalenceClass[1], equivalenceClass[2]] };
     const image = set.match(/^Set\.(image|preimage) (\S+) (.+)$/);
     if (image) return { operation: image[1], operands: [image[2], image[3]] };
+    const complements = set.match(/^Set\.compls (\S+) (.+)$/u);
+    if (complements) return { operation: 'compls', operands: [complements[1], complements[2]] };
     const separation = set.match(/^Set\.sep (.+) (\S+)$/u);
     if (separation) return { operation: 'sep', operands: [separation[1], separation[2]] };
     const template = set.match(/^Set\.repl (\S+) (.+)$/u);
