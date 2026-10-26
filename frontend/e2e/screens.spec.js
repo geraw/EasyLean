@@ -9,6 +9,7 @@ import { unit7Levels, unit7WorldName } from '../src/game/unit7World';
 import { unit8Levels, unit8WorldName } from '../src/game/unit8World';
 import { unit9Levels, unit9WorldName } from '../src/game/unit9World';
 import { unit10Levels, unit10WorldName } from '../src/game/unit10World';
+import { unit11Levels, unit11WorldName } from '../src/game/unit11World';
 
 // Every level fits the screen of each project (a laptop, and an iPad upright
 // and on its side): what a student needs is on it, or can be scrolled to with
@@ -18,7 +19,7 @@ import { unit10Levels, unit10WorldName } from '../src/game/unit10World';
 const PROOF_UNITS = [
     [unit2WorldName, unit2Levels], [unit3WorldName, unit3Levels], [unit4WorldName, unit4Levels],
     [unit5WorldName, unit5Levels], [unit6WorldName, unit6Levels], [unit7WorldName, unit7Levels],
-    [unit8WorldName, unit8Levels], [unit9WorldName, unit9Levels], [unit10WorldName, unit10Levels],
+    [unit8WorldName, unit8Levels], [unit9WorldName, unit9Levels], [unit10WorldName, unit10Levels], [unit11WorldName, unit11Levels],
 ];
 
 const openUnit = async (page, worldName) => {

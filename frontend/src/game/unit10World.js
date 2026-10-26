@@ -35,11 +35,6 @@ const FORWARD_BLOCK = '"מ־ ? ומ־ ? נקבל את המסקנה של הגרי
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
 const FORALL_INTRO_BLOCK = '"יהי עצם שרירותי. עלינו להראות שהוא מקיים את התכונה."';
 
-const claimInfo = {
-    name: 'טענת עזר',
-    doc: 'בהוכחה כתובה מוכיחים לפעמים קודם טענה שתעזור בהמשך: "נוכיח קודם ש...". בוחרים את הטענה בבלוק, מוכיחים אותה בחלק שבתוכו, ומעכשיו היא בידינו.',
-};
-
 const powerset = { symbol: 'קבוצת החזקה', doc: '𝒫(A) = {X | X ⊆ A}: הקבוצה שאיבריה הם כל תת־הקבוצות של A. לכן X ∈ 𝒫(A) פירושו X ⊆ A.' };
 const union = { symbol: 'האיחוד', doc: 'x ∈ (A ∪ B) פירושו x ∈ A ∨ x ∈ B.' };
 const inter = { symbol: 'החיתוך', doc: 'x ∈ (A ∩ B) פירושו x ∈ A ∧ x ∈ B.' };
@@ -49,7 +44,7 @@ const sInter = { symbol: 'החיתוך האונרי', doc: '⋂X = {a | ∀A ∈
 const level = (number, fields) => ({
     id: `unit10-${number}`,
     levelNumber: number,
-    totalLevels: 10,
+    totalLevels: 11,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -121,14 +116,12 @@ export const unit10Levels = prepareLevels([
         proposition: '(𝒫 A ⊆ 𝒫 B) → (A ⊆ B)',
         claims: ['A ∈ 𝒫 A', 'B ∈ 𝒫 B', 'A ∈ 𝒫 B'],
         toolboxBlocks: ['assume', 'claim', 'unfold', 'subset_intro', 'subset_elim', 'exact'],
-        newTacticsBlocks: ['claim'],
-        newTacticsInfo: [claimInfo],
         introduction: `# הכיוון השני: טענת עזר
 
 הכיוון השני של התרגיל: אם \`𝒫(A) ⊆ 𝒫(B)\`, אז \`A ⊆ B\`.
 
 ההכלה 𝒫(A) ⊆ 𝒫(B) מדברת על *תת־קבוצות* של A, ולכן כדי להשתמש בה צריך תת־קבוצה של A. בהרצאה לוקחים את היחידון {x}: הוא מוכל ב־A, ולכן מוכל גם ב־B. כאן ניקח תת־קבוצה אחרת: את A עצמה, שהיא איבר של 𝒫(A) (שלב 1).
-בהוכחה כתובה כותבים: "נוכיח קודם ש־A ∈ 𝒫(A)", מוכיחים, וממשיכים. בשביל זה יש מהלך חדש: *טענת עזר*. מוכיחים אותה בחלק שבתוך הבלוק, ומעכשיו היא בידינו.`,
+בהוכחה כתובה כותבים: "נוכיח קודם ש־A ∈ 𝒫(A)", מוכיחים, וממשיכים. בשביל זה יש את המהלך *טענת עזר* (משלב 9.7). מוכיחים אותה בחלק שבתוך הבלוק, ומעכשיו היא בידינו.`,
         hints: [
             `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה.`,
             `הוסיפו את הבלוק ${CLAIM_BLOCK}, ובחרו בו את A ∈ 𝒫(A).`,
@@ -179,6 +172,25 @@ export const unit10Levels = prepareLevels([
         conclusion: 'בכל מקרה X ∈ 𝒫(A ∪ B). ההכלה ההפוכה נכונה רק כש־A ⊆ B או B ⊆ A: בלי זה, קבוצה עם איבר מ־A ואיבר מ־B שייכת ל־𝒫(A ∪ B), אבל לא ל־𝒫(A) ולא ל־𝒫(B).',
     }),
     level(7, {
+        title: 'כשהאיחוד כן עובד',
+        name: 'unit10_l7_powerset_union_if',
+        proposition: '(A ⊆ B) → 𝒫 (A ∪ B) ⊆ 𝒫 A ∪ 𝒫 B',
+        toolboxBlocks: ['assume', 'subset_intro', 'unfold', 'or_elim', 'subset_elim', 'or_by_negation', 'or_intro', 'exact'],
+        introduction: `# כשהאיחוד כן עובד
+
+בהרצאה: \`𝒫(A ∪ B) = 𝒫(A) ∪ 𝒫(B)\` נכון אם ורק אם A ⊆ B או B ⊆ A. בשלב הקודם הוכחנו את ההכלה שנכונה תמיד, ⊇. עכשיו ההכלה ⊆, כשנתון A ⊆ B (המקרה B ⊆ A סימטרי).
+
+ההוכחה: יהי X ∈ 𝒫(A ∪ B), כלומר X ⊆ A ∪ B. נראה ש־X ⊆ B, ולכן X ∈ 𝒫(B), ובפרט X ∈ 𝒫(A) ∪ 𝒫(B). יהי x ∈ X. אז x ∈ A ∪ B: אם x ∈ A, מ־A ⊆ B נקבל x ∈ B; ואם x ∈ B, סיימנו.`,
+        newDefinitions: [union],
+        hints: [
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו ${SUBSET_INTRO_BLOCK}: יהי X ∈ 𝒫(A ∪ B). פתחו את ההגדרה בהנחה, ופתחו את הגדרת האיחוד במטרה.`,
+            `${OR_INTRO_BLOCK} עם X ∈ 𝒫(B), ופתחו את ההגדרה: נשאר להוכיח X ⊆ B. ${SUBSET_INTRO_BLOCK}: יהי x ∈ X.`,
+            `${SUBSET_ELIM_BLOCK} עם X ⊆ A ∪ B ועם x ∈ X, ופתחו את הגדרת האיחוד בהנחה החדשה: x ∈ A ∨ x ∈ B.`,
+            `${OR_ELIM_BLOCK} עם ה"או" הזה. במקרה 1, ${SUBSET_ELIM_BLOCK} עם A ⊆ B ועם x ∈ A. במקרה 2, x ∈ B כבר בידינו.`,
+        ],
+        conclusion: 'הוכחנו: אם A ⊆ B, אז 𝒫(A ∪ B) ⊆ 𝒫(A) ∪ 𝒫(B), ויחד עם השלב הקודם יש שוויון. כך ההרצאה מגיעה לכיוון "אם" של הטענה; הכיוון "רק אם" (בלי A ⊆ B ובלי B ⊆ A אין שוויון) מוכח בדוגמה נגדית, שאין בבלוקים.',
+    }),
+    level(8, {
         title: 'חיתוך אונרי',
         name: 'unit10_l7_sinter',
         variableLine: SET_OF_SETS,
@@ -203,7 +215,7 @@ export const unit10Levels = prepareLevels([
         ],
         conclusion: 'חיתוך אונרי הוא טענת "לכל", ולכן משתמשים בו בהצבה: את הקבוצה *אנחנו בוחרים*, כאן A. זכרו מההרצאה: ⋂ הולך עם "לכל".',
     }),
-    level(8, {
+    level(9, {
         title: 'איחוד אונרי',
         name: 'unit10_l8_sunion',
         variableLine: SET_OF_SETS,
@@ -225,7 +237,7 @@ export const unit10Levels = prepareLevels([
         ],
         conclusion: 'איחוד אונרי הוא טענת "קיים", ולכן מוכיחים שייכות אליו בבחירת עד: קבוצה מ־X שהאיבר שייך אליה. ⋃ הולך עם "קיים". יחד עם השלב הקודם: ⋂X ⊆ A ⊆ ⋃X.',
     }),
-    level(9, {
+    level(10, {
         title: 'החיתוך מתהפך',
         name: 'unit10_l9_sinter_antitone',
         variableLine: TWO_FAMILIES,
@@ -249,7 +261,7 @@ export const unit10Levels = prepareLevels([
         ],
         conclusion: `כשהאוסף גדל, החיתוך קטן: יש יותר קבוצות לחתוך, ופחות איברים משותפים לכולן. ושוב: ⋂ הולך עם "לכל", ולכן מוכיחים שייכות אליו בעצם שרירותי, כמו בתבנית של ההרצאה.`,
     }),
-    level(10, {
+    level(11, {
         title: 'שלב בונוס: איחוד אונרי של קבוצת החזקה',
         name: 'unit10_l9_sunion_powerset',
         proposition: '⋃ (𝒫 A) = A',

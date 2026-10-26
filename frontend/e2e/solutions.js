@@ -33,11 +33,23 @@ const subsetIntro = ['subset_intro'];
 const subsetElim = (subset, member) => ['subset_elim', { SUBSET: subset, MEMBER: member }];
 const setEq = (first, second) => ['set_eq', {}, { FIRST: first, SECOND: second }];
 const unfold = (statement) => ['unfold', { STATEMENT: statement }];
+const rewrite = (equation, direction, target) => ['rewrite', { EQUATION: equation, DIRECTION: direction, TARGET: target }];
 const claim = (statement, proof) => ['claim', { CLAIM: statement }, { PROOF: proof }];
 
 // Unit 3: "Q ∧ P" from the assumption "P ∧ Q", in two parts or forward.
 const swapAnd = (and) => [assume, andElim(and), andIntro([close], [close])];
 const swapAndForward = (and, left, right) => [assume, andElim(and), combine(left, right), close];
+
+// Unit 11: the definition of a partition of A into the family F (S or T), as Lean writes it;
+// `p` is the element it is stated for, and `c` the class it names.
+const ONLY = (F, c, p = 'a') => `∀ (t' : Set obj), t' ∈ ${F} → ${p} ∈ t' → t' = ${c}`;
+const EXISTS = (F, p = 'a') => `∃ t, t ∈ ${F} ∧ ${p} ∈ t ∧ ${ONLY(F, 't', p)}`;
+const UNIQUE = (F) => `∀ (a : obj), a ∈ A → ${EXISTS(F)}`;
+const IMPL = (F, p = 'a') => `${p} ∈ A → ${EXISTS(F, p)}`;
+const P1 = (F) => `∀ (t : Set obj), t ∈ ${F} → t ⊆ A ∧ ∃ y, y ∈ t`;
+const PARTITION = (F) => `(${P1(F)}) ∧ ${UNIQUE(F)}`;
+const CLASS = (F, c = 't₀', p = 'a') => `${c} ∈ ${F} ∧ ${p} ∈ ${c} ∧ ${ONLY(F, c, p)}`;
+const REST = (F, c = 't₀', p = 'a') => `${p} ∈ ${c} ∧ ${ONLY(F, c, p)}`;
 
 const COURSE = [
     {
@@ -310,6 +322,12 @@ const COURSE = [
             }],
             [{
                 label: 'פתרון',
+                steps: [assume, subsetIntro, byContradiction,
+                    claim('x ∈ A \\ B', [unfold('x ∈ A \\ B'), andIntro([close], [close])]),
+                    rewrite('A \\ B = ∅', 'FORWARD', 'x ∈ A \\ B'), unfold('x ∈ ∅'), close],
+            }],
+            [{
+                label: 'פתרון',
                 steps: [subsetIntro, unfold('x ∈ A \\ C'), andElim('x ∈ A ∧ ¬x ∈ C'), unfold('x ∈ A \\ B ∪ B \\ C'), emCases('x ∈ B',
                     [orIntro('RIGHT'), unfold('x ∈ B \\ C'), andIntro([close], [close])],
                     [orIntro('LEFT'), unfold('x ∈ A \\ B'), andIntro([close], [close])])],
@@ -365,6 +383,12 @@ const COURSE = [
                     [unfold('X ∈ 𝒫 A'), subsetIntro, subsetElim('X ⊆ A', 'x ∈ X'), unfold('x ∈ A ∪ B'), orIntro('LEFT'), close],
                     [unfold('X ∈ 𝒫 B'), subsetIntro, subsetElim('X ⊆ B', 'x ∈ X'), unfold('x ∈ A ∪ B'), orIntro('RIGHT'), close])],
             }],
+            [{
+                label: 'פתרון',
+                steps: [assume, subsetIntro, unfold('X ∈ 𝒫 (A ∪ B)'), unfold('X ∈ 𝒫 A ∪ 𝒫 B'), orIntro('RIGHT'), unfold('X ∈ 𝒫 B'), subsetIntro,
+                    subsetElim('X ⊆ A ∪ B', 'x ∈ X'), unfold('x ∈ A ∪ B'),
+                    orCases('x ∈ A ∨ x ∈ B', [subsetElim('A ⊆ B', 'x ∈ A'), close], [close])],
+            }],
             [
                 { label: 'קדימה', steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallElim('∀ (S : Set obj), S ∈ X → x ∈ S', 'A'), forward('A ∈ X → x ∈ A', 'A ∈ X'), close] },
                 { label: 'אחורה', steps: [subsetIntro, unfold('x ∈ ⋂ X'), forallElim('∀ (S : Set obj), S ∈ X → x ∈ S', 'A'), backward('A ∈ X → x ∈ A'), close] },
@@ -381,6 +405,26 @@ const COURSE = [
                     [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsElim('∃ S, S ∈ 𝒫 A ∧ x ∈ S'), andElim('S₀ ∈ 𝒫 A ∧ x ∈ S₀'), unfold('S₀ ∈ 𝒫 A'), subsetElim('S₀ ⊆ A', 'x ∈ S₀'), close],
                     [subsetIntro, unfold('x ∈ ⋃ (𝒫 A)'), existsIntro('A'), andIntro([unfold('A ∈ 𝒫 A'), subsetIntro, close], [close])])],
             }],
+        ],
+    },
+    {
+        unit: 11,
+        world: 'יחידה 11 - חלוקות',
+        levels: [
+            [{ label: 'פתרון', steps: [unfold('partition S A'), andElim(` ${PARTITION('S')}`),
+                forallElim(UNIQUE('S'), 'a'), forward(IMPL('S'), 'a ∈ A'), existsElim(EXISTS('S')), andElim(CLASS('S')), andElim(REST('S')), existsIntro('t₀'), andIntro([close], [close])] }],
+            [{ label: 'פתרון', steps: [unfold('partition T A'), andElim(` ${PARTITION('T')}`), forallElim(UNIQUE('T'), 'a'), forward(IMPL('T'), 'a ∈ A'),
+                existsElim(EXISTS('T')), andElim(CLASS('T')), andElim(REST('T')), forallElim(ONLY('T', 't₀'), 'D'), forward('D ∈ T → a ∈ D → D = t₀', 'D ∈ T'), forward('a ∈ D → D = t₀', 'a ∈ D'),
+                forallElim(ONLY('T', 't₀'), 'C'), forward('C ∈ T → a ∈ C → C = t₀', 'C ∈ T'), forward('a ∈ C → C = t₀', 'a ∈ C'),
+                rewrite('D = t₀', 'FORWARD', '__goal__'), rewrite('C = t₀', 'FORWARD', '__goal__'), ['rfl']] }],
+            [{ label: 'פתרון', steps: [setEq([close], [subsetIntro, unfold('partition T A'), andElim(` ${PARTITION('T')}`),
+                forallElim(P1('T'), 'x'), forward('x ∈ T → x ⊆ A ∧ ∃ y, y ∈ x', 'x ∈ T'), andElim('x ⊆ A ∧ ∃ y, y ∈ x'), existsElim('∃ y, y ∈ x'), subsetElim('x ⊆ A', 'y₀ ∈ x'),
+                unfold('partition S A'), andElim(` ${PARTITION('S')}`), forallElim(UNIQUE('S'), 'y₀'), forward(IMPL('S', 'y₀'), 'y₀ ∈ A'),
+                existsElim(EXISTS('S', 'y₀')), andElim(CLASS('S', 't₀', 'y₀')), andElim(REST('S', 't₀', 'y₀')), subsetElim('S ⊆ T', 't₀ ∈ S'),
+                forallElim(UNIQUE('T'), 'y₀'), forward(IMPL('T', 'y₀'), 'y₀ ∈ A'), existsElim(EXISTS('T', 'y₀')), andElim(CLASS('T', 't₁', 'y₀')), andElim(REST('T', 't₁', 'y₀')),
+                forallElim(ONLY('T', 't₁', 'y₀'), 't₀'), forward('t₀ ∈ T → y₀ ∈ t₀ → t₀ = t₁', 't₀ ∈ T'), forward('y₀ ∈ t₀ → t₀ = t₁', 'y₀ ∈ t₀'),
+                forallElim(ONLY('T', 't₁', 'y₀'), 'x'), forward('x ∈ T → y₀ ∈ x → x = t₁', 'x ∈ T'), forward('y₀ ∈ x → x = t₁', 'y₀ ∈ x'),
+                rewrite('x = t₁', 'FORWARD', '__goal__'), rewrite('t₀ = t₁', 'BACKWARD', '__goal__'), close])] }],
         ],
     },
 ];

@@ -558,7 +558,7 @@ const UNITS = [
     { unit: 5, world: 'יחידה 5 - כמתים', walks: UNIT5 },
     { unit: 6, world: 'יחידה 6 - שקילויות לוגיות', walks: UNIT6 },
     { unit: 7, world: 'יחידה 7 - מבני הוכחה', walks: UNIT7 },
-    ...[8, 9, 10].map((unit) => ({ unit, world: unitSolutions(unit).world, walks: walksOf(unit) })),
+    ...[8, 9, 10, 11].map((unit) => ({ unit, world: unitSolutions(unit).world, walks: walksOf(unit) })),
 ];
 
 // The walks of a unit: a list, for every level, or by level number, for some.

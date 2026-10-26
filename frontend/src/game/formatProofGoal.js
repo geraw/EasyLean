@@ -480,6 +480,12 @@ const mainSetOperation = (text) => {
 // { name, lemma, means }, or null when it is not one.
 export const unfoldMembership = (text) => {
     // A property of one relation or function: its argument is a name or a group.
+    // A partition (unit 11) has two arguments: the family and the set it divides.
+    const partitionOf = stripOuterParentheses(text || '').match(/^partition ([^\s()]+) ([^\s()]+)$/u);
+    if (partitionOf) {
+        const [, family, set] = partitionOf;
+        return { name: 'החלוקה', lemma: 'easylean_partition', means: `(∀ t, t ∈ ${family} → t ⊆ ${set} ∧ ∃ y, y ∈ t) ∧ ∀ a, a ∈ ${set} → ∃ t, t ∈ ${family} ∧ a ∈ t ∧ ∀ t', t' ∈ ${family} → a ∈ t' → t' = t` };
+    }
     const property = stripOuterParentheses(text || '').match(/^(reflexive|symmetric|transitive|antisymmetric|injective|surjective) ([^\s()]+|\((?:[^()]|\([^()]*\))*\))$/);
     if (property) {
         const { name, means } = PROPERTIES[property[1]];

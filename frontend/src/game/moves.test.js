@@ -16,11 +16,12 @@ import { unit7Levels } from './unit7World';
 import { unit8Levels } from './unit8World';
 import { unit9Levels } from './unit9World';
 import { unit10Levels } from './unit10World';
+import { unit11Levels } from './unit11World';
 import { UNITS, unitSolutions } from '../../e2e/solutions';
 
 defineMoveBlocks();
 
-const worlds = { 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels, 7: unit7Levels, 8: unit8Levels, 9: unit9Levels, 10: unit10Levels };
+const worlds = { 2: unit2Levels, 3: unit3Levels, 4: unit4Levels, 5: unit5Levels, 6: unit6Levels, 7: unit7Levels, 8: unit8Levels, 9: unit9Levels, 10: unit10Levels, 11: unit11Levels };
 
 // Builds the parts of the moves that split the proof ([type, fields, parts]).
 const buildParts = (blocks, steps) => blocks.forEach((block, index) => Object.entries(steps[index][2] || {})

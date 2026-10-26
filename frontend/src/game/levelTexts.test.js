@@ -9,6 +9,7 @@ import { unit7Levels } from './unit7World';
 import { unit8Levels } from './unit8World';
 import { unit9Levels } from './unit9World';
 import { unit10Levels } from './unit10World';
+import { unit11Levels } from './unit11World';
 
 // Every formula a student sees is written alike: the goal block and the card
 // are made from the level's Lean statement (prepareLevels in levelXml.js), the
@@ -16,7 +17,7 @@ import { unit10Levels } from './unit10World';
 // text writes in `…` must already be written so, which formatProofGoal leaves
 // as it is (`¬A ⊆ B`, say, would be `¬(A ⊆ B)`).
 
-const LEVELS = [unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels, unit9Levels, unit10Levels].flat();
+const LEVELS = [unit2Levels, unit3Levels, unit4Levels, unit5Levels, unit6Levels, unit7Levels, unit8Levels, unit9Levels, unit10Levels, unit11Levels].flat();
 
 // A formula's outer parentheses are left out in a text (`P ∧ Q`), and written
 // in the display ((P ∧ Q)).

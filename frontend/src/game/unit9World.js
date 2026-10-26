@@ -35,7 +35,19 @@ const NOT_ELIM_BLOCK = '"לפי ? כדי להגיע לסתירה די להוכי
 const CONTRADICTION_BLOCK = '"קיבלנו ? וגם את השלילה שלה, בסתירה."';
 const EXFALSO_BLOCK = '"מסתירה נובע הכול: די להגיע לסתירה."';
 const IFF_INTRO_BLOCK = '"נוכיח את שני הכיוונים של ה"אם ורק אם"."';
+const BY_CONTRADICTION_BLOCK = '"נניח בשלילה שהמטרה לא נכונה..."';
+const CLAIM_BLOCK = '"נוכיח קודם את טענת העזר ?..."';
+const REWRITE_BLOCK = '"לפי השוויון ? נחליף ... בתוך ?"';
 const CLOSE_BLOCK = '"המטרה בידינו, וזה מה שעלינו להראות."';
+
+const claimInfo = {
+    name: 'טענת עזר',
+    doc: 'בהוכחה כתובה מוכיחים לפעמים קודם טענה שתעזור בהמשך: "נוכיח קודם ש...". בוחרים את הטענה בבלוק, מוכיחים אותה בחלק שבתוכו, ומעכשיו היא בידינו.',
+};
+const rewriteInfo = {
+    name: 'החלפה לפי שוויון',
+    doc: 'אם a = b, אפשר להחליף את a ב־b, או את b ב־a, במטרה או בטענה שבידינו. בטענה שבידינו, התוצאה מצטרפת למה שבידינו.',
+};
 
 const union = { symbol: 'האיחוד', doc: 'A ∪ B = {x | x ∈ A ∨ x ∈ B}: האיברים השייכים לפחות לאחת מהקבוצות. לכן x ∈ (A ∪ B) פירושו x ∈ A ∨ x ∈ B.' };
 const inter = { symbol: 'החיתוך', doc: 'A ∩ B = {x | x ∈ A ∧ x ∈ B}: האיברים השייכים לשתי הקבוצות. לכן x ∈ (A ∩ B) פירושו x ∈ A ∧ x ∈ B.' };
@@ -45,7 +57,7 @@ const symmDiff = { symbol: 'ההפרש הסימטרי', doc: 'A ∆ B = {x | (x 
 const level = (number, fields) => ({
     id: `unit9-${number}`,
     levelNumber: number,
-    totalLevels: 9,
+    totalLevels: 10,
     usesSets: true,
     variableLine: SETS,
     params: '',
@@ -174,6 +186,31 @@ export const unit9Levels = prepareLevels([
         conclusion: 'הוכחתם שאין איבר ב־A ∖ B: כל איבר כזה מוביל לסתירה. גם הכיוון ⇒ נכון: אם A ∖ B = ∅, איבר של A שאינו ב־B היה איבר של A ∖ B, וזו סתירה.',
     }),
     level(7, {
+        title: 'הפרש ריק נותן הכלה',
+        name: 'unit9_l7_empty_diff_subset',
+        proposition: '(A \\ B = ∅) → A ⊆ B',
+        claims: ['x ∈ A \\ B'],
+        toolboxBlocks: ['assume', 'subset_intro', 'by_contradiction', 'claim', 'unfold', 'and_intro', 'rewrite', 'exact'],
+        newTacticsBlocks: ['claim', 'rewrite'],
+        newTacticsInfo: [claimInfo, rewriteInfo],
+        newDefinitions: [diff],
+        introduction: `# הפרש ריק נותן הכלה
+
+הכיוון השני של הטענה מהשקף, \`A ∖ B = ∅ ⟺ A ⊆ B\`: אם A ∖ B = ∅, אז A ⊆ B.
+
+ההוכחה: יהי x ∈ A, ונוכיח x ∈ B. נניח בשלילה ש־x ∉ B. אז x שייך ל־A ∖ B, אבל A ∖ B = ∅, ולכן x ∈ ∅, וזו סתירה.
+
+שני מהלכים חדשים: *טענת עזר*, כדי להוכיח קודם ש־x ∈ A ∖ B (בחלק שבתוך הבלוק, ומעכשיו היא בידינו); ו*החלפה לפי שוויון*, כדי להחליף את A ∖ B ב־∅ בתוך הטענה, לפי השוויון שבידינו.`,
+        hints: [
+            `גררו את הבלוק ${ASSUME_BLOCK} אל תוך בלוק המטרה, ואחריו את הבלוק ${SUBSET_INTRO_BLOCK}: יהי x ∈ A.`,
+            `הוסיפו את הבלוק ${BY_CONTRADICTION_BLOCK}: עכשיו x ∉ B בידינו, והמטרה סתירה.`,
+            `הוסיפו את הבלוק ${CLAIM_BLOCK}, ובחרו בו את x ∈ (A ∖ B). בתוכו: פתחו את ההגדרה במטרה, ואת שני חלקי ה"וגם" ${AND_INTRO_BLOCK}, וכל אחד מהם כבר בידינו.`,
+            `אחרי טענת העזר, ${REWRITE_BLOCK}: בחרו בשוויון A ∖ B = ∅, והחליפו בתוך x ∈ (A ∖ B). עכשיו x ∈ ∅ בידינו.`,
+            `פתחו את ההגדרה ב־x ∈ ∅: פירושו ⊥, וזו הסתירה שהמטרה דורשת.`,
+        ],
+        conclusion: `יחד עם השלב הקודם: A ∖ B = ∅ אם ורק אם A ⊆ B. המעבר "ההפרש ריק, ולכן x ∈ A ∖ B נותן סתירה" הוא התבנית של ההרצאה לקבוצה ריקה: איבר בקבוצה ריקה הוא תמיד סתירה.`,
+    }),
+    level(8, {
         title: 'טבלת המצבים',
         name: 'unit9_l7_cases_table',
         proposition: 'A \\ C ⊆ (A \\ B) ∪ (B \\ C)',
@@ -192,7 +229,7 @@ export const unit9Levels = prepareLevels([
         ],
         conclusion: 'בכל אחד משני המקרים x שייך לאגף ימין. אלה שורות הטבלה שבהן x ∈ A ו־x ∉ C: שורה עם x ∈ B ושורה עם x ∉ B. בשאר השורות x לא שייך לאגף שמאל, ואין מה לבדוק.',
     }),
-    level(8, {
+    level(9, {
         title: 'הפרש סימטרי',
         name: 'unit9_l8_symmetric_difference',
         proposition: 'A ∆ B = (A \\ B) ∪ (B \\ A)',
@@ -213,7 +250,7 @@ export const unit9Levels = prepareLevels([
         conclusion: `A ∆ B = (A ∖ B) ∪ (B ∖ A), כמו בהרצאה: "x ∈ A ∆ B ⟺ (x ∈ A ∧ x ∉ B) ∨ (x ∉ A ∧ x ∈ B) ⟺ x ∈ (A ∖ B) ∨ x ∈ (B ∖ A)".
 בהרצאה הוכחנו גם ש־A ∆ B = (A ∪ B) ∖ (A ∩ B), ולכן לשלוש ההגדרות אותה משמעות, ואפשר להשתמש בכל אחת מהן לפי הנוחות.`,
     }),
-    level(9, {
+    level(10, {
         title: 'שלב בונוס: כלל דה־מורגן',
         name: 'unit9_l9_de_morgan',
         proposition: 'A \\ (B ∩ C) = (A \\ B) ∪ (A \\ C)',

@@ -64,6 +64,9 @@ theorem easylean_mem_compl {α : Type u} {A : Set α} {x : α} : x ∈ Aᶜ ↔ 
 theorem easylean_mem_empty {α : Type u} {x : α} : x ∈ (∅ : Set α) ↔ False := Iff.rfl
 theorem easylean_mem_powerset {α : Type u} {A B : Set α} : B ∈ 𝒫 A ↔ B ⊆ A := Iff.rfl
 theorem easylean_mem_sUnion {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋃ F ↔ ∃ S, S ∈ F ∧ x ∈ S := Iff.rfl
+def partition {α : Type u} (S : Set (Set α)) (A : Set α) : Prop :=
+  (∀ t, t ∈ S → t ⊆ A ∧ ∃ y, y ∈ t) ∧ ∀ a, a ∈ A → ∃ t, t ∈ S ∧ a ∈ t ∧ ∀ t', t' ∈ S → a ∈ t' → t' = t
+theorem easylean_partition {α : Type u} {S : Set (Set α)} {A : Set α} : partition S A ↔ ((∀ t, t ∈ S → t ⊆ A ∧ ∃ y, y ∈ t) ∧ ∀ a, a ∈ A → ∃ t, t ∈ S ∧ a ∈ t ∧ ∀ t', t' ∈ S → a ∈ t' → t' = t) := Iff.rfl
 theorem easylean_mem_sInter {α : Type u} {F : Set (Set α)} {x : α} : x ∈ ⋂ F ↔ ∀ S, S ∈ F → x ∈ S := Iff.rfl
 theorem easylean_subset_intro {α : Type u} {A B : Set α} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h
 theorem easylean_subset_intro_pair {α : Type u} {A B : Set (α × α)} (h : ∀ x y, (x, y) ∈ A → (x, y) ∈ B) : A ⊆ B := fun p => h p.1 p.2

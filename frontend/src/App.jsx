@@ -11,6 +11,7 @@ import { unit7Levels, unit7WorldName } from './game/unit7World';
 import { unit8Levels, unit8WorldName } from './game/unit8World';
 import { unit9Levels, unit9WorldName } from './game/unit9World';
 import { unit10Levels, unit10WorldName } from './game/unit10World';
+import { unit11Levels, unit11WorldName } from './game/unit11World';
 import { BACKEND_URL } from './backendUrl';
 import FeedbackButton from './feedback/FeedbackButton';
 import './App.css';
@@ -53,13 +54,14 @@ const UNITS = {
   unit7: { levels: unit7Levels, worldName: unit7WorldName, next: { mode: 'unit8', label: 'ליחידה 8' } },
   unit8: { levels: unit8Levels, worldName: unit8WorldName, next: { mode: 'unit9', label: 'ליחידה 9' } },
   unit9: { levels: unit9Levels, worldName: unit9WorldName, next: { mode: 'unit10', label: 'ליחידה 10' } },
-  unit10: { levels: unit10Levels, worldName: unit10WorldName },
+  unit10: { levels: unit10Levels, worldName: unit10WorldName, next: { mode: 'unit11', label: 'ליחידה 11' } },
+  unit11: { levels: unit11Levels, worldName: unit11WorldName },
 };
 
 // A lesson is linked to by its address, …/#lesson2; a unit by …/#unit9.
 const LESSONS = [
   { id: 'lesson1', title: 'שיעור 1: קשרים, כמתים ומבני הוכחה', units: ['unit1', 'unit2', 'unit3', 'unit4', 'unit5', 'unit6', 'unit7'] },
-  { id: 'lesson2', title: 'שיעור 2: קבוצות', units: ['unit8', 'unit9', 'unit10'] },
+  { id: 'lesson2', title: 'שיעור 2: קבוצות', units: ['unit8', 'unit9', 'unit10', 'unit11'] },
 ];
 
 const lessonOf = (mode) => LESSONS.find((lesson) => lesson.units.includes(mode));
